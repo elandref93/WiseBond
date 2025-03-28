@@ -28,7 +28,14 @@ const formSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
-  phone: z.string().optional(),
+  phone: z.string().optional().refine(
+    (val) => {
+      if (!val) return true; // Allow empty as it's optional
+      // Match either 10 digits starting with 0 or +27 followed by 9 digits
+      return /^(0\d{9}|\+27[1-9]\d{8})$/.test(val);
+    },
+    { message: "Please enter a valid South African phone number (e.g., 0821234567 or +27821234567)" }
+  ),
   password: z.string().min(8, {
     message: "Password must be at least 8 characters.",
   }),
@@ -177,7 +184,13 @@ export default function SignUpForm() {
               <FormItem className="sm:col-span-6">
                 <FormLabel>Phone number</FormLabel>
                 <FormControl>
-                  <Input {...field} type="tel" autoComplete="tel" placeholder="e.g. 0821234567" />
+                  <Input 
+                    {...field} 
+                    type="tel" 
+                    autoComplete="tel" 
+                    placeholder="e.g. 0821234567 or +27821234567"
+                    pattern="(0[0-9]{9}|\+27[1-9][0-9]{8})"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
