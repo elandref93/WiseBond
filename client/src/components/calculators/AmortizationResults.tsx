@@ -146,14 +146,14 @@ export default function AmortizationResults({ results }: AmortizationResultsProp
                   yAxisId="left"
                   orientation="left"
                   tickFormatter={(value) => `R${(value / 1000).toFixed(0)}k`}
-                  domain={[0, Math.max(loanAmount, totalInterest) * 1.1]}
+                  domain={[0, 'dataMax']}
                   axisLine={false}
                 />
                 <YAxis 
                   yAxisId="right"
                   orientation="right"
                   tickFormatter={(value) => `R${(value / 1000).toFixed(0)}k`}
-                  domain={[0, Math.max(monthlyPayment * 12, interestOnlyPayment * 12) * 1.2]}
+                  domain={[0, 'dataMax']}
                   axisLine={false}
                   hide
                 />
