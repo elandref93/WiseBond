@@ -175,7 +175,7 @@ export default function SignUpForm() {
             name="phone"
             render={({ field }) => (
               <FormItem className="sm:col-span-6">
-                <FormLabel>Phone number (optional)</FormLabel>
+                <FormLabel>Phone number</FormLabel>
                 <FormControl>
                   <Input {...field} type="tel" autoComplete="tel" placeholder="e.g. 0821234567" />
                 </FormControl>
