@@ -45,7 +45,9 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
   const onSubmit = async (values: AmortizationFormValues) => {
     setIsSubmitting(true);
     try {
-      const loanAmount = parseFloat(values.loanAmount.replace(/[^0-9.]/g, ""));
+      // Remove currency symbols, commas, and spaces to properly parse the loan amount
+      const cleanedLoanAmount = values.loanAmount.replace(/[R,\s]/g, "");
+      const loanAmount = parseFloat(cleanedLoanAmount);
       const interestRate = parseFloat(values.interestRate) / 100;
       const loanTermYears = parseFloat(values.loanTerm);
       const loanTermMonths = loanTermYears * 12;
@@ -181,11 +183,22 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
                     <Input
                       {...field}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/[^0-9.]/g, "");
-                        const formattedValue = value
-                          ? formatCurrency(parseFloat(value))
-                          : "";
-                        field.onChange(formattedValue);
+                        // Strip all non-numeric characters except decimal point
+                        const rawValue = e.target.value.replace(/[^0-9.]/g, "");
+                        
+                        // Don't format if it's empty
+                        if (!rawValue) {
+                          field.onChange("");
+                          return;
+                        }
+                        
+                        // Parse the numeric value
+                        const numericValue = parseFloat(rawValue);
+                        
+                        // Format only if it's a valid number
+                        if (!isNaN(numericValue)) {
+                          field.onChange(formatCurrency(numericValue));
+                        }
                       }}
                       placeholder="e.g., R1,000,000"
                     />
