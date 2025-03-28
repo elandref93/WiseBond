@@ -6,8 +6,7 @@ import DepositSavingsCalculator from "@/components/calculators/DepositSavingsCal
 import BondsTransferCostsCalculator from "@/components/calculators/BondsTransferCostsCalculator";
 import AdditionalPaymentCalculator from "@/components/calculators/AdditionalPaymentCalculator";
 import AmortizationCalculator from "@/components/calculators/AmortizationCalculator";
-import LoanComparisonSlider from "@/components/calculators/LoanComparisonSlider";
-import MortgageTermSimulator from "@/components/calculators/MortgageTermSimulator";
+import LoanComparisonSimulator from "@/components/calculators/LoanComparisonSimulator";
 import CalculationResults from "@/components/calculators/CalculationResults";
 import { CalculationResult } from "@/lib/calculators";
 import { useQuery } from "@tanstack/react-query";
@@ -16,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { HomeIcon, CreditCardIcon, CalendarIcon, BadgeIcon, BarChart4Icon, CalculatorIcon, InfoIcon, TrendingUpIcon, ClockIcon } from "lucide-react";
+import { HomeIcon, CreditCardIcon, CalendarIcon, BadgeIcon, BarChart4Icon, CalculatorIcon, InfoIcon, TrendingUpIcon, ClockIcon, LineChartIcon } from "lucide-react";
 
 export default function Calculators() {
   // Check if tab is specified in URL
@@ -254,8 +253,8 @@ export default function Calculators() {
                   <TabsTrigger value="additional">Additional Payment</TabsTrigger>
                   <TabsTrigger value="deposit">Deposit Savings</TabsTrigger>
                   <TabsTrigger value="amortisation">Amortisation</TabsTrigger>
-                  <TabsTrigger value="comparison">Rate Comparison</TabsTrigger>
-                  <TabsTrigger value="term-simulator">Term Simulator</TabsTrigger>
+                  <TabsTrigger value="comparison">Loan Comparison</TabsTrigger>
+                  <TabsTrigger value="term-simulator">Term Impact</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="bond">
@@ -413,10 +412,10 @@ export default function Calculators() {
                   <div className="space-y-6">
                     <div className="flex items-center mb-4">
                       <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-white mr-4">
-                        <TrendingUpIcon className="h-5 w-5" />
+                        <LineChartIcon className="h-5 w-5" />
                       </div>
                       <h3 className="text-lg leading-6 font-medium text-gray-900">
-                        Interactive Loan Rate Comparison
+                        Interactive Loan Comparison Simulator
                       </h3>
                     </div>
                     
@@ -424,12 +423,12 @@ export default function Calculators() {
                       <div className="flex">
                         <InfoIcon className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
                         <div className="text-sm text-blue-700">
-                          Compare different interest rates in real-time to see how they affect your monthly payments and total interest. Adjust the loan amount and term using the sliders to see the impact on your loan costs across various bank rates.
+                          This comprehensive interactive tool allows you to compare both different interest rates and loan terms. Use the tabs to toggle between term and rate comparisons. Adjust the loan amount, interest rate, and term using the sliders to see the impact on your loan costs in real-time with detailed visualizations.
                         </div>
                       </div>
                     </div>
 
-                    <LoanComparisonSlider 
+                    <LoanComparisonSimulator 
                       initialLoanAmount={1500000} 
                       initialInterestRate={11.25} 
                       initialLoanTerm={20} 
@@ -481,14 +480,15 @@ export default function Calculators() {
                       <div className="flex">
                         <InfoIcon className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
                         <div className="text-sm text-blue-700">
-                          See how different loan terms (from 10 to 30 years) affect your monthly payment, total interest paid, and loan amortization schedule. Choosing a shorter term reduces total interest paid but increases monthly payments. Longer terms provide lower monthly payments but result in significantly more interest paid over the life of the loan.
+                          Our comprehensive interactive tool allows you to see how different loan terms (from 10 to 30 years) affect your monthly payment, total interest paid, and loan amortization schedule. You can also compare various interest rates to understand their impact on your loan. Use the tabs to explore both perspectives.
                         </div>
                       </div>
                     </div>
 
-                    <MortgageTermSimulator
+                    <LoanComparisonSimulator
                       initialLoanAmount={1500000}
                       initialInterestRate={11.25}
+                      initialLoanTerm={20}
                     />
                     
                     <div className="mt-8 bg-gray-50 p-6 rounded-lg">
