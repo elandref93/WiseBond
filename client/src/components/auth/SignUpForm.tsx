@@ -25,9 +25,6 @@ const formSchema = z.object({
   lastName: z.string().min(2, {
     message: "Last name must be at least 2 characters.",
   }),
-  username: z.string().min(3, {
-    message: "Username must be at least 3 characters.",
-  }),
   email: z.string().email({
     message: "Please enter a valid email address.",
   }),
@@ -54,7 +51,6 @@ export default function SignUpForm() {
   const defaultValues: SignUpFormValues = {
     firstName: "",
     lastName: "",
-    username: "",
     email: "",
     phone: "",
     password: "",
@@ -71,7 +67,8 @@ export default function SignUpForm() {
     try {
       // Initial registration - creates account but marks as unverified
       const user = await register({
-        username: values.username,
+        // Use email as username since we're removing the username field
+        username: values.email,
         password: values.password,
         firstName: values.firstName,
         lastName: values.lastName,
@@ -153,20 +150,6 @@ export default function SignUpForm() {
                 <FormLabel>Last name</FormLabel>
                 <FormControl>
                   <Input {...field} autoComplete="family-name" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem className="sm:col-span-6">
-                <FormLabel>Username</FormLabel>
-                <FormControl>
-                  <Input {...field} autoComplete="username" />
                 </FormControl>
                 <FormMessage />
               </FormItem>

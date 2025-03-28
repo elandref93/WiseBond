@@ -85,7 +85,7 @@ export const updateProfileSchema = createInsertSchema(users)
   });
 
 export const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
+  username: z.string().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
 });
 

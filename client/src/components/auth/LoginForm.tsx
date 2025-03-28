@@ -11,8 +11,8 @@ import { useAuth } from "@/contexts/AuthContext";
 
 // Form schema with validation
 const formSchema = z.object({
-  username: z.string().min(1, {
-    message: "Username is required.",
+  username: z.string().email({
+    message: "Please enter a valid email address.",
   }),
   password: z.string().min(1, {
     message: "Password is required.",
@@ -74,9 +74,9 @@ export default function LoginForm() {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input {...field} autoComplete="username" />
+                <Input {...field} type="email" autoComplete="email" />
               </FormControl>
               <FormMessage />
             </FormItem>

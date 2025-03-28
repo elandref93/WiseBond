@@ -89,7 +89,8 @@ export class MemStorage implements IStorage {
   }
 
   async verifyUser(username: string, password: string): Promise<User | undefined> {
-    const user = await this.getUserByUsername(username);
+    // Since we're using email as username now, we'll look up by email instead
+    const user = await this.getUserByEmail(username);
     if (!user) return undefined;
     
     const isMatch = await bcrypt.compare(password, user.password);
