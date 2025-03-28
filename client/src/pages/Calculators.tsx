@@ -3,6 +3,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BondRepaymentCalculator from "@/components/calculators/BondRepaymentCalculator";
 import AffordabilityCalculator from "@/components/calculators/AffordabilityCalculator";
 import DepositSavingsCalculator from "@/components/calculators/DepositSavingsCalculator";
+import BondsTransferCostsCalculator from "@/components/calculators/BondsTransferCostsCalculator";
+import AdditionalPaymentCalculator from "@/components/calculators/AdditionalPaymentCalculator";
+import AmortizationCalculator from "@/components/calculators/AmortizationCalculator";
 import CalculationResults from "@/components/calculators/CalculationResults";
 import { CalculationResult } from "@/lib/calculators";
 import { useQuery } from "@tanstack/react-query";
@@ -10,7 +13,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { InfoIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { HomeIcon, CreditCardIcon, CalendarIcon, BadgeIcon, BarChart4Icon, CalculatorIcon, InfoIcon } from "lucide-react";
 
 export default function Calculators() {
   const [activeTab, setActiveTab] = useState("bond");
@@ -18,7 +22,7 @@ export default function Calculators() {
   const { user } = useAuth();
 
   // Fetch user's saved calculations if logged in
-  const { data: savedCalculations, isLoading } = useQuery({
+  const { data: savedCalculations = [], isLoading } = useQuery<any[]>({
     queryKey: ['/api/calculations'],
     enabled: !!user, // Only run query if user is logged in
   });
@@ -45,13 +49,179 @@ export default function Calculators() {
       {/* Calculators Section */}
       <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">
+            Our Financial Calculators
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Bond Repayment Calculator */}
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <HomeIcon className="w-10 h-10 text-primary mr-4" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Repayments calculator
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      See what your total monthly repayment amount would be on your new home.
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  className="w-full mt-4"
+                  onClick={() => {
+                    setActiveTab("bond");
+                    window.location.href = "#calculator-detail";
+                  }}
+                >
+                  Calculate
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Affordability Calculator */}
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <BadgeIcon className="w-10 h-10 text-primary mr-4" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Affordability calculator
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Find out how much you can afford to spend on your new home, based on your income and expenses.
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  className="w-full mt-4"
+                  onClick={() => {
+                    setActiveTab("affordability");
+                    window.location.href = "#calculator-detail";
+                  }}
+                >
+                  Calculate
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Bonds and Transfer Costs Calculator */}
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <CreditCardIcon className="w-10 h-10 text-primary mr-4" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Bonds and transfer costs calculator
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Calculate the total bond registration and property transfer costs on your new home.
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  className="w-full mt-4"
+                  onClick={() => {
+                    setActiveTab("transfer");
+                    window.location.href = "#calculator-detail";
+                  }}
+                >
+                  Calculate
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Additional Payment Calculator */}
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <BarChart4Icon className="w-10 h-10 text-primary mr-4" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Additional payment calculator
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Calculate how much you can save, in terms of both time and money, by paying a little extra into your bond.
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  className="w-full mt-4"
+                  onClick={() => {
+                    setActiveTab("additional");
+                    window.location.href = "#calculator-detail";
+                  }}
+                >
+                  Calculate
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Deposit & Savings Calculator */}
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <CalendarIcon className="w-10 h-10 text-primary mr-4" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Deposit & savings costs calculator
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Calculate how much you need to save, and for how long, to put together a deposit on your dream home.
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  className="w-full mt-4"
+                  onClick={() => {
+                    setActiveTab("deposit");
+                    window.location.href = "#calculator-detail";
+                  }}
+                >
+                  Calculate
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Amortisation Calculator */}
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <CalculatorIcon className="w-10 h-10 text-primary mr-4" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Amortisations calculator
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Understand how your home loan repayments are structured in terms of paying off capital and interest.
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  className="w-full mt-4"
+                  onClick={() => {
+                    setActiveTab("amortisation");
+                    window.location.href = "#calculator-detail";
+                  }}
+                >
+                  Calculate
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Calculator Detail Section */}
+          <div id="calculator-detail" className="mt-16 bg-white overflow-hidden shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
-              <Tabs defaultValue="bond" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-3 mb-8">
-                  <TabsTrigger value="bond">Bond Repayment</TabsTrigger>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 mb-8">
+                  <TabsTrigger value="bond">Repayments</TabsTrigger>
                   <TabsTrigger value="affordability">Affordability</TabsTrigger>
+                  <TabsTrigger value="transfer">Transfer Costs</TabsTrigger>
+                  <TabsTrigger value="additional">Additional Payment</TabsTrigger>
                   <TabsTrigger value="deposit">Deposit Savings</TabsTrigger>
+                  <TabsTrigger value="amortisation">Amortisation</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="bond">
@@ -129,6 +299,81 @@ export default function Calculators() {
                     </div>
                   </div>
                 </TabsContent>
+
+                <TabsContent value="transfer">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-1">
+                      <BondsTransferCostsCalculator onCalculate={handleCalculationComplete} />
+                    </div>
+                    <div className="md:col-span-2">
+                      {calculationResults && calculationResults.type === 'transfer' ? (
+                        <CalculationResults results={calculationResults} />
+                      ) : (
+                        <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
+                          <div className="text-center">
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                              Calculate Transfer and Bond Costs
+                            </h3>
+                            <p className="text-gray-500">
+                              Calculate all the registration, transfer, and legal fees
+                              that come with buying a property in South Africa.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="additional">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-1">
+                      <AdditionalPaymentCalculator onCalculate={handleCalculationComplete} />
+                    </div>
+                    <div className="md:col-span-2">
+                      {calculationResults && calculationResults.type === 'additional' ? (
+                        <CalculationResults results={calculationResults} />
+                      ) : (
+                        <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
+                          <div className="text-center">
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                              Calculate Additional Payment Benefits
+                            </h3>
+                            <p className="text-gray-500">
+                              See how making additional payments on your bond can
+                              save you time and money over the loan term.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="amortisation">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-1">
+                      <AmortizationCalculator onCalculate={handleCalculationComplete} />
+                    </div>
+                    <div className="md:col-span-2">
+                      {calculationResults && calculationResults.type === 'amortisation' ? (
+                        <CalculationResults results={calculationResults} />
+                      ) : (
+                        <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
+                          <div className="text-center">
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                              Understand Your Loan Amortisation
+                            </h3>
+                            <p className="text-gray-500">
+                              See how your loan payments break down between principal and
+                              interest over the life of your loan.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
               </Tabs>
             </div>
           </div>
@@ -145,7 +390,7 @@ export default function Calculators() {
 
             {isLoading ? (
               <div className="text-center py-8">Loading saved calculations...</div>
-            ) : savedCalculations && savedCalculations.length > 0 ? (
+            ) : Array.isArray(savedCalculations) && savedCalculations.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {savedCalculations.map((calc: any, index: number) => {
                   const parsedResult = JSON.parse(calc.resultData);

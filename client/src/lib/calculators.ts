@@ -2,7 +2,7 @@
 
 // Type for calculation results
 export interface CalculationResult {
-  type: 'bond' | 'affordability' | 'deposit';
+  type: 'bond' | 'affordability' | 'deposit' | 'additional' | 'transfer' | 'amortisation';
   displayResults: {
     label: string;
     value: string;
