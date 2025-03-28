@@ -36,19 +36,32 @@ export default function Hero() {
                     </Link>
                   </div>
                   <div className="mt-3 sm:mt-0 sm:ml-3">
-                    <Link href="/calculators">
-                      <Button size="lg" variant="outline" className="w-full">
-                        Use Calculators
+                    <Link href="/loan-eligibility">
+                      <Button size="lg" variant="secondary" className="w-full">
+                        Check Eligibility
                       </Button>
                     </Link>
                   </div>
                 </div>
-                <div className="mt-3 sm:flex sm:justify-center lg:justify-start">
+                <div className="mt-3 sm:flex sm:flex-col sm:items-center lg:items-start">
+                  <div className="text-sm text-gray-500 flex items-center mb-2">
+                    <svg className="w-4 h-4 mr-1 text-primary" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Find the perfect home loan solution for your needs
+                  </div>
                   <div className="text-sm text-gray-500 flex items-center">
                     <svg className="w-4 h-4 mr-1 text-primary" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    Answer a few questions to find the perfect home loan solution for you
+                    Check your eligibility in just a few minutes
+                  </div>
+                  <div className="mt-3">
+                    <Link href="/calculators">
+                      <Button variant="link" className="text-primary p-0 h-auto">
+                        Or use our financial calculators →
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </div>

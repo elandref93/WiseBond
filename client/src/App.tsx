@@ -15,6 +15,7 @@ const About = lazy(() => import("@/pages/About"));
 const Services = lazy(() => import("@/pages/Services"));
 const Calculators = lazy(() => import("@/pages/Calculators"));
 const Determinator = lazy(() => import("@/pages/Determinator"));
+const LoanEligibility = lazy(() => import("@/pages/LoanEligibility"));
 const FAQ = lazy(() => import("@/pages/FAQ"));
 const Contact = lazy(() => import("@/pages/Contact"));
 const SignUp = lazy(() => import("@/pages/SignUp"));
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/services" component={Services} />
       <Route path="/calculators" component={Calculators} />
       <Route path="/determinator" component={Determinator} />
+      <Route path="/loan-eligibility" component={LoanEligibility} />
       <Route path="/faq" component={FAQ} />
       <Route path="/contact" component={Contact} />
       <Route path="/signup" component={SignUp} />

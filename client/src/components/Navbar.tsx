@@ -110,6 +110,17 @@ export default function Navbar() {
                   Find My Loan
                 </a>
               </Link>
+              <Link href="/loan-eligibility">
+                <a
+                  className={`${
+                    isActive("/loan-eligibility")
+                      ? "border-primary-500 text-gray-900"
+                      : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                >
+                  Loan Eligibility
+                </a>
+              </Link>
               <Link href="/faq">
                 <a
                   className={`${
@@ -242,6 +253,17 @@ export default function Navbar() {
                 } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
               >
                 Find My Loan
+              </a>
+            </Link>
+            <Link href="/loan-eligibility">
+              <a
+                className={`${
+                  isActive("/loan-eligibility")
+                    ? "bg-primary-50 border-primary-500 text-primary-700"
+                    : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
+                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+              >
+                Loan Eligibility
               </a>
             </Link>
             <Link href="/faq">
