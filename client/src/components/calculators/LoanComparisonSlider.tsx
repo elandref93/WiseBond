@@ -210,27 +210,40 @@ export default function LoanComparisonSlider({
             <h3 className="text-sm font-medium mb-4">Monthly Repayment Comparison (Rands)</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyPaymentData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                <BarChart 
+                  data={monthlyPaymentData}
+                  margin={{ top: 30, right: 30, left: 20, bottom: 20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false}
+                    tickLine={false}
+                  />
                   <YAxis 
                     type="number" 
                     tickFormatter={(value) => formatCurrency(value).toString()} 
-                    label={{ 
-                      value: 'Monthly Repayment (R)', 
-                      angle: -90, 
-                      position: 'insideLeft',
-                      offset: 5,
-                      style: { textAnchor: 'middle' }
-                    }}
+                    axisLine={false}
+                    tickLine={false}
+                    hide
                   />
                   <Tooltip 
-                    formatter={(value) => formatCurrency(Number(value))}
-                    labelFormatter={(value) => `${value} (${monthlyPaymentData.find(d => d.name === value)?.rate}%)`}
+                    formatter={(value: number) => formatCurrency(Number(value))}
+                    labelFormatter={(value: string) => `${value} (${monthlyPaymentData.find(d => d.name === value)?.rate}%)`}
+                    cursor={{fill: 'transparent'}}
                   />
                   <Bar 
                     dataKey="monthlyPayment" 
                     name="Monthly Repayment"
+                    radius={[5, 5, 0, 0]}
+                    barSize={60}
+                    label={{
+                      position: 'top',
+                      formatter: (value: number) => formatCurrency(value).toString(),
+                      fill: '#666',
+                      fontSize: 12,
+                      offset: 10
+                    }}
                   >
                     {monthlyPaymentData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -246,27 +259,40 @@ export default function LoanComparisonSlider({
             <h3 className="text-sm font-medium mb-4">Total Interest Comparison (Rands)</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={totalInterestData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                <BarChart 
+                  data={totalInterestData}
+                  margin={{ top: 30, right: 30, left: 20, bottom: 20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false}
+                    tickLine={false}
+                  />
                   <YAxis 
                     type="number" 
                     tickFormatter={(value) => formatCurrency(value).toString()} 
-                    label={{ 
-                      value: 'Total Interest (R)', 
-                      angle: -90, 
-                      position: 'insideLeft',
-                      offset: 5,
-                      style: { textAnchor: 'middle' }
-                    }}
+                    axisLine={false}
+                    tickLine={false}
+                    hide
                   />
                   <Tooltip 
-                    formatter={(value) => formatCurrency(Number(value))}
-                    labelFormatter={(value) => `${value} (${totalInterestData.find(d => d.name === value)?.rate}%)`}
+                    formatter={(value: number) => formatCurrency(Number(value))}
+                    labelFormatter={(value: string) => `${value} (${totalInterestData.find(d => d.name === value)?.rate}%)`}
+                    cursor={{fill: 'transparent'}}
                   />
                   <Bar 
                     dataKey="totalInterest" 
                     name="Total Interest"
+                    radius={[5, 5, 0, 0]}
+                    barSize={60}
+                    label={{
+                      position: 'top',
+                      formatter: (value: number) => formatCurrency(value).toString(),
+                      fill: '#666',
+                      fontSize: 12,
+                      offset: 10
+                    }}
                   >
                     {totalInterestData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -285,8 +311,8 @@ export default function LoanComparisonSlider({
                 <LineChart data={amortizationData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="year" label={{ value: 'Years', position: 'insideBottomRight', offset: 0 }} />
-                  <YAxis tickFormatter={(value) => formatCurrency(value).toString()} />
-                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                  <YAxis tickFormatter={(value: number) => formatCurrency(value).toString()} />
+                  <Tooltip formatter={(value: number) => formatCurrency(Number(value))} />
                   <Legend />
                   <Line 
                     type="monotone" 
