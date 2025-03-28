@@ -177,13 +177,13 @@ export default function LoanComparisonSlider({
             <Slider
               value={[loanAmount]}
               min={500000}
-              max={5000000}
-              step={50000}
+              max={20000000}
+              step={100000}
               onValueChange={(value) => setLoanAmount(value[0])}
             />
             <div className="flex justify-between text-xs text-gray-500">
               <span>R500,000</span>
-              <span>R5,000,000</span>
+              <span>R20,000,000</span>
             </div>
           </div>
           

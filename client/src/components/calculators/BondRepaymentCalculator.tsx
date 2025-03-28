@@ -182,13 +182,13 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                     </div>
                     <Slider
                       defaultValue={[currentPropertyValue]}
-                      max={5000000}
-                      step={50000}
+                      max={20000000}
+                      step={100000}
                       onValueChange={handlePropertyValueSliderChange}
                     />
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>R500,000</span>
-                      <span>R5,000,000</span>
+                      <span>R20,000,000</span>
                     </div>
                   </div>
                 </FormControl>
@@ -319,13 +319,13 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                     </div>
                     <Slider
                       defaultValue={[currentDeposit]}
-                      max={Math.min(1000000, currentPropertyValue * 0.5)}
-                      step={10000}
+                      max={Math.min(5000000, currentPropertyValue * 0.5)}
+                      step={50000}
                       onValueChange={handleDepositSliderChange}
                     />
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>R0</span>
-                      <span>R{formatCurrency(Math.min(1000000, currentPropertyValue * 0.5))}</span>
+                      <span>R{formatCurrency(Math.min(5000000, currentPropertyValue * 0.5))}</span>
                     </div>
                     <div className="text-xs text-gray-500 text-right">
                       {currentPropertyValue > 0 ? 
