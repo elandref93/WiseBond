@@ -27,7 +27,7 @@ export default function CalculationResults({ results }: CalculationResultsProps)
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Amortization Results
           </h3>
-          <AmortizationResults results={results} />
+          <AmortizationResults results={results as any} />
         </div>
       </div>
     );

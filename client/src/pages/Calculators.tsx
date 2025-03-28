@@ -215,31 +215,32 @@ export default function Calculators() {
               </CardContent>
             </Card>
             
-            {/* Mortgage Term Simulator */}
+            {/* Loan Comparison Simulator */}
             <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
               <CardContent className="p-6">
                 <div className="flex items-center mb-4">
-                  <ClockIcon className="w-10 h-10 text-primary mr-4" />
+                  <LineChartIcon className="w-10 h-10 text-primary mr-4" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
-                      Mortgage term impact simulator
+                      Loan comparison simulator
                     </h3>
                     <p className="text-sm text-gray-500">
-                      Compare different loan terms to see how they affect your monthly payments and total interest paid.
+                      Compare different loan terms and interest rates to see their impact on payments and total cost.
                     </p>
                   </div>
                 </div>
                 <Button 
                   className="w-full mt-4"
                   onClick={() => {
-                    setActiveTab("term-simulator");
+                    setActiveTab("comparison");
                     window.location.href = "#calculator-detail";
                   }}
                 >
-                  Simulate
+                  Compare
                 </Button>
               </CardContent>
             </Card>
+
           </div>
 
           {/* Calculator Detail Section */}
@@ -254,7 +255,6 @@ export default function Calculators() {
                   <TabsTrigger value="deposit">Deposit Savings</TabsTrigger>
                   <TabsTrigger value="amortisation">Amortisation</TabsTrigger>
                   <TabsTrigger value="comparison">Loan Comparison</TabsTrigger>
-                  <TabsTrigger value="term-simulator">Term Impact</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="bond">
@@ -464,63 +464,6 @@ export default function Calculators() {
                     </div>
                   </div>
                 </TabsContent>
-                
-                <TabsContent value="term-simulator">
-                  <div className="space-y-6">
-                    <div className="flex items-center mb-4">
-                      <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-white mr-4">
-                        <ClockIcon className="h-5 w-5" />
-                      </div>
-                      <h3 className="text-lg leading-6 font-medium text-gray-900">
-                        Mortgage Term Impact Simulator
-                      </h3>
-                    </div>
-                    
-                    <div className="bg-blue-50 rounded-lg p-4 mb-6">
-                      <div className="flex">
-                        <InfoIcon className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <div className="text-sm text-blue-700">
-                          Our comprehensive interactive tool allows you to see how different loan terms (from 10 to 30 years) affect your monthly payment, total interest paid, and loan amortization schedule. You can also compare various interest rates to understand their impact on your loan. Use the tabs to explore both perspectives.
-                        </div>
-                      </div>
-                    </div>
-
-                    <LoanComparisonSimulator
-                      initialLoanAmount={1500000}
-                      initialInterestRate={11.25}
-                      initialLoanTerm={20}
-                    />
-                    
-                    <div className="mt-8 bg-gray-50 p-6 rounded-lg">
-                      <h3 className="text-lg font-medium mb-4">Choosing the Right Loan Term</h3>
-                      <p className="text-gray-600 mb-4">
-                        The loan term you choose has a significant impact on both your monthly payment and the total amount you'll pay over the life of the loan. Consider these factors when selecting your mortgage term:
-                      </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                        <div className="border rounded-lg p-4 bg-white">
-                          <h4 className="font-medium mb-2">Shorter Term Benefits (10-15 years)</h4>
-                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                            <li>Pay off your home faster</li>
-                            <li>Build equity more quickly</li>
-                            <li>Pay significantly less interest over the loan life</li>
-                            <li>Often get better interest rates</li>
-                            <li>Be debt-free sooner</li>
-                          </ul>
-                        </div>
-                        <div className="border rounded-lg p-4 bg-white">
-                          <h4 className="font-medium mb-2">Longer Term Benefits (20-30 years)</h4>
-                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                            <li>Lower monthly payments</li>
-                            <li>Greater monthly budget flexibility</li>
-                            <li>Potential to qualify for a larger loan amount</li>
-                            <li>Option to make extra payments when possible</li>
-                            <li>Better cash flow for other investments</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
               </Tabs>
             </div>
           </div>
@@ -651,21 +594,21 @@ export default function Calculators() {
             
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-3">
-                Mortgage Term Simulator
+                Loan Comparison Simulator
               </h3>
               <p className="text-gray-500 mb-4">
-                Compare the impact of different loan terms on your monthly payments,
-                total interest paid, and loan amortization schedule. See how choosing
-                a shorter or longer term affects your overall financial picture.
+                Compare the impact of different loan terms and interest rates on your monthly 
+                payments and total costs. This interactive simulator helps you understand how 
+                various lending scenarios affect your financial commitments.
               </p>
               <Separator className="my-4" />
               <h4 className="font-medium text-gray-900 mt-4 mb-2">What you'll explore:</h4>
               <ul className="list-disc pl-5 text-gray-500 space-y-1">
-                <li>Impact of loan terms from 10 to 30 years</li>
-                <li>Monthly payment differences between terms</li>
-                <li>Total interest paid over the loan life</li>
-                <li>Loan balance reduction over time</li>
-                <li>Interest-to-principal payment ratios</li>
+                <li>Compare loan terms from 10 to 30 years</li>
+                <li>See how different interest rates affect payments</li>
+                <li>Visualize total interest paid across scenarios</li>
+                <li>Understand monthly payment differences</li>
+                <li>Make informed decisions on loan structure</li>
               </ul>
             </div>
           </div>

@@ -1,26 +1,34 @@
-import { formatCurrency } from "@/lib/calculators";
+import { formatCurrency, CalculationResult } from "@/lib/calculators";
 import { Card, CardContent } from "@/components/ui/card";
 import { format, addYears } from "date-fns";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from "recharts";
 
+// Define the expected yearly data structure
+interface YearlyDataItem {
+  year: number;
+  interestPaid: number;
+  principalPaid: number;
+  totalPaid: number;
+  remainingPrincipal: number;
+  interestToDate: number;
+  principalToDate: number;
+}
+
+// Define a more specific type for the Amortization results
+interface AmortizationData {
+  loanAmount: number;
+  interestRate: number;
+  loanTermYears: number;
+  monthlyPayment: number;
+  totalPayment: number;
+  totalInterest: number;
+  yearlyData: YearlyDataItem[];
+  type: string;
+  displayResults: Array<{label: string; value: string; tooltip?: string}>;
+}
+
 interface AmortizationResultsProps {
-  results: {
-    loanAmount: number;
-    interestRate: number;
-    loanTermYears: number;
-    monthlyPayment: number;
-    totalPayment: number;
-    totalInterest: number;
-    yearlyData: {
-      year: number;
-      interestPaid: number;
-      principalPaid: number;
-      totalPaid: number;
-      remainingPrincipal: number;
-      interestToDate: number;
-      principalToDate: number;
-    }[];
-  };
+  results: AmortizationData;
 }
 
 export default function AmortizationResults({ results }: AmortizationResultsProps) {
@@ -45,7 +53,7 @@ export default function AmortizationResults({ results }: AmortizationResultsProp
   const interestOnlyPayment = (loanAmount * (interestRate / 100)) / 12;
 
   // Prepare data for the chart
-  const chartData = yearlyData.map((data) => {
+  const chartData = yearlyData.map((data: YearlyDataItem) => {
     return {
       name: `${data.year}`,
       interest: Math.round(data.interestToDate),
@@ -174,7 +182,7 @@ export default function AmortizationResults({ results }: AmortizationResultsProp
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {yearlyData.map((data, index) => (
+                {yearlyData.map((data: YearlyDataItem, index: number) => (
                   <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Year {data.year}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.principalToDate)}</td>
