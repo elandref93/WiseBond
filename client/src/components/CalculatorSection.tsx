@@ -1,19 +1,9 @@
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import BondRepaymentCalculator from "./calculators/BondRepaymentCalculator";
-import AffordabilityCalculator from "./calculators/AffordabilityCalculator";
-import DepositSavingsCalculator from "./calculators/DepositSavingsCalculator";
-import CalculationResults from "./calculators/CalculationResults";
-import { CalculationResult } from "@/lib/calculators";
+import { Link } from 'wouter';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { HomeIcon, CreditCardIcon, CalendarIcon, BadgeIcon, BarChart4Icon, CalculatorIcon } from "lucide-react";
 
 export default function CalculatorSection() {
-  const [activeTab, setActiveTab] = useState("bond");
-  const [calculationResults, setCalculationResults] = useState<CalculationResult | null>(null);
-
-  const handleCalculationComplete = (results: CalculationResult) => {
-    setCalculationResults(results);
-  };
-
   return (
     <div id="calculators" className="py-12 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -30,29 +20,80 @@ export default function CalculatorSection() {
         </div>
 
         <div className="mt-10">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <Tabs defaultValue="bond" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-3 mb-8">
-                  <TabsTrigger value="bond">Bond Repayment</TabsTrigger>
-                  <TabsTrigger value="affordability">Affordability</TabsTrigger>
-                  <TabsTrigger value="deposit">Deposit Savings</TabsTrigger>
-                </TabsList>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Bond Repayment Calculator */}
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <HomeIcon className="w-10 h-10 text-primary mr-4" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Repayments calculator
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      See what your total monthly repayment amount would be on your new home.
+                    </p>
+                  </div>
+                </div>
+                <Link href="/calculators#calculator-detail">
+                  <Button className="w-full mt-4">
+                    Calculate
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
 
-                <TabsContent value="bond">
-                  <BondRepaymentCalculator onCalculate={handleCalculationComplete} />
-                </TabsContent>
+            {/* Affordability Calculator */}
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <BadgeIcon className="w-10 h-10 text-primary mr-4" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Affordability calculator
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Find out how much you can afford to spend on your new home, based on your income and expenses.
+                    </p>
+                  </div>
+                </div>
+                <Link href="/calculators#calculator-detail">
+                  <Button className="w-full mt-4">
+                    Calculate
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
 
-                <TabsContent value="affordability">
-                  <AffordabilityCalculator onCalculate={handleCalculationComplete} />
-                </TabsContent>
+            {/* Bonds and Transfer Costs Calculator */}
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <CreditCardIcon className="w-10 h-10 text-primary mr-4" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Bonds and transfer costs calculator
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Calculate the total bond registration and property transfer costs on your new home.
+                    </p>
+                  </div>
+                </div>
+                <Link href="/calculators#calculator-detail">
+                  <Button className="w-full mt-4">
+                    Calculate
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
 
-                <TabsContent value="deposit">
-                  <DepositSavingsCalculator onCalculate={handleCalculationComplete} />
-                </TabsContent>
-              </Tabs>
-
-              {calculationResults && <CalculationResults results={calculationResults} />}
+            {/* View All Button */}
+            <div className="col-span-full flex justify-center mt-8">
+              <Link href="/calculators">
+                <Button variant="outline" className="px-8">
+                  View All Calculators
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
