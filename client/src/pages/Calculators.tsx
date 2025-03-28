@@ -6,6 +6,7 @@ import DepositSavingsCalculator from "@/components/calculators/DepositSavingsCal
 import BondsTransferCostsCalculator from "@/components/calculators/BondsTransferCostsCalculator";
 import AdditionalPaymentCalculator from "@/components/calculators/AdditionalPaymentCalculator";
 import AmortizationCalculator from "@/components/calculators/AmortizationCalculator";
+import LoanComparisonSlider from "@/components/calculators/LoanComparisonSlider";
 import CalculationResults from "@/components/calculators/CalculationResults";
 import { CalculationResult } from "@/lib/calculators";
 import { useQuery } from "@tanstack/react-query";
@@ -14,10 +15,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { HomeIcon, CreditCardIcon, CalendarIcon, BadgeIcon, BarChart4Icon, CalculatorIcon, InfoIcon } from "lucide-react";
+import { HomeIcon, CreditCardIcon, CalendarIcon, BadgeIcon, BarChart4Icon, CalculatorIcon, InfoIcon, TrendingUpIcon } from "lucide-react";
 
 export default function Calculators() {
-  const [activeTab, setActiveTab] = useState("bond");
+  // Check if tab is specified in URL
+  const queryParams = new URLSearchParams(window.location.search);
+  const tabParam = queryParams.get('tab');
+  
+  const [activeTab, setActiveTab] = useState(tabParam || "bond");
   const [calculationResults, setCalculationResults] = useState<CalculationResult | null>(null);
   const { user } = useAuth();
 
@@ -215,13 +220,14 @@ export default function Calculators() {
           <div id="calculator-detail" className="mt-16 bg-white overflow-hidden shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 mb-8">
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 mb-8">
                   <TabsTrigger value="bond">Repayments</TabsTrigger>
                   <TabsTrigger value="affordability">Affordability</TabsTrigger>
                   <TabsTrigger value="transfer">Transfer Costs</TabsTrigger>
                   <TabsTrigger value="additional">Additional Payment</TabsTrigger>
                   <TabsTrigger value="deposit">Deposit Savings</TabsTrigger>
                   <TabsTrigger value="amortisation">Amortisation</TabsTrigger>
+                  <TabsTrigger value="comparison">Rate Comparison</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="bond">
@@ -371,6 +377,63 @@ export default function Calculators() {
                           </div>
                         </div>
                       )}
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="comparison">
+                  <div className="space-y-6">
+                    <div className="flex items-center mb-4">
+                      <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-white mr-4">
+                        <TrendingUpIcon className="h-5 w-5" />
+                      </div>
+                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                        Interactive Loan Rate Comparison
+                      </h3>
+                    </div>
+                    
+                    <div className="bg-blue-50 rounded-lg p-4 mb-6">
+                      <div className="flex">
+                        <InfoIcon className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-blue-700">
+                          Compare different interest rates in real-time to see how they affect your monthly payments and total interest. Adjust the loan amount and term using the sliders to see the impact on your loan costs across various bank rates.
+                        </div>
+                      </div>
+                    </div>
+
+                    <LoanComparisonSlider 
+                      initialLoanAmount={1500000} 
+                      initialInterestRate={11.25} 
+                      initialLoanTerm={20} 
+                    />
+                    
+                    <div className="mt-8 bg-gray-50 p-6 rounded-lg">
+                      <h3 className="text-lg font-medium mb-4">Understanding Interest Rates in South Africa</h3>
+                      <p className="text-gray-600 mb-4">
+                        Home loan interest rates in South Africa are typically expressed in relation to the prime rate, which is the benchmark rate that banks use to determine interest rates for loans. The current prime rate is 11.25%.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                        <div className="border rounded-lg p-4 bg-white">
+                          <h4 className="font-medium mb-2">Factors Affecting Your Rate</h4>
+                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                            <li>Credit score and history</li>
+                            <li>Loan-to-value ratio (size of your deposit)</li>
+                            <li>Employment stability and income</li>
+                            <li>Existing relationship with the bank</li>
+                            <li>Property value and type</li>
+                          </ul>
+                        </div>
+                        <div className="border rounded-lg p-4 bg-white">
+                          <h4 className="font-medium mb-2">Tips to Secure a Better Rate</h4>
+                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                            <li>Improve your credit score before applying</li>
+                            <li>Save for a larger deposit (aim for 10-20%)</li>
+                            <li>Compare offers from multiple banks</li>
+                            <li>Consider using a bond originator (like us!)</li>
+                            <li>Look into special programs for first-time buyers</li>
+                          </ul>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </TabsContent>

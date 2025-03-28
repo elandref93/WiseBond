@@ -1,7 +1,7 @@
 import { Link } from 'wouter';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { HomeIcon, CreditCardIcon, CalendarIcon, BadgeIcon, BarChart4Icon, CalculatorIcon } from "lucide-react";
+import { HomeIcon, CreditCardIcon, CalendarIcon, BadgeIcon, BarChart4Icon, CalculatorIcon, TrendingUpIcon } from "lucide-react";
 
 export default function CalculatorSection() {
   return (
@@ -82,6 +82,31 @@ export default function CalculatorSection() {
                 <Link href="/calculators#calculator-detail">
                   <Button className="w-full mt-4">
                     Calculate
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+            
+            {/* Rate Comparison Calculator */}
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all border-2 border-primary/20">
+              <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold py-1 px-3 rounded-bl-lg">
+                NEW
+              </div>
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <TrendingUpIcon className="w-10 h-10 text-primary mr-4" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Interest rate comparison
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Compare how different interest rates affect your monthly payments and total loan cost in real-time.
+                    </p>
+                  </div>
+                </div>
+                <Link href="/calculators?tab=comparison#calculator-detail">
+                  <Button className="w-full mt-4">
+                    Compare Rates
                   </Button>
                 </Link>
               </CardContent>
