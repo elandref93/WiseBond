@@ -29,8 +29,10 @@ export default function Hero() {
                 </p>
                 <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
                   <div className="rounded-md shadow">
-                    <Link href="/signup">
-                      <Button size="lg" className="w-full">Apply Now</Button>
+                    <Link href="/determinator">
+                      <Button size="lg" className="w-full bg-primary hover:bg-primary/90">
+                        Find My Ideal Home Loan
+                      </Button>
                     </Link>
                   </div>
                   <div className="mt-3 sm:mt-0 sm:ml-3">
@@ -39,6 +41,14 @@ export default function Hero() {
                         Use Calculators
                       </Button>
                     </Link>
+                  </div>
+                </div>
+                <div className="mt-3 sm:flex sm:justify-center lg:justify-start">
+                  <div className="text-sm text-gray-500 flex items-center">
+                    <svg className="w-4 h-4 mr-1 text-primary" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Answer a few questions to find the perfect home loan solution for you
                   </div>
                 </div>
               </div>

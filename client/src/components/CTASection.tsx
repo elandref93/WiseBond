@@ -12,12 +12,12 @@ export default function CTASection() {
           </span>
         </h2>
         <div className="mt-8 flex lg:mt-0 lg:flex-shrink-0 gap-3">
-          <Link href="/signup">
-            <Button size="lg">Apply Now</Button>
+          <Link href="/determinator">
+            <Button size="lg">Find My Ideal Loan</Button>
           </Link>
-          <Link href="/about">
-            <Button variant="secondary" size="lg">
-              Learn More
+          <Link href="/signup">
+            <Button variant="outline" size="lg" className="bg-white text-secondary-700 hover:bg-gray-100">
+              Apply Now
             </Button>
           </Link>
         </div>
