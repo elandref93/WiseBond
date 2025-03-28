@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -42,7 +42,13 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
     defaultValues: {
       otp: "",
     },
+    mode: "onChange"
   });
+  
+  // Manually register the OTP field
+  useEffect(() => {
+    form.register("otp");
+  }, [form]);
 
   const onSubmit = async (values: OTPFormValues) => {
     setIsLoading(true);
@@ -112,11 +118,12 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
           <div className="space-y-4">
             <InputOTP
               maxLength={6}
-              {...form.register('otp')}
+              value={form.watch('otp') || ''}
+              onChange={(value) => form.setValue('otp', value, { shouldValidate: true })}
               render={({ slots }) => (
                 <InputOTPGroup>
-                  {slots.map((slot, index) => (
-                    <InputOTPSlot key={index} {...slot} />
+                  {slots.map((slot, i) => (
+                    <InputOTPSlot key={i} index={i} {...slot} />
                   ))}
                 </InputOTPGroup>
               )}
