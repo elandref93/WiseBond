@@ -8,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import AmortizationResults from "./AmortizationResults";
 
 interface CalculationResultsProps {
   results: CalculationResult;
@@ -18,6 +19,21 @@ export default function CalculationResults({ results }: CalculationResultsProps)
     return null;
   }
 
+  // Special rendering for amortization results
+  if (results.type === 'amortisation' && results.yearlyData) {
+    return (
+      <div className="mt-8 px-4">
+        <div className="p-6 bg-gray-50 rounded-lg border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Amortization Results
+          </h3>
+          <AmortizationResults results={results} />
+        </div>
+      </div>
+    );
+  }
+
+  // Default rendering for other calculator types
   return (
     <div className="mt-8 px-4">
       <div className="p-6 bg-gray-50 rounded-lg border border-gray-100">
