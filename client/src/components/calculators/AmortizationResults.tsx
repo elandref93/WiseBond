@@ -52,113 +52,144 @@ export default function AmortizationResults({ results }: AmortizationResultsProp
   // Interest-only payment
   const interestOnlyPayment = (loanAmount * (interestRate / 100)) / 12;
 
-  // Prepare data for the chart
-  const chartData = yearlyData.map((data: YearlyDataItem) => {
-    return {
-      name: `${data.year}`,
-      interest: Math.round(data.interestToDate),
-      principal: Math.round(data.principalToDate),
-      balance: Math.round(loanAmount - data.principalToDate),
-      year: data.year
-    };
+  // Define the chart data structure
+  interface ChartDataItem {
+    name: string;
+    year: number;
+    interest: number;
+    principal: number;
+    balance: number;
+  }
+  
+  // Prepare data for the chart, but create yearly breakdown data for entire loan term
+  // This will give us a full amortization schedule per year for the chart
+  const chartData: ChartDataItem[] = [];
+  const yearsArray: number[] = [];
+  
+  // Create array with all years from 1 to loan term
+  for (let year = 1; year <= loanTermYears; year++) {
+    yearsArray.push(year);
+  }
+  
+  // Construct complete yearly data set
+  let cumulativeInterest = 0;
+  let cumulativePrincipal = 0;
+  
+  // Find the matching year data or estimate if not found
+  yearsArray.forEach(year => {
+    const yearData = yearlyData.find(data => data.year === year);
+    
+    if (yearData) {
+      cumulativeInterest = yearData.interestToDate;
+      cumulativePrincipal = yearData.principalToDate;
+    } else if (year > 1) {
+      // If we don't have data for this year, estimate based on proportional calculation
+      // This is to create a smooth chart even if we don't have data for every year
+      const yearFraction = year / loanTermYears;
+      cumulativeInterest = totalInterest * yearFraction;
+      cumulativePrincipal = loanAmount * yearFraction;
+    }
+    
+    chartData.push({
+      name: year.toString(),
+      year: year,
+      interest: Math.round(cumulativeInterest),
+      principal: Math.round(cumulativePrincipal),
+      balance: Math.max(0, Math.round(loanAmount - cumulativePrincipal)),
+    });
   });
 
   return (
     <div className="mt-8 space-y-8">
-      {/* Summary Section */}
+      {/* Summary Section - Styled like the provided image */}
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-1 text-center">
           <p className="text-sm text-gray-600 mb-1">Loan End Date</p>
-          <p className="text-3xl font-bold text-green-500">{formattedEndDate}</p>
+          <p className="text-4xl font-bold text-green-500">{formattedEndDate}</p>
         </div>
         <div className="col-span-1 text-center">
           <p className="text-sm text-gray-600 mb-1">Total Interest Paid</p>
-          <p className="text-3xl font-bold text-green-500">{formatCurrency(totalInterest)}</p>
+          <p className="text-4xl font-bold text-green-500">{formatCurrency(totalInterest)}</p>
         </div>
         <div className="col-span-1 text-center">
           <p className="text-sm text-gray-600 mb-1">Total Paid</p>
-          <p className="text-3xl font-bold text-green-500">{formatCurrency(totalPayment)}</p>
+          <p className="text-4xl font-bold text-green-500">{formatCurrency(totalPayment)}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-6">
         <div className="col-span-1 text-center">
           <p className="text-sm text-gray-600 mb-1">Interest Only Payment</p>
-          <p className="text-3xl font-bold text-green-500">{formatCurrency(interestOnlyPayment)}</p>
+          <p className="text-4xl font-bold text-green-500">{formatCurrency(interestOnlyPayment)}</p>
         </div>
         <div className="col-span-1 text-center">
           <p className="text-sm text-gray-600 mb-1">Principal and Interest Payment</p>
-          <p className="text-3xl font-bold text-green-500">{formatCurrency(monthlyPayment)}</p>
+          <p className="text-4xl font-bold text-green-500">{formatCurrency(monthlyPayment)}</p>
         </div>
       </div>
 
-      {/* Amortization Chart */}
+      {/* Amortization Chart - Styled to match the provided image */}
       <Card>
         <CardContent className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Amortization Schedule</h3>
-          <div className="h-[400px] w-full">
+          <div className="h-[500px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
                 data={chartData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
               >
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                 <XAxis 
                   dataKey="name" 
-                  label={{ 
-                    value: 'Year', 
-                    position: 'insideBottom', 
-                    offset: -10 
-                  }} 
+                  axisLine={false}
                 />
                 <YAxis 
                   yAxisId="left"
                   orientation="left"
-                  label={{ 
-                    value: 'Amount (R)', 
-                    angle: -90, 
-                    position: 'insideLeft' 
-                  }}
-                  tickFormatter={(value) => `${value.toLocaleString()}`}
+                  tickFormatter={(value) => `R${(value / 1000).toFixed(0)}k`}
+                  domain={[0, Math.max(loanAmount, totalInterest) * 1.1]}
+                  axisLine={false}
                 />
                 <YAxis 
                   yAxisId="right"
                   orientation="right"
-                  label={{ 
-                    value: 'Monthly Payment (R)', 
-                    angle: 90, 
-                    position: 'insideRight' 
-                  }}
-                  domain={[0, Math.ceil(monthlyPayment * 12)]}
-                  tickFormatter={(value) => `${value.toLocaleString()}`}
+                  tickFormatter={(value) => `R${(value / 1000).toFixed(0)}k`}
+                  domain={[0, Math.max(monthlyPayment * 12, interestOnlyPayment * 12) * 1.2]}
+                  axisLine={false}
+                  hide
                 />
                 <Tooltip 
                   formatter={(value: number) => [formatCurrency(value), ""]} 
-                  labelFormatter={(label) => `Year ${label}`}
+                  labelFormatter={(label) => `${label}`}
                 />
-                <Legend />
-                <Bar 
-                  yAxisId="left"
-                  dataKey="principal" 
-                  stackId="a" 
-                  fill="#4ade80" 
-                  name="Principal" 
-                />
-                <Bar 
-                  yAxisId="left"
-                  dataKey="interest" 
-                  stackId="a" 
-                  fill="#60a5fa" 
-                  name="Interest" 
+                <Legend 
+                  verticalAlign="top"
+                  align="left"
+                  iconType="square"
+                  wrapperStyle={{paddingBottom: "10px"}}
                 />
                 <Line 
                   yAxisId="left"
                   type="monotone" 
                   dataKey="balance" 
-                  stroke="#111111" 
-                  strokeDasharray="5 5" 
+                  stroke="#000000" 
+                  strokeDasharray="4 4"
                   name="Balance"
-                  dot={{ stroke: '#111111', strokeWidth: 2 }}
+                  dot={false}
+                  strokeWidth={2}
+                />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="principal" 
+                  fill="#4ADE80" 
+                  name="Principal" 
+                  stackId="a"
+                />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="interest" 
+                  fill="#60A5FA" 
+                  name="Interest" 
+                  stackId="a"
                 />
               </ComposedChart>
             </ResponsiveContainer>
