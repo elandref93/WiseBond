@@ -7,6 +7,7 @@ import BondsTransferCostsCalculator from "@/components/calculators/BondsTransfer
 import AdditionalPaymentCalculator from "@/components/calculators/AdditionalPaymentCalculator";
 import AmortizationCalculator from "@/components/calculators/AmortizationCalculator";
 import LoanComparisonSlider from "@/components/calculators/LoanComparisonSlider";
+import MortgageTermSimulator from "@/components/calculators/MortgageTermSimulator";
 import CalculationResults from "@/components/calculators/CalculationResults";
 import { CalculationResult } from "@/lib/calculators";
 import { useQuery } from "@tanstack/react-query";
@@ -15,7 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { HomeIcon, CreditCardIcon, CalendarIcon, BadgeIcon, BarChart4Icon, CalculatorIcon, InfoIcon, TrendingUpIcon } from "lucide-react";
+import { HomeIcon, CreditCardIcon, CalendarIcon, BadgeIcon, BarChart4Icon, CalculatorIcon, InfoIcon, TrendingUpIcon, ClockIcon } from "lucide-react";
 
 export default function Calculators() {
   // Check if tab is specified in URL
@@ -214,13 +215,39 @@ export default function Calculators() {
                 </Button>
               </CardContent>
             </Card>
+            
+            {/* Mortgage Term Simulator */}
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <ClockIcon className="w-10 h-10 text-primary mr-4" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Mortgage term impact simulator
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Compare different loan terms to see how they affect your monthly payments and total interest paid.
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  className="w-full mt-4"
+                  onClick={() => {
+                    setActiveTab("term-simulator");
+                    window.location.href = "#calculator-detail";
+                  }}
+                >
+                  Simulate
+                </Button>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Calculator Detail Section */}
           <div id="calculator-detail" className="mt-16 bg-white overflow-hidden shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 mb-8">
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 mb-8">
                   <TabsTrigger value="bond">Repayments</TabsTrigger>
                   <TabsTrigger value="affordability">Affordability</TabsTrigger>
                   <TabsTrigger value="transfer">Transfer Costs</TabsTrigger>
@@ -228,6 +255,7 @@ export default function Calculators() {
                   <TabsTrigger value="deposit">Deposit Savings</TabsTrigger>
                   <TabsTrigger value="amortisation">Amortisation</TabsTrigger>
                   <TabsTrigger value="comparison">Rate Comparison</TabsTrigger>
+                  <TabsTrigger value="term-simulator">Term Simulator</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="bond">
@@ -437,6 +465,62 @@ export default function Calculators() {
                     </div>
                   </div>
                 </TabsContent>
+                
+                <TabsContent value="term-simulator">
+                  <div className="space-y-6">
+                    <div className="flex items-center mb-4">
+                      <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-white mr-4">
+                        <ClockIcon className="h-5 w-5" />
+                      </div>
+                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                        Mortgage Term Impact Simulator
+                      </h3>
+                    </div>
+                    
+                    <div className="bg-blue-50 rounded-lg p-4 mb-6">
+                      <div className="flex">
+                        <InfoIcon className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-blue-700">
+                          See how different loan terms (from 10 to 30 years) affect your monthly payment, total interest paid, and loan amortization schedule. Choosing a shorter term reduces total interest paid but increases monthly payments. Longer terms provide lower monthly payments but result in significantly more interest paid over the life of the loan.
+                        </div>
+                      </div>
+                    </div>
+
+                    <MortgageTermSimulator
+                      initialLoanAmount={1500000}
+                      initialInterestRate={11.25}
+                    />
+                    
+                    <div className="mt-8 bg-gray-50 p-6 rounded-lg">
+                      <h3 className="text-lg font-medium mb-4">Choosing the Right Loan Term</h3>
+                      <p className="text-gray-600 mb-4">
+                        The loan term you choose has a significant impact on both your monthly payment and the total amount you'll pay over the life of the loan. Consider these factors when selecting your mortgage term:
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                        <div className="border rounded-lg p-4 bg-white">
+                          <h4 className="font-medium mb-2">Shorter Term Benefits (10-15 years)</h4>
+                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                            <li>Pay off your home faster</li>
+                            <li>Build equity more quickly</li>
+                            <li>Pay significantly less interest over the loan life</li>
+                            <li>Often get better interest rates</li>
+                            <li>Be debt-free sooner</li>
+                          </ul>
+                        </div>
+                        <div className="border rounded-lg p-4 bg-white">
+                          <h4 className="font-medium mb-2">Longer Term Benefits (20-30 years)</h4>
+                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                            <li>Lower monthly payments</li>
+                            <li>Greater monthly budget flexibility</li>
+                            <li>Potential to qualify for a larger loan amount</li>
+                            <li>Option to make extra payments when possible</li>
+                            <li>Better cash flow for other investments</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
               </Tabs>
             </div>
           </div>
@@ -507,7 +591,7 @@ export default function Calculators() {
             Understanding Our Calculators
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-3">
                 Bond Repayment Calculator
@@ -562,6 +646,26 @@ export default function Calculators() {
                 <li>Desired deposit percentage</li>
                 <li>Monthly amount you can save</li>
                 <li>Expected interest rate on savings</li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-3">
+                Mortgage Term Simulator
+              </h3>
+              <p className="text-gray-500 mb-4">
+                Compare the impact of different loan terms on your monthly payments,
+                total interest paid, and loan amortization schedule. See how choosing
+                a shorter or longer term affects your overall financial picture.
+              </p>
+              <Separator className="my-4" />
+              <h4 className="font-medium text-gray-900 mt-4 mb-2">What you'll explore:</h4>
+              <ul className="list-disc pl-5 text-gray-500 space-y-1">
+                <li>Impact of loan terms from 10 to 30 years</li>
+                <li>Monthly payment differences between terms</li>
+                <li>Total interest paid over the loan life</li>
+                <li>Loan balance reduction over time</li>
+                <li>Interest-to-principal payment ratios</li>
               </ul>
             </div>
           </div>
