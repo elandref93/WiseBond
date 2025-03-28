@@ -11,10 +11,10 @@ export interface CalculationResult {
   [key: string]: any;
 }
 
-// Format currency with thousands separator
+// Format currency with thousands separator and Rand symbol
 export function formatCurrency(value: string | number): string {
   const num = typeof value === 'string' ? parseFloat(value) : value;
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `R${num.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 }
 
 // Calculate the monthly repayment amount for a bond
@@ -53,17 +53,17 @@ export function calculateBondRepayment(
     displayResults: [
       {
         label: 'Monthly Repayment',
-        value: `R${formatCurrency(monthlyRepayment.toFixed(2))}`,
+        value: formatCurrency(monthlyRepayment),
         tooltip: 'The amount you will need to pay each month for the duration of your home loan.'
       },
       {
         label: 'Total Repayment Amount',
-        value: `R${formatCurrency(totalRepayment.toFixed(2))}`,
+        value: formatCurrency(totalRepayment),
         tooltip: 'The total amount you will repay over the entire term of the loan, including interest.'
       },
       {
         label: 'Total Interest Paid',
-        value: `R${formatCurrency(totalInterest.toFixed(2))}`,
+        value: formatCurrency(totalInterest),
         tooltip: 'The total amount of interest you will pay over the entire term of the loan.'
       }
     ]
@@ -110,17 +110,17 @@ export function calculateAffordability(
     displayResults: [
       {
         label: 'Maximum Loan Amount',
-        value: `R${formatCurrency(maxLoanAmount.toFixed(2))}`,
+        value: formatCurrency(maxLoanAmount),
         tooltip: 'The maximum home loan amount you could potentially qualify for based on your income and expenses.'
       },
       {
         label: 'Affordable Monthly Payment',
-        value: `R${formatCurrency(availableForLoan.toFixed(2))}`,
+        value: formatCurrency(availableForLoan),
         tooltip: 'The monthly repayment amount you can comfortably afford based on your financial situation.'
       },
       {
         label: 'Recommended Property Price',
-        value: `R${formatCurrency(recommendedPropertyPrice.toFixed(2))}`,
+        value: formatCurrency(recommendedPropertyPrice),
         tooltip: 'The suggested property price range you should consider, assuming a standard deposit amount.'
       }
     ]
@@ -172,7 +172,7 @@ export function calculateDepositSavings(
     displayResults: [
       {
         label: 'Deposit Amount Required',
-        value: `R${formatCurrency(depositAmount.toFixed(2))}`,
+        value: formatCurrency(depositAmount),
         tooltip: 'The total deposit amount you need to save based on the property price and deposit percentage.'
       },
       {
@@ -182,7 +182,7 @@ export function calculateDepositSavings(
       },
       {
         label: 'Interest Earned',
-        value: `R${formatCurrency(Math.max(0, interestEarned).toFixed(2))}`,
+        value: formatCurrency(Math.max(0, interestEarned)),
         tooltip: 'The amount of interest you will earn on your savings during the saving period.'
       }
     ]

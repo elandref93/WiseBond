@@ -47,11 +47,11 @@ export default function LoanComparisonSlider({
   
   // South African banks and typical rates (current prime rate is around 11.25%)
   const rates: Rate[] = [
+    { label: "Prime + 1%", value: 12.25, color: "#ef4444" },
+    { label: "Prime + 0.5%", value: 11.75, color: "#f59e0b" },
     { label: "Prime", value: 11.25, color: "#4f46e5" },
     { label: "Prime - 0.5%", value: 10.75, color: "#06b6d4" },
     { label: "Prime - 1%", value: 10.25, color: "#10b981" },
-    { label: "Prime + 0.5%", value: 11.75, color: "#f59e0b" },
-    { label: "Prime + 1%", value: 12.25, color: "#ef4444" },
   ];
   
   // Calculate monthly payment for a given interest rate
@@ -104,8 +104,8 @@ export default function LoanComparisonSlider({
   
   // Generate amortization schedule for two rates (default and best)
   const generateComparisonData = () => {
-    const defaultRate = rates[0]; // Prime
-    const bestRate = rates[2]; // Prime - 1%
+    const defaultRate = rates[2]; // Prime
+    const bestRate = rates[4]; // Prime - 1%
     
     const result = [];
     
@@ -337,7 +337,7 @@ export default function LoanComparisonSlider({
             <p className="text-sm text-gray-700">
               By securing a rate of <span className="font-medium">Prime - 1%</span> instead of 
               <span className="font-medium"> Prime</span>, you could save approximately 
-              <span className="font-medium text-green-600"> {formatCurrency(calculateTotalInterest(11.25) - calculateTotalInterest(10.25))}</span> in
+              <span className="font-medium text-green-600"> {formatCurrency(calculateTotalInterest(rates[2].value) - calculateTotalInterest(rates[4].value))}</span> in
               total interest over the life of your loan.
             </p>
           </div>
