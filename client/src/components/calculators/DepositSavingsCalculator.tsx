@@ -1,0 +1,204 @@
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { calculateDepositSavings, formatCurrency, type CalculationResult } from "@/lib/calculators";
+import { useAuth } from "@/contexts/AuthContext";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+
+// Form schema with validation
+const formSchema = z.object({
+  propertyPrice: z.string().refine((val) => !isNaN(Number(val.replace(/,/g, ""))), {
+    message: "Property price must be a number",
+  }),
+  depositPercentage: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) < 100, {
+    message: "Deposit percentage must be between 0 and 100",
+  }),
+  monthlySaving: z.string().refine((val) => !isNaN(Number(val.replace(/,/g, ""))), {
+    message: "Monthly saving amount must be a number",
+  }),
+  savingsInterest: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0 && Number(val) < 100, {
+    message: "Savings interest rate must be between 0 and 100",
+  }),
+});
+
+type DepositSavingsFormValues = z.infer<typeof formSchema>;
+
+interface DepositSavingsCalculatorProps {
+  onCalculate: (results: CalculationResult) => void;
+}
+
+export default function DepositSavingsCalculator({ onCalculate }: DepositSavingsCalculatorProps) {
+  const [isCalculating, setIsCalculating] = useState(false);
+  const { user } = useAuth();
+
+  // Default form values
+  const defaultValues: DepositSavingsFormValues = {
+    propertyPrice: "1,000,000",
+    depositPercentage: "10",
+    monthlySaving: "5,000",
+    savingsInterest: "4.5",
+  };
+
+  const form = useForm<DepositSavingsFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues,
+  });
+
+  const onSubmit = async (values: DepositSavingsFormValues) => {
+    setIsCalculating(true);
+    try {
+      // Parse input values
+      const propertyPrice = Number(values.propertyPrice.replace(/,/g, ""));
+      const depositPercentage = Number(values.depositPercentage);
+      const monthlySaving = Number(values.monthlySaving.replace(/,/g, ""));
+      const savingsInterest = Number(values.savingsInterest);
+
+      // Calculate results
+      const results = calculateDepositSavings(propertyPrice, depositPercentage, monthlySaving, savingsInterest);
+      
+      // Pass results back to parent component
+      onCalculate(results);
+
+      // Save calculation if user is logged in
+      if (user) {
+        await apiRequest("POST", "/api/calculations", {
+          calculationType: "deposit",
+          inputData: JSON.stringify(values),
+          resultData: JSON.stringify(results),
+        });
+        
+        // Invalidate the calculations query to refetch
+        queryClient.invalidateQueries({ queryKey: ['/api/calculations'] });
+      }
+    } catch (error) {
+      console.error("Calculation error:", error);
+    } finally {
+      setIsCalculating(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center mb-4">
+        <div className="flex items-center justify-center h-10 w-10 rounded-md bg-secondary-500 text-white mr-4">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 className="text-lg leading-6 font-medium text-gray-900">
+          Deposit Savings Calculator
+        </h3>
+      </div>
+      <p className="text-base text-gray-600 mb-4">
+        Calculate how long it will take to save for your home deposit.
+      </p>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="propertyPrice"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Property Price (R)</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-500 sm:text-sm">R</span>
+                    </div>
+                    <Input
+                      {...field}
+                      className="pl-8"
+                      onBlur={(e) => {
+                        const value = e.target.value.replace(/,/g, "");
+                        if (!isNaN(Number(value))) {
+                          field.onChange(formatCurrency(value));
+                        }
+                      }}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="depositPercentage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Deposit Percentage (%)</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Input {...field} className="pr-8" />
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <span className="text-gray-500 sm:text-sm">%</span>
+                    </div>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="monthlySaving"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Monthly Saving Amount (R)</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-500 sm:text-sm">R</span>
+                    </div>
+                    <Input
+                      {...field}
+                      className="pl-8"
+                      onBlur={(e) => {
+                        const value = e.target.value.replace(/,/g, "");
+                        if (!isNaN(Number(value))) {
+                          field.onChange(formatCurrency(value));
+                        }
+                      }}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="savingsInterest"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Savings Interest Rate (%)</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Input {...field} className="pr-8" />
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <span className="text-gray-500 sm:text-sm">%</span>
+                    </div>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <Button type="submit" className="w-full" disabled={isCalculating}>
+            {isCalculating ? "Calculating..." : "Calculate"}
+          </Button>
+        </form>
+      </Form>
+    </div>
+  );
+}
