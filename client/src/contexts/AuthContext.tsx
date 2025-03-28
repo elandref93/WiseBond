@@ -31,18 +31,39 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [error, setError] = useState<Error | null>(null);
 
   // Query for getting the current user
-  const { data: user, isLoading, refetch } = useQuery<User | null>({
+  const { data: userData, isLoading } = useQuery({
     queryKey: ['/api/auth/me'],
-    onError: () => {
-      // Do nothing on 401 - it's expected if user is not logged in
-      return null;
-    }
+    queryFn: async ({ queryKey }) => {
+      try {
+        const response = await fetch(queryKey[0] as string, {
+          credentials: "include",
+        });
+        
+        if (response.status === 401) {
+          return null;
+        }
+        
+        if (!response.ok) {
+          throw new Error(`${response.status}: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error("Auth query error:", error);
+        return null;
+      }
+    },
+    retry: false,
+    staleTime: Infinity
   });
 
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (credentials: { username: string; password: string }) => {
-      const response = await apiRequest("POST", "/api/auth/login", credentials);
+      const response = await apiRequest("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify(credentials)
+      });
       return response.json();
     },
     onSuccess: () => {
@@ -57,7 +78,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Register mutation
   const registerMutation = useMutation({
     mutationFn: async (userData: InsertUser) => {
-      const response = await apiRequest("POST", "/api/auth/register", userData);
+      const response = await apiRequest("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify(userData)
+      });
       return response.json();
     },
     onSuccess: () => {
@@ -72,7 +96,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/auth/logout", {});
+      await apiRequest("/api/auth/logout", {
+        method: "POST"
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
@@ -129,9 +155,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
   }, []);
 
+  const userValue = userData && 'user' in userData ? userData.user : null;
+
   return (
     <AuthContext.Provider value={{ 
-      user: user?.user || null, 
+      user: userValue, 
       isLoading, 
       error, 
       login, 

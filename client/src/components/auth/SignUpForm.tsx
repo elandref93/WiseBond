@@ -9,6 +9,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
+import OTPVerification from "./OTPVerification";
+import { 
+  validateSAID, 
+  extractDateOfBirth, 
+  calculateAgeFromID,
+  formatDateYYYYMMDD
+} from "@/lib/saIDHelper";
 
 // Form schema with validation
 const formSchema = z.object({
@@ -37,6 +44,8 @@ type SignUpFormValues = z.infer<typeof formSchema>;
 
 export default function SignUpForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registrationStep, setRegistrationStep] = useState<'form' | 'otp'>('form');
+  const [userId, setUserId] = useState<number | null>(null);
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
   const { register } = useAuth();
@@ -60,22 +69,28 @@ export default function SignUpForm() {
   const onSubmit = async (values: SignUpFormValues) => {
     setIsSubmitting(true);
     try {
-      await register({
+      // Initial registration - creates account but marks as unverified
+      const user = await register({
         username: values.username,
         password: values.password,
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
         phone: values.phone || "",
+        otpVerified: false,
+        profileComplete: false,
       });
 
+      // Store the user ID for OTP verification
+      setUserId(user.id);
+      
+      // Move to OTP verification step
+      setRegistrationStep('otp');
+      
       toast({
-        title: "Account created",
-        description: "You have successfully created an account.",
+        title: "Verification required",
+        description: `We've sent a verification code to ${values.email}. Please enter it to complete your registration.`,
       });
-
-      // Redirect to home page
-      setLocation("/");
     } catch (error) {
       let errorMessage = "Registration failed. Please try again.";
       if (error instanceof Error) {
@@ -91,6 +106,26 @@ export default function SignUpForm() {
       setIsSubmitting(false);
     }
   };
+  
+  const handleOTPVerified = () => {
+    toast({
+      title: "Verification successful",
+      description: "Your account has been verified. You can now log in.",
+    });
+    
+    // Redirect to login page
+    setLocation("/login");
+  };
+
+  if (registrationStep === 'otp' && userId && form.getValues().email) {
+    return (
+      <OTPVerification 
+        userId={userId} 
+        email={form.getValues().email} 
+        onVerified={handleOTPVerified}
+      />
+    );
+  }
 
   return (
     <Form {...form}>
@@ -159,7 +194,7 @@ export default function SignUpForm() {
               <FormItem className="sm:col-span-6">
                 <FormLabel>Phone number (optional)</FormLabel>
                 <FormControl>
-                  <Input {...field} type="tel" autoComplete="tel" />
+                  <Input {...field} type="tel" autoComplete="tel" placeholder="e.g. 0821234567" />
                 </FormControl>
                 <FormMessage />
               </FormItem>

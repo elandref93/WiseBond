@@ -10,7 +10,22 @@ export const users = pgTable("users", {
   lastName: text("last_name").notNull(),
   email: text("email").notNull().unique(),
   phone: text("phone"),
+  idNumber: text("id_number"), // South African ID number
+  dateOfBirth: text("date_of_birth"), // Date of birth (YYYY-MM-DD)
+  age: integer("age"), // Age calculated from ID number or set manually
+  address: text("address"), // Physical address
+  city: text("city"),
+  postalCode: text("postal_code"),
+  province: text("province"),
+  employmentStatus: text("employment_status"), // Employed, Self-employed, etc.
+  employerName: text("employer_name"),
+  employmentSector: text("employment_sector"),
+  jobTitle: text("job_title"),
+  monthlyIncome: integer("monthly_income"),
+  otpVerified: boolean("otp_verified").default(false),
+  profileComplete: boolean("profile_complete").default(false),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -20,7 +35,54 @@ export const insertUserSchema = createInsertSchema(users).pick({
   lastName: true,
   email: true,
   phone: true,
+  idNumber: true,
+  dateOfBirth: true,
+  age: true,
+  address: true,
+  city: true,
+  postalCode: true,
+  province: true,
+  employmentStatus: true,
+  employerName: true,
+  employmentSector: true,
+  jobTitle: true,
+  monthlyIncome: true,
+  otpVerified: true,
+  profileComplete: true,
 });
+
+// Schema for updating user profile
+export const updateProfileSchema = createInsertSchema(users)
+  .omit({ id: true, password: true, username: true, createdAt: true, updatedAt: true })
+  .extend({
+    idNumber: z.string().optional().refine(
+      (val) => {
+        if (!val) return true;
+        // Must be 13 digits
+        if (!/^\d{13}$/.test(val)) return false;
+        
+        // Luhn algorithm for SA ID validation
+        const digits = val.split('').map(Number);
+        const checkDigit = digits.pop();
+        const sum = digits.reverse()
+          .map((d, i) => (i % 2 === 0) ? 
+            ((d * 2) > 9 ? (d * 2) - 9 : (d * 2)) : d)
+          .reduce((acc, val) => acc + val, 0);
+        return (10 - (sum % 10)) % 10 === checkDigit;
+      },
+      { message: "Invalid South African ID number" }
+    ),
+    // Phone numbers in South African format
+    phone: z.string().optional().refine(
+      (val) => {
+        if (!val) return true;
+        return /^(\+27|0)[6-8][0-9]{8}$/.test(val);
+      },
+      { message: "Invalid South African phone number format" }
+    ),
+    // Email validation
+    email: z.string().email("Invalid email address"),
+  });
 
 export const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -61,6 +123,7 @@ export const insertContactSubmissionSchema = createInsertSchema(contactSubmissio
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpdateProfile = z.infer<typeof updateProfileSchema>;
 export type Login = z.infer<typeof loginSchema>;
 export type CalculationResult = typeof calculationResults.$inferSelect;
 export type InsertCalculationResult = z.infer<typeof insertCalculationResultSchema>;

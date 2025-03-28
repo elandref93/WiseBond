@@ -8,11 +8,16 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   verifyUser(username: string, password: string): Promise<User | undefined>;
+  updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
   
   saveCalculationResult(result: InsertCalculationResult): Promise<CalculationResult>;
   getUserCalculationResults(userId: number): Promise<CalculationResult[]>;
   
   createContactSubmission(submission: InsertContactSubmission): Promise<ContactSubmission>;
+  
+  // OTP verification
+  storeOTP(userId: number, otp: string, expiresAt: Date): Promise<void>;
+  verifyOTP(userId: number, otp: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -22,6 +27,7 @@ export class MemStorage implements IStorage {
   private userIdCounter: number;
   private calculationIdCounter: number;
   private contactIdCounter: number;
+  private otpStore: Map<number, { otp: string, expiresAt: Date }>;
 
   constructor() {
     this.users = new Map();
@@ -30,6 +36,7 @@ export class MemStorage implements IStorage {
     this.userIdCounter = 1;
     this.calculationIdCounter = 1;
     this.contactIdCounter = 1;
+    this.otpStore = new Map();
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -53,11 +60,28 @@ export class MemStorage implements IStorage {
     const hashedPassword = await bcrypt.hash(insertUser.password, saltRounds);
     
     const id = this.userIdCounter++;
+    const now = new Date();
     const user: User = { 
       ...insertUser, 
       password: hashedPassword, 
       id,
-      createdAt: new Date() 
+      phone: insertUser.phone || null,
+      idNumber: null,
+      dateOfBirth: null,
+      age: null,
+      address: null,
+      city: null,
+      postalCode: null,
+      province: null,
+      employmentStatus: null,
+      employerName: null,
+      employmentSector: null,
+      jobTitle: null,
+      monthlyIncome: null,
+      otpVerified: insertUser.otpVerified || false,
+      profileComplete: insertUser.profileComplete || false,
+      createdAt: now,
+      updatedAt: now
     };
     
     this.users.set(id, user);
@@ -75,8 +99,11 @@ export class MemStorage implements IStorage {
   async saveCalculationResult(insertResult: InsertCalculationResult): Promise<CalculationResult> {
     const id = this.calculationIdCounter++;
     const result: CalculationResult = {
-      ...insertResult,
       id,
+      userId: insertResult.userId || null,
+      calculationType: insertResult.calculationType,
+      inputData: insertResult.inputData,
+      resultData: insertResult.resultData,
       createdAt: new Date()
     };
     
@@ -93,13 +120,64 @@ export class MemStorage implements IStorage {
   async createContactSubmission(insertSubmission: InsertContactSubmission): Promise<ContactSubmission> {
     const id = this.contactIdCounter++;
     const submission: ContactSubmission = {
-      ...insertSubmission,
       id,
+      name: insertSubmission.name,
+      email: insertSubmission.email,
+      phone: insertSubmission.phone || null,
+      message: insertSubmission.message,
       createdAt: new Date()
     };
     
     this.contactSubmissions.set(id, submission);
     return submission;
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = {
+      ...user,
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async storeOTP(userId: number, otp: string, expiresAt: Date): Promise<void> {
+    this.otpStore.set(userId, { otp, expiresAt });
+  }
+
+  async verifyOTP(userId: number, otp: string): Promise<boolean> {
+    const storedOTP = this.otpStore.get(userId);
+    
+    if (!storedOTP) {
+      return false;
+    }
+    
+    // Check if OTP has expired
+    if (new Date() > storedOTP.expiresAt) {
+      this.otpStore.delete(userId); // Clean up expired OTP
+      return false;
+    }
+    
+    // Check if OTP matches
+    if (storedOTP.otp !== otp) {
+      return false;
+    }
+    
+    // OTP is valid, mark user as verified
+    const user = await this.getUser(userId);
+    if (user) {
+      await this.updateUser(userId, { otpVerified: true });
+    }
+    
+    // Clean up used OTP
+    this.otpStore.delete(userId);
+    
+    return true;
   }
 }
 

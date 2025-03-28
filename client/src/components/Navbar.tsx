@@ -159,6 +159,11 @@ export default function Navbar() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <Link href="/profile">
+                      <DropdownMenuItem>
+                        My Profile
+                      </DropdownMenuItem>
+                    </Link>
                     <DropdownMenuItem onClick={handleLogout}>
                       Logout
                     </DropdownMenuItem>
@@ -298,6 +303,11 @@ export default function Navbar() {
                 <div className="text-sm font-medium text-gray-500">
                   {user.email}
                 </div>
+                <Link href="/profile">
+                  <Button variant="outline" className="w-full justify-start">
+                    My Profile
+                  </Button>
+                </Link>
                 <Button
                   variant="outline"
                   className="w-full justify-start"

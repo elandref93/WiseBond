@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import session from "express-session";
 import MemoryStore from "memorystore";
-import { insertUserSchema, loginSchema, insertCalculationResultSchema, insertContactSubmissionSchema } from "@shared/schema";
+import { insertUserSchema, loginSchema, insertCalculationResultSchema, insertContactSubmissionSchema, updateProfileSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from 'zod-validation-error';
 
@@ -52,6 +52,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const user = await storage.createUser(userData);
+      
+      // Generate and store OTP (normally would be sent via email)
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date();
+      expiresAt.setMinutes(expiresAt.getMinutes() + 30); // OTP expires in 30 minutes
+      
+      await storage.storeOTP(user.id, otp, expiresAt);
+      
+      // In a real application, send the OTP via email
+      console.log(`[DEV ONLY] OTP for user ${user.id}: ${otp}`);
       
       // Set session
       req.session.userId = user.id;
@@ -118,6 +128,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(200).json({ user: userWithoutPassword });
     } catch (error) {
       res.status(500).json({ message: "Failed to get user" });
+    }
+  });
+
+  app.post("/api/auth/verify-otp", async (req, res) => {
+    try {
+      const { userId, otp } = req.body;
+      
+      if (!userId || !otp) {
+        return res.status(400).json({ message: "User ID and OTP are required" });
+      }
+      
+      const isValid = await storage.verifyOTP(userId, otp);
+      
+      if (!isValid) {
+        return res.status(400).json({ message: "Invalid or expired OTP" });
+      }
+      
+      res.json({ message: "OTP verified successfully" });
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "Failed to verify OTP" });
+      }
+    }
+  });
+
+  app.post("/api/auth/resend-otp", async (req, res) => {
+    try {
+      const { userId, email } = req.body;
+      
+      if (!userId || !email) {
+        return res.status(400).json({ message: "User ID and email are required" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Generate and store a new OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date();
+      expiresAt.setMinutes(expiresAt.getMinutes() + 30); // OTP expires in 30 minutes
+      
+      await storage.storeOTP(userId, otp, expiresAt);
+      
+      // In a real application, send the OTP via email
+      console.log(`[DEV ONLY] New OTP for user ${userId}: ${otp}`);
+      
+      res.json({ message: "OTP sent successfully" });
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "Failed to send OTP" });
+      }
+    }
+  });
+  
+  // User profile routes
+  app.get("/api/user/profile", isAuthenticated, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Don't return the password
+      const { password, ...profile } = user;
+      res.json(profile);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "Failed to get profile" });
+      }
+    }
+  });
+
+  app.patch("/api/user/profile", isAuthenticated, async (req, res) => {
+    try {
+      const result = updateProfileSchema.safeParse(req.body);
+      if (!result.success) {
+        const validationError = fromZodError(result.error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      
+      const updatedUser = await storage.updateUser(req.session.userId!, result.data);
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Don't return the password
+      const { password, ...profile } = updatedUser;
+      res.json(profile);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(500).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "Failed to update profile" });
+      }
     }
   });
 

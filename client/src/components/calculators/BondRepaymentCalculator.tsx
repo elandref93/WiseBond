@@ -100,10 +100,13 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
 
       // Save calculation if user is logged in
       if (user) {
-        await apiRequest("POST", "/api/calculations", {
-          calculationType: "bond",
-          inputData: JSON.stringify(values),
-          resultData: JSON.stringify(results),
+        await apiRequest("/api/calculations", {
+          method: "POST",
+          body: JSON.stringify({
+            calculationType: "bond",
+            inputData: JSON.stringify(values),
+            resultData: JSON.stringify(results),
+          })
         });
         
         // Invalidate the calculations query to refetch
