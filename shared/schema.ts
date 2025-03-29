@@ -75,10 +75,11 @@ export const updateProfileSchema = createInsertSchema(users)
     // Phone numbers in South African format
     phone: z.string().optional().refine(
       (val) => {
-        if (!val) return true;
-        return /^(\+27|0)[6-8][0-9]{8}$/.test(val);
+        if (!val) return true; // Allow empty as it's optional
+        // Match either 10 digits starting with 0 or +27 followed by 9 digits
+        return /^(0\d{9}|\+27[1-9]\d{8})$/.test(val);
       },
-      { message: "Invalid South African phone number format" }
+      { message: "Please enter a valid South African phone number (e.g., 0821234567 or +27821234567)" }
     ),
     // Email validation
     email: z.string().email("Invalid email address"),

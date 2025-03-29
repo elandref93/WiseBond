@@ -14,7 +14,14 @@ import { Phone, Mail, MapPin, Clock } from "lucide-react";
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
-  phone: z.string().optional(),
+  phone: z.string().optional().refine(
+    (val) => {
+      if (!val) return true; // Allow empty as it's optional
+      // Match either 10 digits starting with 0 or +27 followed by 9 digits
+      return /^(0\d{9}|\+27[1-9]\d{8})$/.test(val);
+    },
+    { message: "Please enter a valid South African phone number (e.g., 0821234567 or +27821234567)" }
+  ),
   message: z.string().min(10, { message: "Message must be at least 10 characters" }),
 });
 
@@ -40,7 +47,10 @@ export default function Contact() {
   const onSubmit = async (values: ContactFormValues) => {
     setIsSubmitting(true);
     try {
-      await apiRequest("POST", "/api/contact", values);
+      await apiRequest("/api/contact", {
+        method: "POST",
+        body: JSON.stringify(values)
+      });
       
       toast({
         title: "Message sent successfully",

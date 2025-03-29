@@ -9,7 +9,7 @@ import { updateProfileSchema } from '@shared/schema';
 import { useQuery, useMutation } from '@tanstack/react-query';
 
 import { Card, CardContent } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -361,8 +361,15 @@ export default function Profile() {
                             <FormItem>
                               <FormLabel>Phone Number</FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="e.g. 0821234567" />
+                                <Input 
+                                  {...field} 
+                                  placeholder="e.g. 0821234567 or +27821234567"
+                                  pattern="(0[0-9]{9}|\+27[1-9][0-9]{8})"
+                                 />
                               </FormControl>
+                              <FormDescription>
+                                Enter a valid South African phone number (e.g., 0821234567 or +27821234567)
+                              </FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}
