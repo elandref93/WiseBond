@@ -115,10 +115,12 @@ export default function AffordabilityCalculator({ onCalculate }: AffordabilityCa
                     <Input
                       {...field}
                       className="pl-8"
-                      onBlur={(e) => {
-                        const value = e.target.value.replace(/,/g, "");
-                        if (!isNaN(Number(value))) {
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, "");
+                        if (value) {
                           field.onChange(formatCurrency(value));
+                        } else {
+                          field.onChange("");
                         }
                       }}
                     />
@@ -143,10 +145,12 @@ export default function AffordabilityCalculator({ onCalculate }: AffordabilityCa
                     <Input
                       {...field}
                       className="pl-8"
-                      onBlur={(e) => {
-                        const value = e.target.value.replace(/,/g, "");
-                        if (!isNaN(Number(value))) {
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, "");
+                        if (value) {
                           field.onChange(formatCurrency(value));
+                        } else {
+                          field.onChange("");
                         }
                       }}
                     />
@@ -171,10 +175,12 @@ export default function AffordabilityCalculator({ onCalculate }: AffordabilityCa
                     <Input
                       {...field}
                       className="pl-8"
-                      onBlur={(e) => {
-                        const value = e.target.value.replace(/,/g, "");
-                        if (!isNaN(Number(value))) {
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, "");
+                        if (value) {
                           field.onChange(formatCurrency(value));
+                        } else {
+                          field.onChange("");
                         }
                       }}
                     />
