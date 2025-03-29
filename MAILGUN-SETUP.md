@@ -43,8 +43,32 @@ The email templates are customized for each calculator type and include:
 
 ## Troubleshooting
 
+### General Issues
 If emails are not being sent:
 1. Check that your Mailgun API key and domain are correctly configured in the `.env` file
 2. Verify your Mailgun account is active and not restricted
 3. Check server logs for any Mailgun-related errors
 4. Ensure your Mailgun sending domain is properly verified
+
+### Sandbox Domain Restrictions
+If you're using a Mailgun sandbox domain (which is common for new accounts), be aware of these limitations:
+
+1. **Authorized Recipients Only**: Sandbox domains can only send to email addresses that have been verified as authorized recipients.
+   - Log in to your Mailgun dashboard
+   - Go to Sending → Domains
+   - Click on your sandbox domain
+   - Under "Authorized Recipients", add the email addresses you want to send to
+   - Recipients will need to click a verification link sent to their email
+
+2. **Daily Sending Limits**: Sandbox domains typically have very low sending limits (e.g., 300 emails per day)
+
+3. **From Address Requirements**: The "From" email address must use the sandbox domain
+
+### Testing Your Configuration
+You can run a simple test to verify your Mailgun setup:
+
+```bash
+node test-email.js
+```
+
+This script will attempt to send a test email and provide detailed error information if it fails.

@@ -61,7 +61,7 @@ export default function EmailCalculationForm({
   const onSubmit = async (values: EmailFormValues) => {
     try {
       // Send calculation results and user info to the server
-      await apiRequest('/api/calculations/email', {
+      const response = await apiRequest('/api/calculations/email', {
         method: 'POST',
         body: JSON.stringify({
           firstName: values.firstName,
@@ -72,21 +72,40 @@ export default function EmailCalculationForm({
         }),
       });
       
-      // Show success message
-      toast({
-        title: 'Calculation sent!',
-        description: `We've sent the calculation results to ${values.email}`,
-      });
+      // Parse response
+      const data = await response.json();
       
-      // Call the onSuccess callback if provided
-      if (onSuccess) {
-        onSuccess();
+      if (data.success) {
+        // Show success message
+        toast({
+          title: 'Calculation saved!',
+          description: data.message || `We've sent the calculation results to ${values.email}`,
+        });
+        
+        // Call the onSuccess callback if provided
+        if (onSuccess) {
+          onSuccess();
+        }
+      } else {
+        // API returned error
+        console.error('Failed to send calculation (API error):', data.message);
+        toast({
+          title: 'Email delivery issue',
+          description: data.message || 'Your information was saved, but there was a problem sending the email. Our team will contact you soon.',
+          variant: 'destructive',
+        });
+        
+        // Still call onSuccess since the data was saved
+        if (onSuccess) {
+          onSuccess();
+        }
       }
     } catch (error) {
-      console.error('Failed to send calculation:', error);
+      // Connection/network error
+      console.error('Failed to send calculation (connection error):', error);
       toast({
-        title: 'Failed to send',
-        description: 'There was a problem sending your calculation. Please try again.',
+        title: 'Connection problem',
+        description: 'There was a problem connecting to our servers. Please try again later.',
         variant: 'destructive',
       });
     }

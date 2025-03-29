@@ -302,12 +302,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       if (emailResult) {
+        // Email sent successfully
         res.status(200).json({ success: true, message: "Calculation sent successfully" });
-      } else {
-        // Still return success if API key is not configured - this is just for demo/dev
+      } else if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
+        // Email service not configured - still return success in development
+        console.log(`[Dev mode] Email would be sent to ${email} with ${calculationType} results`);
         res.status(200).json({ 
           success: true, 
-          message: "Email would be sent in production. API key not configured in development." 
+          message: "Email would be sent in production. Email service not fully configured in development." 
+        });
+      } else {
+        // Email service configured but sending failed
+        console.error(`Failed to send email to ${email}`);
+        res.status(500).json({ 
+          success: false, 
+          message: "The calculation has been saved, but there was a problem sending the email. Please try again later." 
         });
       }
     } catch (error) {

@@ -1,8 +1,8 @@
 // This script can be used to test Mailgun email functionality
-// Run with: node test-email.js
+// Run with: node --env-file=.env test-email.js
 
-const FormData = require('form-data');
-const Mailgun = require('mailgun.js');
+import FormData from 'form-data';
+import Mailgun from 'mailgun.js';
 
 // Function to send a test email
 async function sendTestEmail() {
@@ -14,22 +14,44 @@ async function sendTestEmail() {
     console.log('MAILGUN_API_KEY=your_mailgun_api_key');
     console.log('MAILGUN_DOMAIN=your_mailgun_domain');
     console.log('MAILGUN_FROM_EMAIL=noreply@yourdomain.com (optional)');
+    console.log('MAILGUN_API_ENDPOINT=https://api.eu.mailgun.net (optional, for EU region)');
+    console.log('TEST_EMAIL_TO=test@example.com (optional, defaults to from email)');
     return false;
   }
+  
+  console.log('🔑 Mailgun API key detected');
+  console.log('🌐 Starting email test...');
+
+  // Get the API endpoint (default to US endpoint)
+  const apiEndpoint = process.env.MAILGUN_API_ENDPOINT || 'https://api.mailgun.net';
+  console.log(`🔄 Using Mailgun API endpoint: ${apiEndpoint}`);
 
   // Initialize Mailgun
   const mailgun = new Mailgun(FormData);
   const mg = mailgun.client({ 
     username: 'api', 
     key: process.env.MAILGUN_API_KEY,
-    url: 'https://api.mailgun.net' // or 'https://api.eu.mailgun.net' for EU region
+    url: apiEndpoint
   });
   const mailgunDomain = process.env.MAILGUN_DOMAIN;
+  console.log(`📨 Using Mailgun domain: ${mailgunDomain}`);
   
   // Set up the test email
   const fromEmail = process.env.MAILGUN_FROM_EMAIL || 'noreply@homeloanhelper.co.za';
+  console.log(`📤 Using sender email: ${fromEmail}`);
+  
+  const toEmail = process.env.TEST_EMAIL_TO || fromEmail; // Send to self if no test recipient specified
+  console.log(`📬 Sending test email to: ${toEmail}`);
+  
+  // Check if it's likely a sandbox domain and provide a hint
+  if (mailgunDomain.includes('sandbox') && !toEmail.includes(mailgunDomain)) {
+    console.log('\n⚠️  WARNING: Using a sandbox domain to send to an external address.');
+    console.log('   Make sure this recipient is authorized in your Mailgun account!');
+    console.log('   Sandbox domains can only send to pre-authorized recipients.');
+  }
+  
   const testEmail = {
-    to: process.env.TEST_EMAIL_TO || fromEmail, // Send to self if no test recipient specified
+    to: toEmail,
     from: fromEmail,
     subject: 'HomeLoanHelper - Mailgun Test Email',
     text: 'This is a test email from HomeLoanHelper to verify that Mailgun is configured correctly.',
@@ -59,6 +81,29 @@ async function sendTestEmail() {
   } catch (error) {
     console.error('❌ Error sending email:');
     console.error(error);
+    
+    // Provide more helpful guidance based on the error
+    if (error.status === 401) {
+      console.log('\n\n📋 TROUBLESHOOTING GUIDE:');
+      console.log('-------------------------');
+      console.log('1. The API key appears to be invalid or unauthorized.');
+      console.log('2. For Mailgun sandbox domains, you need to add authorized recipients.');
+      console.log('   - Log in to your Mailgun account');
+      console.log('   - Go to the Sending > Domains section');
+      console.log('   - Click on your sandbox domain');
+      console.log('   - Under "Authorized Recipients" add the email address you\'re sending to');
+      console.log('3. If using a custom domain, verify it\'s properly set up in Mailgun');
+      console.log('4. Check that your account is not suspended or restricted');
+      console.log('5. Try using the EU endpoint if your account is in the EU region:');
+      console.log('   - Change the URL to https://api.eu.mailgun.net');
+    } else if (error.status === 400) {
+      console.log('\n\n📋 TROUBLESHOOTING GUIDE:');
+      console.log('-------------------------');
+      console.log('1. Check that your "from" email address is properly formatted');
+      console.log('2. If using a custom domain, ensure it\'s properly set up in Mailgun');
+      console.log('3. Ensure the recipient email is valid');
+    }
+    
     return false;
   }
 }
