@@ -1,24 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
-  ResponsiveContainer,
   AreaChart,
   Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
+  ResponsiveContainer,
   Legend,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, PieChartIcon, BarChartIcon, TrendingUpIcon } from 'lucide-react';
-import { formatCurrency } from '@/lib/calculators';
-import { useIsMobile } from '@/hooks/use-mobile';
+} from "recharts";
+import { formatCurrency } from "@/lib/calculators";
 
 interface AmortizationChartProps {
   loanAmount: number;
@@ -26,336 +17,161 @@ interface AmortizationChartProps {
   loanTerm: number;
 }
 
-export default function AmortizationChart({ loanAmount, interestRate, loanTerm }: AmortizationChartProps) {
-  const [activeTab, setActiveTab] = useState('overview');
-  const [yearView, setYearView] = useState(1);
-  const [chartType, setChartType] = useState<'area' | 'pie'>('area');
-  const isMobile = useIsMobile();
-  
-  // Calculate monthly payment
+interface ChartDataPoint {
+  name: string;
+  principal: number;
+  interest: number;
+  balance: number;
+}
+
+const calculateMonthlyPayment = (principal: number, interestRate: number, termYears: number) => {
   const monthlyRate = interestRate / 100 / 12;
-  const numberOfPayments = loanTerm * 12;
-  const x = Math.pow(1 + monthlyRate, numberOfPayments);
-  const monthlyPayment = (loanAmount * x * monthlyRate) / (x - 1);
-  
-  // Generate yearly data for overview
-  const generateYearlyData = () => {
-    const yearlyData = [];
-    let balance = loanAmount;
-    let totalInterestPaid = 0;
-    let totalPrincipalPaid = 0;
-    
-    for (let year = 1; year <= loanTerm; year++) {
-      let yearInterest = 0;
-      let yearPrincipal = 0;
-      
-      // Calculate each month in this year
-      for (let month = 1; month <= 12; month++) {
-        if ((year - 1) * 12 + month <= numberOfPayments) {
-          const interestPayment = balance * monthlyRate;
-          const principalPayment = monthlyPayment - interestPayment;
-          
-          yearInterest += interestPayment;
-          yearPrincipal += principalPayment;
-          balance -= principalPayment;
+  const totalPayments = termYears * 12;
+  return (
+    (principal * monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) /
+    (Math.pow(1 + monthlyRate, totalPayments) - 1)
+  );
+};
+
+export default function AmortizationChart({
+  loanAmount,
+  interestRate,
+  loanTerm,
+}: AmortizationChartProps) {
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+
+  useEffect(() => {
+    // Generate chart data
+    const generateChartData = () => {
+      const data: ChartDataPoint[] = [];
+      let remainingBalance = loanAmount;
+      let cumulativeInterest = 0;
+      let cumulativePrincipal = 0;
+
+      const monthlyPayment = calculateMonthlyPayment(loanAmount, interestRate, loanTerm);
+
+      // Calculate yearly data
+      for (let year = 0; year <= loanTerm; year++) {
+        if (year === 0) {
+          // Starting point
+          data.push({
+            name: "Start",
+            principal: 0,
+            interest: 0,
+            balance: loanAmount,
+          });
+          continue;
         }
-      }
-      
-      totalInterestPaid += yearInterest;
-      totalPrincipalPaid += yearPrincipal;
-      
-      yearlyData.push({
-        year,
-        yearlyInterest: yearInterest,
-        yearlyPrincipal: yearPrincipal,
-        remainingBalance: Math.max(0, balance),
-        totalInterestPaid,
-        totalPrincipalPaid,
-      });
-    }
-    
-    return yearlyData;
-  };
-  
-  // Generate monthly data for current year
-  const generateMonthlyData = () => {
-    const monthlyData = [];
-    let balance = loanAmount;
-    let totalInterestPaid = 0;
-    let totalPrincipalPaid = 0;
-    
-    // Fast-forward to the year we're interested in
-    for (let month = 1; month < (yearView - 1) * 12; month++) {
-      if (month <= numberOfPayments) {
-        const interestPayment = balance * monthlyRate;
-        const principalPayment = monthlyPayment - interestPayment;
-        balance -= principalPayment;
-        totalInterestPaid += interestPayment;
-        totalPrincipalPaid += principalPayment;
-      }
-    }
-    
-    // Now calculate each month in the current year
-    for (let month = 1; month <= 12; month++) {
-      const absoluteMonth = (yearView - 1) * 12 + month;
-      
-      if (absoluteMonth <= numberOfPayments) {
-        const interestPayment = balance * monthlyRate;
-        const principalPayment = monthlyPayment - interestPayment;
-        balance -= principalPayment;
-        
-        totalInterestPaid += interestPayment;
-        totalPrincipalPaid += principalPayment;
-        
-        monthlyData.push({
-          month,
-          absoluteMonth,
-          principalPayment,
-          interestPayment,
-          balance,
-          totalInterestPaid,
-          totalPrincipalPaid,
-          principalPercentage: (principalPayment / monthlyPayment) * 100,
-          interestPercentage: (interestPayment / monthlyPayment) * 100,
+
+        let yearlyPrincipal = 0;
+        let yearlyInterest = 0;
+
+        // Calculate monthly payments for the year
+        for (let month = 1; month <= 12; month++) {
+          if ((year - 1) * 12 + month <= loanTerm * 12) {
+            const monthlyInterest = remainingBalance * (interestRate / 100 / 12);
+            const monthlyPrincipal = monthlyPayment - monthlyInterest;
+
+            yearlyInterest += monthlyInterest;
+            yearlyPrincipal += monthlyPrincipal;
+            remainingBalance -= monthlyPrincipal;
+          }
+        }
+
+        cumulativeInterest += yearlyInterest;
+        cumulativePrincipal += yearlyPrincipal;
+
+        data.push({
+          name: `Year ${year}`,
+          principal: cumulativePrincipal,
+          interest: cumulativeInterest,
+          balance: Math.max(0, remainingBalance),
         });
       }
+
+      return data;
+    };
+
+    setChartData(generateChartData());
+  }, [loanAmount, interestRate, loanTerm]);
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-4 border border-gray-200 shadow-md rounded-md">
+          <p className="font-medium">{label}</p>
+          <div className="mt-2 space-y-1">
+            <p className="text-sm flex items-center">
+              <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+              <span>Principal Paid: {formatCurrency(payload[0].value)}</span>
+            </p>
+            <p className="text-sm flex items-center">
+              <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+              <span>Interest Paid: {formatCurrency(payload[1].value)}</span>
+            </p>
+            <p className="text-sm flex items-center">
+              <span className="inline-block w-3 h-3 bg-yellow-400 rounded-full mr-2"></span>
+              <span>Remaining Balance: {formatCurrency(payload[2].value)}</span>
+            </p>
+          </div>
+        </div>
+      );
     }
-    
-    return monthlyData;
+    return null;
   };
-  
-  // Format currency for tooltip and axis labels
-  const formatChartCurrency = (value: number | string) => {
-    const numValue = typeof value === 'string' ? Number(value) : value;
-    if (isMobile) {
-      // On mobile, use a more compact display
-      return numValue >= 1000000 
-        ? `R${(numValue / 1000000).toFixed(1)}M` 
-        : numValue >= 1000 
-          ? `R${(numValue / 1000).toFixed(0)}K` 
-          : formatCurrency(numValue);
-    }
-    return formatCurrency(numValue).toString();
-  };
-  
-  // Total loan cost data for pie chart
-  const totalCostData = [
-    { name: 'Principal', value: loanAmount },
-    { name: 'Interest', value: monthlyPayment * numberOfPayments - loanAmount }
-  ];
-  
-  // Pie chart colors
-  const COLORS = ['#8884d8', '#82ca9d'];
-  
-  const yearlyData = generateYearlyData();
-  const monthlyData = generateMonthlyData();
-  
-  // For responsive design - smaller tick counts on mobile
-  const getTickCount = () => isMobile ? 3 : 5;
-  
+
   return (
-    <div className="w-full">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="overview">
-            <TrendingUpIcon className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Loan Overview</span>
-            <span className="sm:hidden">Overview</span>
-          </TabsTrigger>
-          <TabsTrigger value="monthly">
-            <BarChartIcon className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Monthly Breakdown</span>
-            <span className="sm:hidden">Monthly</span>
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="overview" className="pt-4 m-0">
-          {/* Chart toggle buttons */}
-          <div className="flex justify-end mb-4">
-            <div className="bg-muted inline-flex rounded-md p-1">
-              <Button 
-                variant={chartType === 'area' ? 'default' : 'ghost'} 
-                size="sm" 
-                onClick={() => setChartType('area')}
-                className="h-8 px-2"
-              >
-                <TrendingUpIcon className="h-4 w-4" />
-                <span className="sr-only">Area Chart</span>
-              </Button>
-              <Button 
-                variant={chartType === 'pie' ? 'default' : 'ghost'} 
-                size="sm" 
-                onClick={() => setChartType('pie')}
-                className="h-8 px-2"
-              >
-                <PieChartIcon className="h-4 w-4" />
-                <span className="sr-only">Pie Chart</span>
-              </Button>
-            </div>
-          </div>
-          
-          {/* Chart display */}
-          <div className="h-[300px] md:h-[350px]">
-            {chartType === 'area' ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={yearlyData}
-                  margin={{ top: 10, right: 5, left: 5, bottom: 20 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="year" 
-                    label={{ 
-                      value: 'Years', 
-                      position: 'insideBottomRight', 
-                      offset: -5 
-                    }}
-                    tickCount={getTickCount()}
-                  />
-                  <YAxis 
-                    tickFormatter={formatChartCurrency}
-                    width={isMobile ? 40 : 60}
-                  />
-                  <Tooltip 
-                    formatter={formatChartCurrency}
-                    contentStyle={{ fontSize: '12px' }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  <Area
-                    type="monotone"
-                    dataKey="totalPrincipalPaid"
-                    stackId="1"
-                    stroke="#8884d8"
-                    fill="#8884d8"
-                    name="Principal"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="totalInterestPaid"
-                    stackId="1"
-                    stroke="#82ca9d"
-                    fill="#82ca9d"
-                    name="Interest"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="remainingBalance"
-                    stroke="#ffc658"
-                    fill="#ffc658"
-                    name="Balance"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={totalCostData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={!isMobile}
-                    outerRadius={isMobile ? 80 : 110}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => 
-                      !isMobile && `${name}: ${(percent * 100).toFixed(0)}%`
-                    }
-                  >
-                    {totalCostData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={formatChartCurrency}
-                    contentStyle={{ fontSize: '12px' }}
-                  />
-                  <Legend 
-                    formatter={(value, entry, index) => {
-                      const amount = totalCostData[index].value;
-                      return `${value}: ${formatChartCurrency(amount)} (${((amount / (loanAmount + (monthlyPayment * numberOfPayments - loanAmount))) * 100).toFixed(0)}%)`;
-                    }}
-                    wrapperStyle={{ fontSize: '12px' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="monthly" className="pt-4 m-0">
-          {/* Year navigation */}
-          <div className="flex items-center justify-between mb-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setYearView(Math.max(1, yearView - 1))}
-              disabled={yearView <= 1}
-              className="h-8"
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">Previous</span>
-            </Button>
-            
-            <div className="text-sm font-medium">
-              Year {yearView} of {loanTerm}
-            </div>
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setYearView(Math.min(loanTerm, yearView + 1))}
-              disabled={yearView >= loanTerm}
-              className="h-8"
-            >
-              <span className="hidden sm:inline">Next</span>
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
-          
-          {/* Monthly breakdown chart */}
-          <div className="h-[300px] md:h-[350px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={monthlyData}
-                margin={{ top: 10, right: 5, left: 5, bottom: 20 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="month" 
-                  label={{ value: 'Month', position: 'insideBottomRight', offset: -5 }} 
-                  tickCount={isMobile ? 6 : 12}
-                />
-                <YAxis 
-                  tickFormatter={formatChartCurrency}
-                  width={isMobile ? 40 : 60}
-                />
-                <Tooltip 
-                  formatter={formatChartCurrency}
-                  labelFormatter={(label) => `Month ${label}`}
-                  contentStyle={{ fontSize: '12px' }}
-                />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="principalPayment" stackId="a" fill="#8884d8" name="Principal" />
-                <Bar dataKey="interestPayment" stackId="a" fill="#82ca9d" name="Interest" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          
-          {/* Year summary for current year */}
-          <div className="mt-4 p-3 bg-muted rounded-lg text-sm text-center">
-            {yearView <= yearlyData.length ? (
-              <>
-                <span className="font-medium">Year {yearView} Summary:</span>{' '}
-                Principal: {formatChartCurrency(yearlyData[yearView - 1].yearlyPrincipal)},{' '}
-                Interest: {formatChartCurrency(yearlyData[yearView - 1].yearlyInterest)},{' '}
-                Balance: {formatChartCurrency(yearlyData[yearView - 1].remainingBalance)}
-              </>
-            ) : (
-              <span>No data for year {yearView}</span>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
+    <div className="w-full h-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart
+          data={chartData}
+          margin={{
+            top: 10,
+            right: 30,
+            left: 0,
+            bottom: 5,
+          }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis dataKey="name" stroke="#888888" fontSize={12} />
+          <YAxis
+            stroke="#888888"
+            fontSize={12}
+            tickFormatter={(value) => {
+              if (value >= 1000000) {
+                return `R${Math.round(value / 1000000)}M`;
+              } else if (value >= 1000) {
+                return `R${Math.round(value / 1000)}K`;
+              }
+              return `R${value}`;
+            }}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Area
+            type="monotone"
+            dataKey="principal"
+            stackId="1"
+            stroke="#2563eb"
+            fill="#93c5fd"
+            name="Principal Paid"
+          />
+          <Area
+            type="monotone"
+            dataKey="interest"
+            stackId="1"
+            stroke="#16a34a"
+            fill="#86efac"
+            name="Interest Paid"
+          />
+          <Area
+            type="monotone"
+            dataKey="balance"
+            stroke="#eab308"
+            fill="#fef08a"
+            name="Remaining Balance"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   );
 }

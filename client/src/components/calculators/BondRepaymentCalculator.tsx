@@ -4,7 +4,6 @@ import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { HomeIcon, InfoIcon } from "lucide-react";
@@ -43,7 +42,6 @@ interface BondRepaymentCalculatorProps {
 }
 
 export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCalculatorProps) {
-  const [showChart, setShowChart] = useState(false);
   const [loanDetails, setLoanDetails] = useState<{
     loanAmount: number;
     interestRate: number;
@@ -96,9 +94,6 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
           interestRate,
           loanTerm
         });
-        
-        // Show chart after calculation
-        setShowChart(true);
         
         // Pass results back to parent component
         onCalculate(results);
@@ -255,40 +250,37 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center mb-2">
-        <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-white mr-4">
+    <div className="max-w-full">
+      <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/90 text-white">
           <HomeIcon className="h-5 w-5" />
         </div>
-        <h3 className="text-lg leading-6 font-medium text-gray-900">
-          Bond Repayment Calculator
-        </h3>
+        <h3 className="text-lg font-medium">Bond Repayment Calculator</h3>
       </div>
 
-      <div className="bg-blue-50 rounded-lg p-4 mb-4">
+      <div className="bg-blue-50 p-3 rounded my-4">
         <div className="flex">
           <InfoIcon className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-700">
+          <p className="text-sm text-blue-700">
             Calculate your monthly bond repayments based on the property value, interest rate, loan term, and deposit amount. 
             This helps you understand the true cost of your home loan and plan your budget accordingly.
-          </div>
+          </p>
         </div>
       </div>
 
-      {/* Input/Results side by side layout */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left column - Calculator inputs */}
-        <div className="col-span-1">
+      <div className="flex flex-col lg:flex-row gap-6 mt-4">
+        {/* Left column - Form inputs */}
+        <div className="w-full lg:w-1/4 flex-shrink-0">
           <Form {...form}>
-            <div className="space-y-4">
+            <div className="space-y-5">
               {/* Property Value Field with Slider */}
               <FormField
                 control={form.control}
                 name="propertyValue"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <FormLabel>Property Value</FormLabel>
+                      <FormLabel className="text-sm font-medium">Property Value</FormLabel>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -317,16 +309,16 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                           />
                         </div>
                         <div className="flex items-center">
-                          <span className="text-xs text-gray-500 w-16">R500,000</span>
+                          <span className="text-xs text-gray-500 mr-1">R500,000</span>
                           <Slider
                             defaultValue={[currentPropertyValue]}
                             min={500000}
                             max={20000000}
                             step={100000}
                             onValueChange={handlePropertyValueSliderChange}
-                            className="mx-2 flex-grow"
+                            className="flex-grow mx-2"
                           />
-                          <span className="text-xs text-gray-500 w-20 text-right">R20,000,000</span>
+                          <span className="text-xs text-gray-500 ml-1">R20M</span>
                         </div>
                       </div>
                     </FormControl>
@@ -340,9 +332,9 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                 control={form.control}
                 name="interestRate"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <FormLabel>Interest Rate (%)</FormLabel>
+                      <FormLabel className="text-sm font-medium">Interest Rate (%)</FormLabel>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -363,16 +355,16 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                           </div>
                         </div>
                         <div className="flex items-center">
-                          <span className="text-xs text-gray-500 w-6">5%</span>
+                          <span className="text-xs text-gray-500 mr-1">5%</span>
                           <Slider
                             defaultValue={[currentInterestRate]}
                             min={5}
                             max={20}
                             step={0.25}
                             onValueChange={handleInterestRateSliderChange}
-                            className="mx-2 flex-grow"
+                            className="flex-grow mx-2"
                           />
-                          <span className="text-xs text-gray-500 w-8 text-right">20%</span>
+                          <span className="text-xs text-gray-500 ml-1">20%</span>
                         </div>
                       </div>
                     </FormControl>
@@ -386,9 +378,9 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                 control={form.control}
                 name="loanTerm"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <FormLabel>Loan Term</FormLabel>
+                      <FormLabel className="text-sm font-medium">Loan Term</FormLabel>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -425,9 +417,9 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                 control={form.control}
                 name="deposit"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <FormLabel>Deposit</FormLabel>
+                      <FormLabel className="text-sm font-medium">Deposit</FormLabel>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -456,15 +448,15 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                           />
                         </div>
                         <div className="flex items-center">
-                          <span className="text-xs text-gray-500 w-4">R0</span>
+                          <span className="text-xs text-gray-500 mr-1">R0</span>
                           <Slider
                             defaultValue={[currentDeposit]}
                             max={Math.min(5000000, currentPropertyValue * 0.5)}
                             step={10000}
                             onValueChange={handleDepositSliderChange}
-                            className="mx-2 flex-grow"
+                            className="flex-grow mx-2"
                           />
-                          <span className="text-xs text-gray-500 w-16 text-right">{displayMaxDeposit}</span>
+                          <span className="text-xs text-gray-500 ml-1">{displayMaxDeposit}</span>
                         </div>
                       </div>
                     </FormControl>
@@ -475,60 +467,67 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
             </div>
           </Form>
           
-          <div className="text-sm text-gray-500 mt-4">
-            <p>
+          <div className="mt-4 border-t pt-4">
+            <p className="text-xs text-gray-500 mb-2">
               Results update automatically as you adjust values
             </p>
+            
+            {loanDetails && (
+              <div className="text-sm">
+                <p className="text-xs text-gray-600 font-medium">This is an estimate based on the information provided. Actual amounts may vary.</p>
+                <a href="#" className="text-xs text-blue-600 hover:underline">Learn more about how these calculations work</a>
+              </div>
+            )}
           </div>
         </div>
-        
-        {/* Right column - Results and chart spanning 2 cols */}
-        <div className="col-span-1 md:col-span-2">
-          {showChart && loanDetails ? (
+
+        {/* Right column - Results section */}
+        <div className="w-full lg:w-3/4">
+          {loanDetails ? (
             <div className="space-y-6">
-              {/* Summary statistics in a row */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-                  <div className="text-sm text-gray-500">Monthly Repayment</div>
-                  <div className="text-2xl font-bold">{calculateMonthlyPayment()}</div>
-                </div>
-                <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-                  <div className="text-sm text-gray-500">Total Repayment</div>
-                  <div className="text-2xl font-bold">{calculateTotalRepayment()}</div>
-                </div>
-                <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-                  <div className="text-sm text-gray-500">Total Interest</div>
-                  <div className="text-2xl font-bold">{calculateTotalInterest()}</div>
-                </div>
-              </div>
-              
-              <div className="text-xs text-gray-500 italic">
-                This is an estimate based on the information provided. Actual amounts may vary. <a href="#" className="text-blue-600 hover:underline">Learn more about how these calculations work</a>.
-              </div>
-              
-              {/* Loan Overview section - full width */}
+              {/* Key summary stats */}
               <div>
-                <div className="flex items-center justify-between mb-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Calculation Results</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="text-sm text-gray-500 mb-1">Monthly Repayment</div>
+                    <div className="text-2xl font-bold">{calculateMonthlyPayment()}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="text-sm text-gray-500 mb-1">Total Repayment Amount</div>
+                    <div className="text-2xl font-bold">{calculateTotalRepayment()}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="text-sm text-gray-500 mb-1">Total Interest Paid</div>
+                    <div className="text-2xl font-bold">{calculateTotalInterest()}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chart Section */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
                   <h4 className="text-sm font-medium text-gray-700">Loan Overview</h4>
-                  <div className="text-xs text-gray-500 flex items-center">
-                    <span className="flex items-center mr-4">
-                      <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
-                      Principal
-                    </span>
-                    <span className="flex items-center mr-4">
-                      <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-1"></span>
-                      Interest
-                    </span>
-                    <span className="flex items-center">
-                      <span className="inline-block w-3 h-3 bg-yellow-400 rounded-full mr-1"></span>
-                      Balance
-                    </span>
+                  <div className="flex items-center text-xs text-gray-500 space-x-3">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-1"></div>
+                      <span>Principal</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
+                      <span>Interest</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 bg-yellow-400 rounded-full mr-1"></div>
+                      <span>Balance</span>
+                    </div>
                   </div>
                 </div>
                 
-                {/* Expanded, full-width chart */}
-                <div className="bg-white p-4 rounded-lg border border-gray-200 w-full">
-                  <div className="h-64">
+                {/* Full-width chart */}
+                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                  <div className="h-[400px] w-full">
                     <AmortizationChart 
                       loanAmount={loanDetails.loanAmount} 
                       interestRate={loanDetails.interestRate} 
@@ -538,26 +537,34 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                 </div>
               </div>
               
-              {/* Yearly table data - full width */}
-              <div className="mt-6">
-                <h4 className="text-sm font-medium text-gray-700 mb-4">Yearly Breakdown</h4>
+              {/* Yearly Breakdown Table */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Yearly Breakdown</h4>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full bg-white divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                  <table className="min-w-full divide-y divide-gray-200 text-sm border border-gray-200 rounded-lg">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Principal Paid</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Paid</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining Balance</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Year
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Principal Paid
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Interest Paid
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Remaining Balance
+                        </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-gray-200">
                       {generateYearlyData().map((data) => (
                         <tr key={data.year} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{data.year}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.totalPrincipalPaid)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.totalInterestPaid)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.balance)}</td>
+                          <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{data.year}</td>
+                          <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.totalPrincipalPaid)}</td>
+                          <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.totalInterestPaid)}</td>
+                          <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.balance)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -566,7 +573,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
               </div>
             </div>
           ) : (
-            <div className="border rounded-lg p-8 text-center bg-gray-50 h-full flex flex-col items-center justify-center">
+            <div className="border rounded-lg p-8 text-center bg-gray-50 flex flex-col items-center justify-center h-full">
               <div className="text-gray-400 mb-4">
                 <HomeIcon className="h-12 w-12 mx-auto" />
               </div>
