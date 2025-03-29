@@ -285,11 +285,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Store as a lead in the database
       const contactData = {
-        firstName,
-        lastName, 
+        name: `${firstName} ${lastName}`,
         email,
         message: `Requested ${calculationType} calculator results to be emailed`,
-        subject: `${calculationType} Calculator`,
       };
       
       await storage.createContactSubmission(contactData);

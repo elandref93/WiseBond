@@ -11,15 +11,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { parseSharedCalculation } from '@/lib/shareUtils';
 import { CalculationResult } from '@/lib/calculators';
-import { Share2, ArrowLeft, Calculator } from 'lucide-react';
+import { ArrowLeft, Calculator } from 'lucide-react';
 import ShareCalculation from '@/components/calculators/ShareCalculation';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import EmailCalculationForm from '@/components/calculators/EmailCalculationForm';
+import EmailCalculationButton from '@/components/calculators/EmailCalculationButton';
 
 export default function SharedCalculation() {
   const [location, navigate] = useLocation();
   const [calculationResult, setCalculationResult] = useState<CalculationResult | null>(null);
-  const [activeTab, setActiveTab] = useState('results');
+  // State to manage the calculation result
   
   useEffect(() => {
     // Get the encoded data from the URL query parameters
@@ -93,75 +92,62 @@ export default function SharedCalculation() {
             <CardTitle>{getCalculatorTitle(calculationResult.type)}</CardTitle>
             <CardDescription>Shared calculation results</CardDescription>
           </div>
-          {calculationResult && (
-            <ShareCalculation result={calculationResult} />
-          )}
+          <div className="flex gap-2">
+            {calculationResult && (
+              <>
+                <EmailCalculationButton result={calculationResult} />
+                <ShareCalculation result={calculationResult} />
+              </>
+            )}
+          </div>
         </CardHeader>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-            <TabsTrigger value="results">View Results</TabsTrigger>
-            <TabsTrigger value="getHelp">Get Expert Help</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="results">
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {calculationResult.displayResults.map((item, index) => (
-                  <div key={index} className="flex flex-col">
-                    <span className="text-sm text-muted-foreground">{item.label}</span>
-                    <span className="text-lg font-semibold">{item.value}</span>
-                  </div>
-                ))}
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {calculationResult.displayResults.map((item, index) => (
+              <div key={index} className="flex flex-col">
+                <span className="text-sm text-muted-foreground">{item.label}</span>
+                <span className="text-lg font-semibold">{item.value}</span>
               </div>
-              
-              {/* Display any additional data or charts */}
-              {calculationResult.type === 'amortisation' && calculationResult.schedule && (
-                <div className="mt-8">
-                  <h3 className="text-lg font-semibold mb-2">Amortization Schedule</h3>
-                  <div className="border rounded-lg overflow-x-auto">
-                    <table className="min-w-full divide-y divide-border">
-                      <thead>
-                        <tr className="bg-muted">
-                          <th className="px-4 py-2 text-left">Year</th>
-                          <th className="px-4 py-2 text-right">Principal</th>
-                          <th className="px-4 py-2 text-right">Interest</th>
-                          <th className="px-4 py-2 text-right">Balance</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {calculationResult.schedule.map((entry: { year: string; principal: string; interest: string; balance: string }, index: number) => (
-                          <tr key={index} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/50'}>
-                            <td className="px-4 py-2">{entry.year}</td>
-                            <td className="px-4 py-2 text-right">{entry.principal}</td>
-                            <td className="px-4 py-2 text-right">{entry.interest}</td>
-                            <td className="px-4 py-2 text-right">{entry.balance}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </TabsContent>
+            ))}
+          </div>
           
-          <TabsContent value="getHelp">
-            <CardContent>
-              <div className="max-w-md mx-auto">
-                <h3 className="text-lg font-semibold mb-2">Need Help With Your Home Loan?</h3>
-                <p className="text-muted-foreground mb-4">
-                  Our consultants can help you find the best home loan option tailored to your specific needs. Enter your details below and we'll send you this calculation along with personalized advice.
-                </p>
-                
-                <EmailCalculationForm 
-                  result={calculationResult} 
-                  onSuccess={() => setActiveTab('results')}
-                />
+          {/* Display any additional data or charts */}
+          {calculationResult.type === 'amortisation' && calculationResult.schedule && (
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold mb-2">Amortization Schedule</h3>
+              <div className="border rounded-lg overflow-x-auto">
+                <table className="min-w-full divide-y divide-border">
+                  <thead>
+                    <tr className="bg-muted">
+                      <th className="px-4 py-2 text-left">Year</th>
+                      <th className="px-4 py-2 text-right">Principal</th>
+                      <th className="px-4 py-2 text-right">Interest</th>
+                      <th className="px-4 py-2 text-right">Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {calculationResult.schedule.map((entry: { year: string; principal: string; interest: string; balance: string }, index: number) => (
+                      <tr key={index} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/50'}>
+                        <td className="px-4 py-2">{entry.year}</td>
+                        <td className="px-4 py-2 text-right">{entry.principal}</td>
+                        <td className="px-4 py-2 text-right">{entry.interest}</td>
+                        <td className="px-4 py-2 text-right">{entry.balance}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </CardContent>
-          </TabsContent>
-        </Tabs>
+            </div>
+          )}
+          
+          <div className="mt-8 p-6 bg-muted/20 rounded-lg border">
+            <h3 className="text-lg font-semibold mb-2">Need Help With Your Home Loan?</h3>
+            <p className="text-muted-foreground mb-4">
+              Our consultants can help you find the best home loan option tailored to your specific needs. Click the "Email Results" button above to receive these calculation results by email along with personalized advice from our consultants.
+            </p>
+          </div>
+        </CardContent>
         
         <CardFooter className="flex justify-between">
           <Button variant="outline" onClick={() => navigate('/calculators')}>

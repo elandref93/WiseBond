@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import AmortizationResults from "./AmortizationResults";
 import ShareCalculation from "./ShareCalculation";
+import EmailCalculationButton from "./EmailCalculationButton";
 
 interface CalculationResultsProps {
   results: CalculationResult;
@@ -29,7 +30,10 @@ export default function CalculationResults({ results }: CalculationResultsProps)
             <h3 className="text-lg font-semibold text-gray-900">
               Amortization Results
             </h3>
-            <ShareCalculation result={results} size="sm" />
+            <div className="flex gap-2">
+              <EmailCalculationButton result={results} size="sm" variant="outline" />
+              <ShareCalculation result={results} size="sm" />
+            </div>
           </div>
           <AmortizationResults results={results as any} />
         </div>
@@ -45,7 +49,10 @@ export default function CalculationResults({ results }: CalculationResultsProps)
           <h3 className="text-lg font-semibold text-gray-900">
             Calculation Results
           </h3>
-          <ShareCalculation result={results} size="sm" />
+          <div className="flex gap-2">
+            <EmailCalculationButton result={results} size="sm" variant="outline" />
+            <ShareCalculation result={results} size="sm" />
+          </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {results.displayResults.map((result, index) => (
