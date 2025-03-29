@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -43,7 +43,6 @@ interface BondRepaymentCalculatorProps {
 }
 
 export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCalculatorProps) {
-  const [isCalculating, setIsCalculating] = useState(false);
   const [showChart, setShowChart] = useState(false);
   const [loanDetails, setLoanDetails] = useState<{
     loanAmount: number;
@@ -51,6 +50,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     loanTerm: number;
   } | null>(null);
   const { user } = useAuth();
+  const [lastSavedValues, setLastSavedValues] = useState<Partial<BondRepaymentFormValues> | null>(null);
 
   // Default form values
   const defaultValues: BondRepaymentFormValues = {
@@ -63,67 +63,105 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   const form = useForm<BondRepaymentFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues,
+    mode: "onChange", // Enable validation on change
   });
+  
+  // Watch all form values
+  const formValues = useWatch({
+    control: form.control,
+  });
+
+  // Calculate results whenever any form value changes
+  useEffect(() => {
+    const calculateResults = async () => {
+      try {
+        // Make sure all required values are present
+        if (!formValues.propertyValue || !formValues.interestRate || 
+            !formValues.loanTerm || !formValues.deposit) {
+          return;
+        }
+        
+        // Parse input values
+        const propertyValue = parseCurrency(formValues.propertyValue);
+        const interestRate = Number(formValues.interestRate);
+        const loanTerm = Number(formValues.loanTerm);
+        const deposit = parseCurrency(formValues.deposit);
+
+        // Calculate results
+        const results = calculateBondRepayment(propertyValue, interestRate, loanTerm, deposit);
+        
+        // Store loan details for chart
+        setLoanDetails({
+          loanAmount: propertyValue - deposit,
+          interestRate,
+          loanTerm
+        });
+        
+        // Show chart after calculation
+        setShowChart(true);
+        
+        // Pass results back to parent component
+        onCalculate(results);
+
+        // Save calculation if user is logged in (but only every 5 seconds to avoid too many requests)
+        if (user && 
+            JSON.stringify(formValues) !== JSON.stringify(lastSavedValues)) {
+          // Throttle saving to database
+          const saveDebounceTimeout = setTimeout(async () => {
+            try {
+              await apiRequest("/api/calculations", {
+                method: "POST",
+                body: JSON.stringify({
+                  calculationType: "bond",
+                  inputData: JSON.stringify(formValues),
+                  resultData: JSON.stringify(results),
+                })
+              });
+              
+              // Update last saved values
+              const safeFormValues = {
+                propertyValue: formValues.propertyValue || "",
+                interestRate: formValues.interestRate || "",
+                loanTerm: formValues.loanTerm || "",
+                deposit: formValues.deposit || ""
+              };
+              setLastSavedValues(safeFormValues);
+              
+              // Invalidate the calculations query to refetch
+              queryClient.invalidateQueries({ queryKey: ['/api/calculations'] });
+            } catch (error) {
+              console.error("Error saving calculation:", error);
+            }
+          }, 5000);  // Save at most every 5 seconds
+          
+          return () => clearTimeout(saveDebounceTimeout);
+        }
+      } catch (error) {
+        console.error("Calculation error:", error);
+      }
+    };
+    
+    // Debounce calculation to prevent excessive calculations
+    const debounceTimeout = setTimeout(() => {
+      calculateResults();
+    }, 300);
+    
+    return () => clearTimeout(debounceTimeout);
+  }, [formValues, onCalculate, user, lastSavedValues]);
 
   // For property value slider
   const handlePropertyValueSliderChange = (value: number[]) => {
-    form.setValue("propertyValue", value[0].toString());
+    form.setValue("propertyValue", value[0].toString(), { shouldValidate: true });
   };
 
   // For deposit slider
   const handleDepositSliderChange = (value: number[]) => {
-    form.setValue("deposit", value[0].toString());
+    form.setValue("deposit", value[0].toString(), { shouldValidate: true });
   };
 
   // For interest rate slider
   const handleInterestRateSliderChange = (value: number[]) => {
-    form.setValue("interestRate", value[0].toFixed(2));
-  };
-
-  const onSubmit = async (values: BondRepaymentFormValues) => {
-    setIsCalculating(true);
-    try {
-      // Parse input values - using our robust currency parser
-      const propertyValue = parseCurrency(values.propertyValue);
-      const interestRate = Number(values.interestRate);
-      const loanTerm = Number(values.loanTerm);
-      const deposit = parseCurrency(values.deposit);
-
-      // Calculate results
-      const results = calculateBondRepayment(propertyValue, interestRate, loanTerm, deposit);
-      
-      // Store loan details for chart
-      setLoanDetails({
-        loanAmount: propertyValue - deposit,
-        interestRate,
-        loanTerm
-      });
-      
-      // Show chart after calculation
-      setShowChart(true);
-      
-      // Pass results back to parent component
-      onCalculate(results);
-
-      // Save calculation if user is logged in
-      if (user) {
-        await apiRequest("/api/calculations", {
-          method: "POST",
-          body: JSON.stringify({
-            calculationType: "bond",
-            inputData: JSON.stringify(values),
-            resultData: JSON.stringify(results),
-          })
-        });
-        
-        // Invalidate the calculations query to refetch
-        queryClient.invalidateQueries({ queryKey: ['/api/calculations'] });
-      }
-    } catch (error) {
-      console.error("Calculation error:", error);
-    } finally {
-      setIsCalculating(false);
-    }
+    form.setValue("interestRate", value[0].toFixed(2), { shouldValidate: true });
   };
 
   // Get current property value and deposit for sliders
@@ -158,7 +196,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="space-y-6">
           {/* Property Value Field with Slider */}
           <FormField
             control={form.control}
@@ -351,10 +389,10 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
             )}
           />
 
-          <Button type="submit" className="w-full" disabled={isCalculating}>
-            {isCalculating ? "Calculating..." : "Calculate Repayments"}
-          </Button>
-        </form>
+          <div className="p-4 bg-gray-50 rounded-lg mt-2 text-sm text-gray-600">
+            Results update automatically as you adjust values
+          </div>
+        </div>
       </Form>
 
       {/* Amortization Chart */}

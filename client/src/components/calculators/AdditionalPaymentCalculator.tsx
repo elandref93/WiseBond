@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,7 +33,6 @@ interface AdditionalPaymentCalculatorProps {
 }
 
 export default function AdditionalPaymentCalculator({ onCalculate }: AdditionalPaymentCalculatorProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showChart, setShowChart] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState<{
     loanAmount: number;
@@ -43,133 +42,152 @@ export default function AdditionalPaymentCalculator({ onCalculate }: AdditionalP
   } | null>(null);
 
   const defaultValues: AdditionalPaymentFormValues = {
-    loanAmount: "900,000",
+    loanAmount: "900000",
     interestRate: "11.25",
     loanTerm: "20",
-    additionalPayment: "1,000",
+    additionalPayment: "1000",
   };
 
   const form = useForm<AdditionalPaymentFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues,
+    mode: "onChange", // This allows validation on each change
   });
+  
+  // Use useWatch to monitor all form values
+  const formValues = useWatch({
+    control: form.control,
+  });
+
+  // Calculate results whenever any form value changes
+  useEffect(() => {
+    const calculateResults = async () => {
+      try {
+        // Make sure all values are present
+        if (!formValues.loanAmount || !formValues.interestRate || 
+            !formValues.loanTerm || !formValues.additionalPayment) {
+          return;
+        }
+        
+        const loanAmount = parseCurrency(formValues.loanAmount);
+        const interestRate = parseFloat(formValues.interestRate);
+        const loanTermYears = parseFloat(formValues.loanTerm);
+        const loanTermMonths = loanTermYears * 12;
+        const additionalPayment = parseCurrency(formValues.additionalPayment);
+        
+        // Calculate standard monthly payment
+        const monthlyRate = interestRate / 100 / 12;
+        const standardMonthlyPayment = (loanAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -loanTermMonths));
+        
+        // Calculate new payment with additional amount
+        const newMonthlyPayment = standardMonthlyPayment + additionalPayment;
+        
+        // Calculate new loan term
+        let remainingPrincipal = loanAmount;
+        let newTermMonths = 0;
+        
+        while (remainingPrincipal > 0) {
+          // Interest for this month
+          const interestThisMonth = remainingPrincipal * monthlyRate;
+          
+          // Principal payment this month
+          const principalThisMonth = newMonthlyPayment - interestThisMonth;
+          
+          // Check if this payment would pay off the loan
+          if (principalThisMonth >= remainingPrincipal) {
+            newTermMonths++;
+            break;
+          }
+          
+          // Update remaining principal
+          remainingPrincipal -= principalThisMonth;
+          newTermMonths++;
+          
+          // Safety check to prevent infinite loops
+          if (newTermMonths > 1000) break;
+        }
+        
+        // Calculate total interest (standard vs with additional payment)
+        const totalStandardInterest = (standardMonthlyPayment * loanTermMonths) - loanAmount;
+        const totalNewInterest = (newMonthlyPayment * newTermMonths) - loanAmount;
+        
+        // Calculate savings
+        const timeSavedMonths = loanTermMonths - newTermMonths;
+        const interestSaved = totalStandardInterest - totalNewInterest;
+        
+        // Store payment details for chart
+        setPaymentDetails({
+          loanAmount,
+          interestRate,
+          loanTerm: loanTermYears,
+          additionalPayment
+        });
+        
+        // Show chart after calculation
+        setShowChart(true);
+        
+        const result: CalculationResult = {
+          type: 'additional',
+          displayResults: [
+            {
+              label: "Standard Monthly Payment",
+              value: formatCurrency(standardMonthlyPayment),
+              tooltip: "Your regular monthly payment without additional contributions"
+            },
+            {
+              label: "New Monthly Payment",
+              value: formatCurrency(newMonthlyPayment),
+              tooltip: "Total monthly payment including your additional amount"
+            },
+            {
+              label: "Time Saved",
+              value: `${Math.floor(timeSavedMonths / 12)} years, ${timeSavedMonths % 12} months`,
+              tooltip: "How much earlier you'll pay off your loan"
+            },
+            {
+              label: "Interest Saved",
+              value: formatCurrency(interestSaved),
+              tooltip: "Total interest you'll save by making additional payments"
+            },
+            {
+              label: "New Loan Term",
+              value: `${Math.floor(newTermMonths / 12)} years, ${newTermMonths % 12} months`,
+              tooltip: "Your new reduced loan term"
+            },
+          ],
+          loanAmount,
+          interestRate,
+          loanTermYears,
+          additionalPayment,
+          standardMonthlyPayment,
+          newMonthlyPayment,
+          newTermMonths,
+          timeSavedMonths,
+          interestSaved,
+        };
+
+        onCalculate(result);
+      } catch (error) {
+        console.error("Calculation error:", error);
+      }
+    };
+    
+    // Debounce the calculation to prevent excessive calculations
+    const debounceTimeout = setTimeout(() => {
+      calculateResults();
+    }, 300);
+    
+    return () => clearTimeout(debounceTimeout);
+  }, [formValues, onCalculate]);
 
   // For additional payment slider
   const handleAdditionalPaymentSliderChange = (value: number[]) => {
-    form.setValue("additionalPayment", formatCurrency(value[0].toString()));
+    form.setValue("additionalPayment", formatCurrency(value[0].toString()), { shouldValidate: true });
   };
 
   // For interest rate slider
   const handleInterestRateSliderChange = (value: number[]) => {
-    form.setValue("interestRate", value[0].toFixed(2));
-  };
-
-  const onSubmit = async (values: AdditionalPaymentFormValues) => {
-    setIsSubmitting(true);
-    try {
-      const loanAmount = parseCurrency(values.loanAmount);
-      const interestRate = parseFloat(values.interestRate);
-      const loanTermYears = parseFloat(values.loanTerm);
-      const loanTermMonths = loanTermYears * 12;
-      const additionalPayment = parseCurrency(values.additionalPayment);
-      
-      // Calculate standard monthly payment
-      const monthlyRate = interestRate / 100 / 12;
-      const standardMonthlyPayment = (loanAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -loanTermMonths));
-      
-      // Calculate new payment with additional amount
-      const newMonthlyPayment = standardMonthlyPayment + additionalPayment;
-      
-      // Calculate new loan term
-      let remainingPrincipal = loanAmount;
-      let newTermMonths = 0;
-      
-      while (remainingPrincipal > 0) {
-        // Interest for this month
-        const interestThisMonth = remainingPrincipal * monthlyRate;
-        
-        // Principal payment this month
-        const principalThisMonth = newMonthlyPayment - interestThisMonth;
-        
-        // Check if this payment would pay off the loan
-        if (principalThisMonth >= remainingPrincipal) {
-          newTermMonths++;
-          break;
-        }
-        
-        // Update remaining principal
-        remainingPrincipal -= principalThisMonth;
-        newTermMonths++;
-        
-        // Safety check to prevent infinite loops
-        if (newTermMonths > 1000) break;
-      }
-      
-      // Calculate total interest (standard vs with additional payment)
-      const totalStandardInterest = (standardMonthlyPayment * loanTermMonths) - loanAmount;
-      const totalNewInterest = (newMonthlyPayment * newTermMonths) - loanAmount;
-      
-      // Calculate savings
-      const timeSavedMonths = loanTermMonths - newTermMonths;
-      const interestSaved = totalStandardInterest - totalNewInterest;
-      
-      // Store payment details for chart
-      setPaymentDetails({
-        loanAmount,
-        interestRate,
-        loanTerm: loanTermYears,
-        additionalPayment
-      });
-      
-      // Show chart after calculation
-      setShowChart(true);
-      
-      const result: CalculationResult = {
-        type: 'additional',
-        displayResults: [
-          {
-            label: "Standard Monthly Payment",
-            value: formatCurrency(standardMonthlyPayment),
-            tooltip: "Your regular monthly payment without additional contributions"
-          },
-          {
-            label: "New Monthly Payment",
-            value: formatCurrency(newMonthlyPayment),
-            tooltip: "Total monthly payment including your additional amount"
-          },
-          {
-            label: "Time Saved",
-            value: `${Math.floor(timeSavedMonths / 12)} years, ${timeSavedMonths % 12} months`,
-            tooltip: "How much earlier you'll pay off your loan"
-          },
-          {
-            label: "Interest Saved",
-            value: formatCurrency(interestSaved),
-            tooltip: "Total interest you'll save by making additional payments"
-          },
-          {
-            label: "New Loan Term",
-            value: `${Math.floor(newTermMonths / 12)} years, ${newTermMonths % 12} months`,
-            tooltip: "Your new reduced loan term"
-          },
-        ],
-        loanAmount,
-        interestRate,
-        loanTermYears,
-        additionalPayment,
-        standardMonthlyPayment,
-        newMonthlyPayment,
-        newTermMonths,
-        timeSavedMonths,
-        interestSaved,
-      };
-
-      onCalculate(result);
-    } catch (error) {
-      console.error("Calculation error:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
+    form.setValue("interestRate", value[0].toFixed(2), { shouldValidate: true });
   };
 
   // Get current values for sliders
@@ -199,7 +217,7 @@ export default function AdditionalPaymentCalculator({ onCalculate }: AdditionalP
       <Card>
         <CardContent className="pt-6">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-6">
               <FormField
                 control={form.control}
                 name="loanAmount"
@@ -361,10 +379,10 @@ export default function AdditionalPaymentCalculator({ onCalculate }: AdditionalP
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Calculating..." : "Calculate Savings"}
-              </Button>
-            </form>
+              <div className="p-4 bg-gray-50 rounded-lg mt-2 text-sm text-gray-600">
+                Results update automatically as you adjust values
+              </div>
+            </div>
           </Form>
         </CardContent>
       </Card>

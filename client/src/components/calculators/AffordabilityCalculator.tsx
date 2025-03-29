@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -50,7 +50,16 @@ export default function AffordabilityCalculator({ onCalculate }: AffordabilityCa
   const form = useForm<AffordabilityFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues,
+    mode: "onChange", // Enable validation on change
   });
+  
+  // Watch all form values
+  const formValues = useWatch({
+    control: form.control,
+  });
+  
+  // Last saved values to prevent duplicate saves
+  const [lastSavedValues, setLastSavedValues] = useState<Partial<AffordabilityFormValues> | null>(null);
 
   // Handler for the gross income slider
   const handleGrossIncomeSliderChange = (value: number[]) => {
@@ -72,41 +81,77 @@ export default function AffordabilityCalculator({ onCalculate }: AffordabilityCa
     form.setValue("interestRate", value[0].toFixed(2));
   };
 
-  const onSubmit = async (values: AffordabilityFormValues) => {
-    setIsCalculating(true);
-    try {
-      // Parse the income and expenses using our utility function
-      const grossIncome = parseCurrency(values.grossIncome);
-      const monthlyExpenses = parseCurrency(values.monthlyExpenses);
-      const existingDebt = parseCurrency(values.existingDebt);
-      const interestRate = Number(values.interestRate);
-      
-      // Calculate affordability
-      const results = calculateAffordability(grossIncome, monthlyExpenses, existingDebt, interestRate);
-      
-      // Pass the results back to the parent component
-      onCalculate(results);
-      
-      // Save the calculation if the user is logged in
-      if (user) {
-        await apiRequest("/api/calculations", {
-          method: "POST",
-          body: JSON.stringify({
-            calculationType: "affordability",
-            inputData: JSON.stringify(values),
-            resultData: JSON.stringify(results),
-          })
-        });
+  // Calculate results whenever any form value changes
+  useEffect(() => {
+    const calculateResults = async () => {
+      try {
+        // Make sure all required values are present
+        if (!formValues.grossIncome || !formValues.monthlyExpenses || 
+            !formValues.existingDebt || !formValues.interestRate) {
+          return;
+        }
         
-        // Invalidate the calculations query to refresh the data
-        queryClient.invalidateQueries({ queryKey: ['/api/calculations'] });
+        setIsCalculating(true);
+        
+        // Parse the income and expenses using our utility function
+        const grossIncome = parseCurrency(formValues.grossIncome);
+        const monthlyExpenses = parseCurrency(formValues.monthlyExpenses);
+        const existingDebt = parseCurrency(formValues.existingDebt);
+        const interestRate = Number(formValues.interestRate);
+        
+        // Calculate affordability
+        const results = calculateAffordability(grossIncome, monthlyExpenses, existingDebt, interestRate);
+        
+        // Pass the results back to the parent component
+        onCalculate(results);
+        
+        // Save calculation if user is logged in (but only if values have changed)
+        if (user && 
+            JSON.stringify(formValues) !== JSON.stringify(lastSavedValues)) {
+          // Throttle saving to database
+          const saveDebounceTimeout = setTimeout(async () => {
+            try {
+              await apiRequest("/api/calculations", {
+                method: "POST",
+                body: JSON.stringify({
+                  calculationType: "affordability",
+                  inputData: JSON.stringify(formValues),
+                  resultData: JSON.stringify(results),
+                })
+              });
+              
+              // Update last saved values
+              const safeFormValues = {
+                grossIncome: formValues.grossIncome || "",
+                monthlyExpenses: formValues.monthlyExpenses || "",
+                existingDebt: formValues.existingDebt || "",
+                interestRate: formValues.interestRate || ""
+              };
+              setLastSavedValues(safeFormValues);
+              
+              // Invalidate the calculations query to refresh the data
+              queryClient.invalidateQueries({ queryKey: ['/api/calculations'] });
+            } catch (error) {
+              console.error("Error saving calculation:", error);
+            }
+          }, 5000);  // Save at most every 5 seconds
+          
+          return () => clearTimeout(saveDebounceTimeout);
+        }
+      } catch (error) {
+        console.error("Calculation error:", error);
+      } finally {
+        setIsCalculating(false);
       }
-    } catch (error) {
-      console.error("Calculation error:", error);
-    } finally {
-      setIsCalculating(false);
-    }
-  };
+    };
+    
+    // Debounce calculation to prevent excessive calculations
+    const debounceTimeout = setTimeout(() => {
+      calculateResults();
+    }, 300);
+    
+    return () => clearTimeout(debounceTimeout);
+  }, [formValues, onCalculate, user, lastSavedValues]);
 
   // Current values for sliders
   const currentGrossIncome = parseCurrency(form.watch("grossIncome")) || 30000;
@@ -136,7 +181,7 @@ export default function AffordabilityCalculator({ onCalculate }: AffordabilityCa
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="space-y-6">
           {/* Gross Monthly Income Field */}
           <FormField
             control={form.control}
@@ -335,10 +380,10 @@ export default function AffordabilityCalculator({ onCalculate }: AffordabilityCa
             )}
           />
 
-          <Button type="submit" className="w-full" disabled={isCalculating}>
-            {isCalculating ? "Calculating..." : "Calculate Affordability"}
-          </Button>
-        </form>
+          <div className="p-4 bg-gray-50 rounded-lg mt-2 text-sm text-gray-600">
+            Results update automatically as you adjust values
+          </div>
+        </div>
       </Form>
     </div>
   );
