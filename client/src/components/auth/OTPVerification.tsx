@@ -6,14 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Smartphone } from 'lucide-react';
-import { 
-  InputOTP, 
-  InputOTPGroup, 
-  InputOTPSlot
-} from "@/components/ui/input-otp";
-
-// Regex pattern to only allow digits
-const REGEXP_ONLY_DIGITS = "^\\d+$";
+import { Input } from "@/components/ui/input";
 
 // OTP form validation schema
 const formSchema = z.object({
@@ -32,9 +25,14 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [countdownTime, setCountdownTime] = useState(0);
-  const otpRef = useRef<HTMLInputElement>(null);
-  const otpInputRef = useRef<HTMLInputElement>(null);
+  const [countdownTime, setCountdownTime] = useState(60);
+  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  
+  // Initialize refs array
+  useEffect(() => {
+    inputRefs.current = inputRefs.current.slice(0, 6);
+  }, []);
 
   const form = useForm<OTPFormValues>({
     resolver: zodResolver(formSchema),
@@ -43,6 +41,13 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
     },
     mode: "onChange"
   });
+  
+  // Set focus on first input on mount
+  useEffect(() => {
+    if (inputRefs.current[0]) {
+      inputRefs.current[0].focus();
+    }
+  }, []);
   
   // Countdown timer for resend button
   useEffect(() => {
@@ -54,21 +59,80 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
     }
   }, [countdownTime]);
 
-  // Manually register the OTP field and set initial focus
-  useEffect(() => {
-    form.register("otp");
+  const handleDigitChange = (index: number, value: string) => {
+    // Only allow digits
+    if (!/^\d*$/.test(value)) return;
     
-    // Focus the input when component mounts
-    const timer = setTimeout(() => {
-      if (otpInputRef.current) {
-        otpInputRef.current.focus();
+    // Update the digit at this position
+    const newOtpDigits = [...otpDigits];
+    newOtpDigits[index] = value.slice(-1); // Only take the last character if multiple are pasted
+    setOtpDigits(newOtpDigits);
+    
+    // Combine all digits into a single OTP value
+    const newOtp = newOtpDigits.join('');
+    form.setValue('otp', newOtp, { shouldValidate: true });
+    
+    // Auto-advance to next field or auto-submit if complete
+    if (value && index < 5) {
+      // Move to next input
+      if (inputRefs.current[index + 1]) {
+        inputRefs.current[index + 1].focus();
       }
-    }, 100);
+    } else if (index === 5 && newOtp.length === 6) {
+      // Auto-submit if all 6 digits are filled
+      form.handleSubmit(onSubmit)();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Handle backspace to move to previous field
+    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+      if (inputRefs.current[index - 1]) {
+        inputRefs.current[index - 1].focus();
+      }
+    }
     
-    return () => clearTimeout(timer);
-  }, [form]);
+    // Handle arrow keys for navigation between inputs
+    if (e.key === 'ArrowLeft' && index > 0) {
+      if (inputRefs.current[index - 1]) {
+        inputRefs.current[index - 1].focus();
+      }
+    }
+    
+    if (e.key === 'ArrowRight' && index < 5) {
+      if (inputRefs.current[index + 1]) {
+        inputRefs.current[index + 1].focus();
+      }
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text');
+    
+    // If the pasted content is 6 digits, fill all inputs
+    if (/^\d{6}$/.test(pastedData)) {
+      const digits = pastedData.split('');
+      setOtpDigits(digits);
+      form.setValue('otp', pastedData, { shouldValidate: true });
+      
+      // Focus the last input
+      if (inputRefs.current[5]) {
+        inputRefs.current[5].focus();
+      }
+    }
+  };
 
   const onSubmit = async (values: OTPFormValues) => {
+    if (!values.otp || values.otp.length !== 6) {
+      toast({
+        title: "Incomplete code",
+        description: "Please enter all 6 digits of your verification code.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     try {
       await apiRequest('/api/auth/verify-otp', {
@@ -116,6 +180,15 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
       
       // Set countdown timer for 60 seconds
       setCountdownTime(60);
+      
+      // Clear the current OTP
+      setOtpDigits(['', '', '', '', '', '']);
+      form.setValue('otp', '', { shouldValidate: false });
+      
+      // Focus the first input
+      if (inputRefs.current[0]) {
+        inputRefs.current[0].focus();
+      }
     } catch (error) {
       console.error('Failed to resend OTP:', error);
       toast({
@@ -144,33 +217,23 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
       
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="space-y-6">
-          <div className="flex justify-center">
-            <InputOTP
-              maxLength={6}
-              pattern={REGEXP_ONLY_DIGITS}
-              ref={otpInputRef}
-              value={form.watch('otp') || ''}
-              onChange={(value) => form.setValue('otp', value, { shouldValidate: true })}
-              onComplete={(otp) => {
-                form.setValue('otp', otp, { shouldValidate: true });
-                if (otp.length === 6) {
-                  form.handleSubmit(onSubmit)();
-                }
-              }}
-              render={({ slots }) => (
-                <InputOTPGroup className="gap-2">
-                  {slots.map((slot, i) => (
-                    <InputOTPSlot 
-                      key={i} 
-                      index={i} 
-                      {...slot} 
-                      className="w-12 h-12 text-lg border-gray-300"
-                      ref={i === 0 ? otpRef : undefined}
-                    />
-                  ))}
-                </InputOTPGroup>
-              )}
-            />
+          {/* Custom OTP input grid */}
+          <div className="flex justify-center gap-2">
+            {otpDigits.map((digit, index) => (
+              <Input
+                key={index}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                className="w-12 h-12 text-center text-lg border-gray-300"
+                onChange={(e) => handleDigitChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                onPaste={index === 0 ? handlePaste : undefined}
+                ref={(el) => { inputRefs.current[index] = el; }}
+                autoComplete="off"
+              />
+            ))}
           </div>
           
           {form.formState.errors.otp && (
@@ -182,7 +245,7 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
           <Button 
             className="w-full bg-amber-200 hover:bg-amber-300 text-black font-medium py-3"
             type="submit" 
-            disabled={isLoading || !form.formState.isValid}
+            disabled={isLoading || otpDigits.join('').length !== 6}
           >
             {isLoading ? "Verifying..." : "Verify"}
           </Button>
