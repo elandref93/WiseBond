@@ -176,45 +176,51 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
               name="loanAmount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Loan Amount (R)</FormLabel>
+                  <FormLabel>Loan Amount</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      onChange={(e) => {
-                        // If user is typing R or is pasting a formatted value, clean it
-                        const input = e.target.value;
-                        
-                        // Keep only digits and at most one decimal point
-                        const numericValue = input.replace(/[^0-9.]/g, "")
-                                                .replace(/(\..*)\./g, '$1');
-                        
-                        // Don't format if it's empty
-                        if (!numericValue) {
-                          field.onChange("");
-                          return;
-                        }
-                        
-                        // For raw input of digits, let user continue typing without formatting
-                        // Only format when input contains non-numeric characters or loses focus
-                        if (input === numericValue) {
-                          field.onChange(numericValue);
-                        } else {
-                          // Format when pasting or if the value already had formatting
-                          const value = parseFloat(numericValue);
-                          if (!isNaN(value)) {
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 sm:text-sm">R</span>
+                      </div>
+                      <Input
+                        {...field}
+                        className="pl-8"
+                        onChange={(e) => {
+                          // If user is typing R or is pasting a formatted value, clean it
+                          const input = e.target.value;
+                          
+                          // Keep only digits and at most one decimal point
+                          const numericValue = input.replace(/[^0-9.]/g, "")
+                                                  .replace(/(\..*)\./g, '$1');
+                          
+                          // Don't format if it's empty
+                          if (!numericValue) {
+                            field.onChange("");
+                            return;
+                          }
+                          
+                          // For raw input of digits, let user continue typing without formatting
+                          // Only format when input contains non-numeric characters or loses focus
+                          if (input === numericValue) {
+                            field.onChange(numericValue);
+                          } else {
+                            // Format when pasting or if the value already had formatting
+                            const value = parseFloat(numericValue);
+                            if (!isNaN(value)) {
+                              field.onChange(formatCurrency(value));
+                            }
+                          }
+                        }}
+                        onBlur={(e) => {
+                          // Format on blur to ensure proper display
+                          const value = parseCurrency(e.target.value);
+                          if (value > 0) {
                             field.onChange(formatCurrency(value));
                           }
-                        }
-                      }}
-                      onBlur={(e) => {
-                        // Format on blur to ensure proper display
-                        const value = parseCurrency(e.target.value);
-                        if (value > 0) {
-                          field.onChange(formatCurrency(value));
-                        }
-                      }}
-                      placeholder="e.g., 1000000"
-                    />
+                        }}
+                        placeholder="e.g., 1000000"
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -226,9 +232,18 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
               name="interestRate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Interest Rate (%)</FormLabel>
+                  <FormLabel>Interest Rate</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="e.g., 11.25" />
+                    <div className="relative">
+                      <Input 
+                        {...field} 
+                        className="pr-8" 
+                        placeholder="e.g., 11.25" 
+                      />
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 sm:text-sm">%</span>
+                      </div>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
