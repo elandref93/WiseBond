@@ -250,26 +250,85 @@ export function calculateDepositSavings(
   // Monthly interest rate
   const monthlyInterestRate = savingsInterest / 100 / 12;
   
-  // Calculate months to reach deposit
-  // Formula for future value of monthly savings with interest:
-  // FV = PMT * [(1 + r)^n - 1] / r
-  // Solving for n:
-  // n = log[FV * r / PMT + 1] / log(1 + r)
-  const monthsToSave = Math.log(depositAmount * monthlyInterestRate / monthlySaving + 1) / Math.log(1 + monthlyInterestRate);
+  // Calculate months to reach deposit (if interest rate is 0, use simple division)
+  let monthsToSave: number;
   
-  // Convert to years and months
-  const yearsToSave = Math.floor(monthsToSave / 12);
-  const remainingMonths = Math.ceil(monthsToSave % 12);
+  if (savingsInterest === 0 || monthlyInterestRate === 0) {
+    // Simple calculation without interest
+    monthsToSave = depositAmount / monthlySaving;
+  } else {
+    // Formula for future value of monthly savings with interest:
+    // FV = PMT * [(1 + r)^n - 1] / r
+    // Solving for n:
+    // n = log[FV * r / PMT + 1] / log(1 + r)
+    
+    // Check for potential division by zero or log of zero issues
+    if (monthlySaving <= 0) {
+      // If monthly saving is zero or negative, it's impossible to reach target
+      monthsToSave = Infinity;
+    } else {
+      monthsToSave = Math.log(depositAmount * monthlyInterestRate / monthlySaving + 1) / Math.log(1 + monthlyInterestRate);
+      
+      // Check for NaN or Infinity results (can happen with certain combinations of values)
+      if (isNaN(monthsToSave) || !isFinite(monthsToSave)) {
+        // Fallback to simple calculation
+        monthsToSave = depositAmount / monthlySaving;
+      }
+    }
+  }
+  
+  // Set reasonable limits for UI display
+  // If it would take more than 100 years, consider it practically impossible
+  if (!isFinite(monthsToSave) || monthsToSave > 1200) {
+    monthsToSave = Infinity;
+  }
+  
+  // Convert to years and months for display
+  let yearsToSave = 0;
+  let remainingMonths = 0;
+  let timeToSaveText = '';
+  
+  if (isFinite(monthsToSave)) {
+    yearsToSave = Math.floor(monthsToSave / 12);
+    remainingMonths = Math.ceil(monthsToSave % 12);
+    
+    timeToSaveText = remainingMonths > 0 
+      ? `${yearsToSave} years, ${remainingMonths} months`
+      : `${yearsToSave} years`;
+  } else {
+    timeToSaveText = "Never (increase savings)";
+  }
   
   // Calculate total contributions
-  const totalContributions = monthlySaving * Math.ceil(monthsToSave);
+  const totalMonths = isFinite(monthsToSave) ? Math.ceil(monthsToSave) : 0;
+  const totalContributions = monthlySaving * totalMonths;
   
-  // Calculate interest earned
-  const interestEarned = depositAmount - totalContributions;
+  // Calculate total savings with compound interest
+  // FV = PMT * [(1 + r)^n - 1] / r
+  let totalAccumulated: number;
+  let interestEarned: number;
   
-  const timeToSaveText = remainingMonths > 0 
-    ? `${yearsToSave} years, ${remainingMonths} months`
-    : `${yearsToSave} years`;
+  if (isFinite(monthsToSave)) {
+    if (savingsInterest === 0 || monthlyInterestRate === 0) {
+      totalAccumulated = totalContributions;
+    } else {
+      // This calculates the precise future value of the monthly deposits with compound interest
+      totalAccumulated = monthlySaving * 
+        ((Math.pow(1 + monthlyInterestRate, totalMonths) - 1) / 
+        monthlyInterestRate);
+        
+      // When we calculate time to reach the deposit amount, we want to make sure we hit
+      // exactly that amount, so we'll use the deposit amount for better UX
+      totalAccumulated = depositAmount;
+    }
+    
+    // Interest earned is the difference between total accumulated and contributions
+    interestEarned = totalAccumulated - totalContributions;
+  } else {
+    // If savings will never reach the target
+    totalAccumulated = 0;
+    interestEarned = 0;
+  }
   
   return {
     type: 'deposit',
@@ -278,6 +337,7 @@ export function calculateDepositSavings(
     yearsToSave,
     remainingMonths,
     totalContributions,
+    totalAccumulated,
     interestEarned,
     displayResults: [
       {
@@ -294,6 +354,16 @@ export function calculateDepositSavings(
         label: 'Interest Earned',
         value: formatCurrency(Math.max(0, interestEarned)),
         tooltip: 'The amount of interest you will earn on your savings during the saving period.'
+      },
+      {
+        label: 'Total Contributions',
+        value: formatCurrency(totalContributions),
+        tooltip: 'The total amount you will deposit over the saving period.'
+      },
+      {
+        label: 'Total Accumulated',
+        value: formatCurrency(totalAccumulated),
+        tooltip: 'The final amount in your savings account, including both your contributions and interest earned.'
       }
     ]
   };
