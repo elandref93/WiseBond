@@ -6,7 +6,7 @@ import MemoryStore from "memorystore";
 import { insertUserSchema, loginSchema, insertCalculationResultSchema, insertContactSubmissionSchema, updateProfileSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from 'zod-validation-error';
-import { sendCalculationEmail } from "./email";
+import { sendCalculationEmail, sendVerificationEmail } from "./email";
 
 // Extend the session type to include userId
 declare module 'express-session' {
@@ -55,15 +55,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const user = await storage.createUser(userData);
       
-      // Generate and store OTP (normally would be sent via email)
+      // Generate and store OTP
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = new Date();
       expiresAt.setMinutes(expiresAt.getMinutes() + 30); // OTP expires in 30 minutes
       
       await storage.storeOTP(user.id, otp, expiresAt);
       
-      // In a real application, send the OTP via email
+      // Send the verification email
+      const emailResult = await sendVerificationEmail({
+        firstName: user.firstName,
+        email: user.email,
+        verificationCode: otp
+      });
+      
+      // Log OTP for debugging in development
       console.log(`[DEV ONLY] OTP for user ${user.id}: ${otp}`);
+      
+      if (!emailResult.success) {
+        console.warn(`Failed to send verification email to ${user.email}:`, emailResult.error);
+      }
       
       // Set session
       req.session.userId = user.id;
@@ -177,8 +188,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       await storage.storeOTP(userId, otp, expiresAt);
       
-      // In a real application, send the OTP via email
+      // Send the verification email
+      const emailResult = await sendVerificationEmail({
+        firstName: user.firstName,
+        email: user.email,
+        verificationCode: otp
+      });
+      
+      // Log OTP for debugging in development
       console.log(`[DEV ONLY] New OTP for user ${userId}: ${otp}`);
+      
+      if (!emailResult.success) {
+        console.warn(`Failed to send verification email to ${user.email}:`, emailResult.error);
+      }
       
       res.json({ message: "OTP sent successfully" });
     } catch (error) {

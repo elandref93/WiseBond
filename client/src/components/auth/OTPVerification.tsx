@@ -2,6 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { Button } from "@/components/ui/button";
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { Smartphone } from 'lucide-react';
 import { 
   InputOTP, 
   InputOTPGroup, 
@@ -10,10 +14,6 @@ import {
 
 // Regex pattern to only allow digits
 const REGEXP_ONLY_DIGITS = "^\\d+$";
-import { useToast } from '@/hooks/use-toast';
-import { Button } from "@/components/ui/button";
-import { apiRequest } from '@/lib/queryClient';
-import { Smartphone } from 'lucide-react';
 
 // OTP form validation schema
 const formSchema = z.object({
