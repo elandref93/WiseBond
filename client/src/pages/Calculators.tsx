@@ -247,14 +247,14 @@ export default function Calculators() {
           <div id="calculator-detail" className="mt-16 bg-white overflow-hidden shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 mb-8">
-                  <TabsTrigger value="bond">Repayments</TabsTrigger>
-                  <TabsTrigger value="affordability">Affordability</TabsTrigger>
-                  <TabsTrigger value="transfer">Transfer Costs</TabsTrigger>
-                  <TabsTrigger value="additional">Additional Payment</TabsTrigger>
-                  <TabsTrigger value="deposit">Deposit Savings</TabsTrigger>
-                  <TabsTrigger value="amortisation">Amortisation</TabsTrigger>
-                  <TabsTrigger value="comparison">Loan Comparison</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 mb-8 p-2 bg-gray-100 rounded-lg">
+                  <TabsTrigger className="px-4 py-2 rounded-md border-2 border-gray-200 hover:border-primary hover:bg-primary/5 transition-all data-[state=active]:border-primary data-[state=active]:bg-white data-[state=active]:shadow-md" value="bond">Repayments</TabsTrigger>
+                  <TabsTrigger className="px-4 py-2 rounded-md border-2 border-gray-200 hover:border-primary hover:bg-primary/5 transition-all data-[state=active]:border-primary data-[state=active]:bg-white data-[state=active]:shadow-md" value="affordability">Affordability</TabsTrigger>
+                  <TabsTrigger className="px-4 py-2 rounded-md border-2 border-gray-200 hover:border-primary hover:bg-primary/5 transition-all data-[state=active]:border-primary data-[state=active]:bg-white data-[state=active]:shadow-md" value="transfer">Transfer Costs</TabsTrigger>
+                  <TabsTrigger className="px-4 py-2 rounded-md border-2 border-gray-200 hover:border-primary hover:bg-primary/5 transition-all data-[state=active]:border-primary data-[state=active]:bg-white data-[state=active]:shadow-md" value="additional">Additional Payment</TabsTrigger>
+                  <TabsTrigger className="px-4 py-2 rounded-md border-2 border-gray-200 hover:border-primary hover:bg-primary/5 transition-all data-[state=active]:border-primary data-[state=active]:bg-white data-[state=active]:shadow-md" value="deposit">Deposit Savings</TabsTrigger>
+                  <TabsTrigger className="px-4 py-2 rounded-md border-2 border-gray-200 hover:border-primary hover:bg-primary/5 transition-all data-[state=active]:border-primary data-[state=active]:bg-white data-[state=active]:shadow-md" value="amortisation">Amortisation</TabsTrigger>
+                  <TabsTrigger className="px-4 py-2 rounded-md border-2 border-gray-200 hover:border-primary hover:bg-primary/5 transition-all data-[state=active]:border-primary data-[state=active]:bg-white data-[state=active]:shadow-md" value="comparison">Loan Comparison</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="bond">
