@@ -8,6 +8,13 @@ import { ZodError } from "zod";
 import { fromZodError } from 'zod-validation-error';
 import { sendCalculationEmail } from "./email";
 
+// Extend the session type to include userId
+declare module 'express-session' {
+  interface SessionData {
+    userId?: number;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up sessions
   const MemoryStoreSession = MemoryStore(session);

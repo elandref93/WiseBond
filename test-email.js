@@ -1,6 +1,7 @@
 // This script can be used to test Mailgun email functionality
-// Run with: node --env-file=.env test-email.js
+// Run with: node test-email.js
 
+import 'dotenv/config';
 import FormData from 'form-data';
 import Mailgun from 'mailgun.js';
 
