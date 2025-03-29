@@ -7,7 +7,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { UpdateProfile, User as UserType } from '@shared/schema';
 import { updateProfileSchema } from '@shared/schema';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import GooglePlacesAutocomplete from '@/components/GooglePlacesAutocomplete';
+import AddressInput from '@/components/AddressInput';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -404,16 +404,10 @@ export default function Profile() {
                           <FormItem>
                             <FormLabel>Street Address</FormLabel>
                             <FormControl>
-                              <GooglePlacesAutocomplete
+                              <AddressInput
                                 value={field.value || ""}
                                 onChange={field.onChange}
                                 placeholder="Your street address"
-                                onSelect={(address) => {
-                                  field.onChange(address.streetAddress);
-                                  form.setValue('city', address.city);
-                                  form.setValue('province', address.province);
-                                  form.setValue('postalCode', address.postalCode);
-                                }}
                               />
                             </FormControl>
                             <FormMessage />
