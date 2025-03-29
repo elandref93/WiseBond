@@ -191,10 +191,23 @@ export default function AffordabilityCalculator({ onCalculate }: AffordabilityCa
               <FormItem>
                 <FormLabel>Interest Rate (%)</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <Input {...field} className="pr-8" />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <span className="text-gray-500 sm:text-sm">%</span>
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <Input {...field} className="pr-8" />
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 sm:text-sm">%</span>
+                      </div>
+                    </div>
+                    <Slider
+                      defaultValue={[Number(field.value) || 11.25]}
+                      min={11}
+                      max={20}
+                      step={0.25}
+                      onValueChange={(value) => field.onChange(value[0].toString())}
+                    />
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>11%</span>
+                      <span>20%</span>
                     </div>
                   </div>
                 </FormControl>
