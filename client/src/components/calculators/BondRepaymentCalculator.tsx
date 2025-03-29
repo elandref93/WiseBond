@@ -255,7 +255,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center mb-2">
         <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-white mr-4">
           <HomeIcon className="h-5 w-5" />
@@ -275,9 +275,10 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-6">
+      {/* Input/Results side by side layout */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left column - Calculator inputs */}
-        <div className="w-full md:w-1/3">
+        <div className="col-span-1">
           <Form {...form}>
             <div className="space-y-4">
               {/* Property Value Field with Slider */}
@@ -481,104 +482,86 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
           </div>
         </div>
         
-        {/* Right column - Results and chart */}
-        <div className="w-full md:w-2/3">
+        {/* Right column - Results and chart spanning 2 cols */}
+        <div className="col-span-1 md:col-span-2">
           {showChart && loanDetails ? (
-            <div>
-              {/* Key summary stats */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Calculation Results</h4>
-                
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <div className="text-xs text-gray-500">Monthly Repayment</div>
-                    <div className="text-xl font-bold">{calculateMonthlyPayment()}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-500">Total Repayment Amount</div>
-                    <div className="text-xl font-bold">{calculateTotalRepayment()}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-500">Total Interest Paid</div>
-                    <div className="text-xl font-bold">{calculateTotalInterest()}</div>
-                  </div>
+            <div className="space-y-6">
+              {/* Summary statistics in a row */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500">Monthly Repayment</div>
+                  <div className="text-2xl font-bold">{calculateMonthlyPayment()}</div>
                 </div>
-                
-                <div className="text-xs text-gray-500 italic mt-2">
-                  This is an estimate based on the information provided. Actual amounts may vary. <a href="#" className="text-blue-600 hover:underline">Learn more about how these calculations work</a>.
+                <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500">Total Repayment</div>
+                  <div className="text-2xl font-bold">{calculateTotalRepayment()}</div>
+                </div>
+                <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500">Total Interest</div>
+                  <div className="text-2xl font-bold">{calculateTotalInterest()}</div>
                 </div>
               </div>
               
-              {/* Loan Overview section */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
+              <div className="text-xs text-gray-500 italic">
+                This is an estimate based on the information provided. Actual amounts may vary. <a href="#" className="text-blue-600 hover:underline">Learn more about how these calculations work</a>.
+              </div>
+              
+              {/* Loan Overview section - full width */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
                   <h4 className="text-sm font-medium text-gray-700">Loan Overview</h4>
-                  <div className="text-xs text-gray-500">
-                    <span className="mr-4">
+                  <div className="text-xs text-gray-500 flex items-center">
+                    <span className="flex items-center mr-4">
                       <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
                       Principal
                     </span>
-                    <span className="mr-4">
+                    <span className="flex items-center mr-4">
                       <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-1"></span>
                       Interest
                     </span>
-                    <span>
+                    <span className="flex items-center">
                       <span className="inline-block w-3 h-3 bg-yellow-400 rounded-full mr-1"></span>
                       Balance
                     </span>
                   </div>
                 </div>
                 
-                {/* Simple summary table */}
-                <div className="grid grid-cols-3 text-sm mb-4">
-                  <div>
-                    <div className="text-gray-500">Monthly Payment</div>
-                    <div className="font-medium">{calculateMonthlyPayment()}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-500">Total Interest</div>
-                    <div className="font-medium">{calculateTotalInterest()}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-500">Total Cost</div>
-                    <div className="font-medium">{calculateTotalRepayment()}</div>
+                {/* Expanded, full-width chart */}
+                <div className="bg-white p-4 rounded-lg border border-gray-200 w-full">
+                  <div className="h-64">
+                    <AmortizationChart 
+                      loanAmount={loanDetails.loanAmount} 
+                      interestRate={loanDetails.interestRate} 
+                      loanTerm={loanDetails.loanTerm} 
+                    />
                   </div>
                 </div>
-                
-                {/* Chart */}
-                <div className="border rounded-lg p-4 bg-white">
-                  <AmortizationChart 
-                    loanAmount={loanDetails.loanAmount} 
-                    interestRate={loanDetails.interestRate} 
-                    loanTerm={loanDetails.loanTerm} 
-                  />
-                </div>
-                
-                {/* Yearly data table */}
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Yearly Breakdown</h4>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 text-sm">
-                      <thead>
-                        <tr className="bg-gray-50">
-                          <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
-                          <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Principal Paid</th>
-                          <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Interest Paid</th>
-                          <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Remaining Balance</th>
+              </div>
+              
+              {/* Yearly table data - full width */}
+              <div className="mt-6">
+                <h4 className="text-sm font-medium text-gray-700 mb-4">Yearly Breakdown</h4>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full bg-white divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Principal Paid</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Paid</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {generateYearlyData().map((data) => (
+                        <tr key={data.year} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{data.year}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.totalPrincipalPaid)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.totalInterestPaid)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.balance)}</td>
                         </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {generateYearlyData().map((data) => (
-                          <tr key={data.year}>
-                            <td className="px-3 py-2 whitespace-nowrap">{data.year}</td>
-                            <td className="px-3 py-2 whitespace-nowrap">{formatCurrency(data.totalPrincipalPaid)}</td>
-                            <td className="px-3 py-2 whitespace-nowrap">{formatCurrency(data.totalInterestPaid)}</td>
-                            <td className="px-3 py-2 whitespace-nowrap">{formatCurrency(data.balance)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
