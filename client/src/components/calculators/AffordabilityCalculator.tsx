@@ -9,6 +9,7 @@ import { calculateAffordability, formatCurrency, type CalculationResult } from "
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { Slider } from "@/components/ui/slider"; // Added import for Slider component
 
 // Form schema with validation
 const formSchema = z.object({
@@ -60,7 +61,7 @@ export default function AffordabilityCalculator({ onCalculate }: AffordabilityCa
 
       // Calculate results
       const results = calculateAffordability(grossIncome, monthlyExpenses, existingDebt, interestRate);
-      
+
       // Pass results back to parent component
       onCalculate(results);
 
@@ -71,7 +72,7 @@ export default function AffordabilityCalculator({ onCalculate }: AffordabilityCa
           inputData: JSON.stringify(values),
           resultData: JSON.stringify(results),
         });
-        
+
         // Invalidate the calculations query to refetch
         queryClient.invalidateQueries({ queryKey: ['/api/calculations'] });
       }
