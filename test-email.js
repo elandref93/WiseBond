@@ -1,5 +1,11 @@
 // This script can be used to test Mailgun email functionality
-// Run with: node test-email.js
+// 
+// Usage:
+//   node test-email.js                               - Test with default recipient
+//   TEST_EMAIL_TO=email@example.com node test-email.js   - Test with specific recipient
+//
+// Note: For Mailgun sandbox domains, the recipient must be authorized in your Mailgun account.
+// See MAILGUN-SETUP.md for detailed instructions.
 
 import 'dotenv/config';
 import FormData from 'form-data';
@@ -41,7 +47,8 @@ async function sendTestEmail() {
   const fromEmail = process.env.MAILGUN_FROM_EMAIL || 'noreply@homeloanhelper.co.za';
   console.log(`📤 Using sender email: ${fromEmail}`);
   
-  const toEmail = process.env.TEST_EMAIL_TO || fromEmail; // Send to self if no test recipient specified
+  // For sandbox domains, use an authorized recipient if provided, otherwise default to the from address
+  const toEmail = process.env.TEST_EMAIL_TO || 'elandrefourie18@gmail.com' || fromEmail;
   console.log(`📬 Sending test email to: ${toEmail}`);
   
   // Check if it's likely a sandbox domain and provide a hint
@@ -84,26 +91,42 @@ async function sendTestEmail() {
     console.error(error);
     
     // Provide more helpful guidance based on the error
+    console.log('\n\n📋 TROUBLESHOOTING GUIDE:');
+    console.log('-------------------------');
+    
     if (error.status === 401) {
-      console.log('\n\n📋 TROUBLESHOOTING GUIDE:');
-      console.log('-------------------------');
+      console.log('Authentication Error (401):');
       console.log('1. The API key appears to be invalid or unauthorized.');
-      console.log('2. For Mailgun sandbox domains, you need to add authorized recipients.');
-      console.log('   - Log in to your Mailgun account');
-      console.log('   - Go to the Sending > Domains section');
+      console.log('2. Check if you\'re using the private API key, not the public key.');
+      console.log('3. Check that your account is not suspended or restricted.');
+    } else if (error.status === 403 && error.details?.includes('authorized recipients')) {
+      console.log('Sandbox Authorization Error (403):');
+      console.log(`1. The recipient (${toEmail}) is not authorized for your sandbox domain.`);
+      console.log('   To fix this:');
+      console.log('   - Log in to your Mailgun account at https://app.mailgun.com/');
+      console.log('   - Go to Sending → Domains');
       console.log('   - Click on your sandbox domain');
-      console.log('   - Under "Authorized Recipients" add the email address you\'re sending to');
-      console.log('3. If using a custom domain, verify it\'s properly set up in Mailgun');
-      console.log('4. Check that your account is not suspended or restricted');
-      console.log('5. Try using the EU endpoint if your account is in the EU region:');
-      console.log('   - Change the URL to https://api.eu.mailgun.net');
+      console.log('   - Navigate to "Authorized Recipients"');
+      console.log(`   - Add "${toEmail}" and have the recipient check their inbox for the verification email`);
+      console.log('2. If you need to send to multiple recipients, consider upgrading to a paid plan.');
     } else if (error.status === 400) {
-      console.log('\n\n📋 TROUBLESHOOTING GUIDE:');
-      console.log('-------------------------');
-      console.log('1. Check that your "from" email address is properly formatted');
-      console.log('2. If using a custom domain, ensure it\'s properly set up in Mailgun');
-      console.log('3. Ensure the recipient email is valid');
+      console.log('Request Error (400):');
+      console.log('1. Check that your "from" email address is properly formatted.');
+      console.log('2. For sandbox domains, the "from" address should use the sandbox domain.');
+      console.log('3. Ensure the recipient email is valid.');
+    } else if (error.status === 404) {
+      console.log('Not Found Error (404):');
+      console.log('1. The domain you\'re trying to use might not exist in your Mailgun account.');
+      console.log(`2. Double-check the spelling of your domain: "${mailgunDomain}"`);
+    } else {
+      console.log(`Error (${error.status || 'Unknown'}):`);
+      console.log('1. Check the detailed error message above.');
+      console.log('2. Verify your Mailgun account status.');
+      console.log('3. If using EU region, set MAILGUN_API_ENDPOINT=https://api.eu.mailgun.net');
     }
+    
+    console.log('\nFor more help, see MAILGUN-SETUP.md or the Mailgun documentation:');
+    console.log('https://documentation.mailgun.com/en/latest/');
     
     return false;
   }

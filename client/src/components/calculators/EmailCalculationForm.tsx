@@ -86,8 +86,21 @@ export default function EmailCalculationForm({
         if (onSuccess) {
           onSuccess();
         }
+      } else if (data.errorType === 'sandboxAuth') {
+        // Sandbox authorization error - special handling
+        console.warn('Sandbox authorization error:', data.message);
+        toast({
+          title: 'Email authorization required',
+          description: data.message || `Your email address (${values.email}) needs to be authorized in our test environment. Your information was saved and our team will contact you.`,
+          variant: 'destructive',
+        });
+        
+        // Still close the form as the lead was captured
+        if (onSuccess) {
+          onSuccess();
+        }
       } else {
-        // API returned error
+        // Other API error
         console.error('Failed to send calculation (API error):', data.message);
         toast({
           title: 'Email delivery issue',

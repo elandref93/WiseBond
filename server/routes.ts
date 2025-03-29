@@ -308,9 +308,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         calculationData
       });
       
-      if (emailResult) {
+      if (emailResult.success) {
         // Email sent successfully
-        res.status(200).json({ success: true, message: "Calculation sent successfully" });
+        res.status(200).json({ 
+          success: true, 
+          message: "Calculation sent successfully" 
+        });
       } else if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
         // Email service not configured - still return success in development
         console.log(`[Dev mode] Email would be sent to ${email} with ${calculationType} results`);
@@ -318,12 +321,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           success: true, 
           message: "Email would be sent in production. Email service not fully configured in development." 
         });
+      } else if (emailResult.isSandboxAuthError) {
+        // Sandbox domain authorization error
+        console.warn(`Sandbox authorization error sending email to ${email}`);
+        res.status(400).json({ 
+          success: false, 
+          message: "Your email address is not authorized to receive emails from our test environment. The calculation has been saved, but we couldn't send the email. Please contact support to authorize your email or try a different email address.",
+          errorType: "sandboxAuth"
+        });
       } else {
         // Email service configured but sending failed
-        console.error(`Failed to send email to ${email}`);
+        console.error(`Failed to send email to ${email}: ${emailResult.error}`);
         res.status(500).json({ 
           success: false, 
-          message: "The calculation has been saved, but there was a problem sending the email. Please try again later." 
+          message: "The calculation has been saved, but there was a problem sending the email. Please try again later.",
+          error: emailResult.error
         });
       }
     } catch (error) {

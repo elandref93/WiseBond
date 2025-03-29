@@ -68,7 +68,32 @@ If you're using a Mailgun sandbox domain (which is common for new accounts), be 
 You can run a simple test to verify your Mailgun setup:
 
 ```bash
+# Test with default recipient
 node test-email.js
+
+# Test with a specific recipient
+TEST_EMAIL_TO=your.email@example.com node test-email.js
 ```
 
 This script will attempt to send a test email and provide detailed error information if it fails.
+
+### Production Recommendations
+
+For production use:
+
+1. **Upgrade to a paid Mailgun plan** to remove sandbox restrictions and increase sending limits
+2. **Set up and verify a custom domain** for better deliverability and professional appearance
+3. **Implement email delivery monitoring** using Mailgun's event tracking APIs
+4. **Set up SPF and DKIM records** for your sending domain to improve deliverability
+
+### Environment Variables for Production
+
+For production environments, consider these additional variables:
+
+```
+# Optional: EU region endpoint if your Mailgun account is in the EU
+MAILGUN_API_ENDPOINT=https://api.eu.mailgun.net
+
+# Optional: Track open and click events (requires paid plan)
+MAILGUN_ENABLE_TRACKING=true
+```
