@@ -7,6 +7,8 @@
     <title>HomeBondSA - South Africa's Trusted Home Loan Originator</title>
     <meta name="description" content="HomeBondSA helps you secure the best possible home loan rates from multiple South African banks. Apply once with us instead of approaching multiple banks individually." />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Load Google Maps API directly (key from .env via import.meta.env will be injected at build time) -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=%VITE_GOOGLE_MAPS_API_KEY%&libraries=places" async defer></script>
   </head>
   <body>
     <div id="root"></div>
