@@ -6,6 +6,7 @@ import MemoryStore from "memorystore";
 import { insertUserSchema, loginSchema, insertCalculationResultSchema, insertContactSubmissionSchema, updateProfileSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from 'zod-validation-error';
+import { sendCalculationEmail } from "./email";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up sessions
@@ -267,6 +268,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: validationError.message });
       }
       res.status(500).json({ message: "Failed to submit contact form" });
+    }
+  });
+
+  // Email calculation results route
+  app.post("/api/calculations/email", async (req, res) => {
+    try {
+      // Validate request body
+      const { firstName, lastName, email, calculationType, calculationData } = req.body;
+      
+      if (!firstName || !lastName || !email || !calculationType || !calculationData) {
+        return res.status(400).json({ 
+          message: "Missing required fields: firstName, lastName, email, calculationType, calculationData" 
+        });
+      }
+
+      // Store as a lead in the database
+      const contactData = {
+        firstName,
+        lastName, 
+        email,
+        message: `Requested ${calculationType} calculator results to be emailed`,
+        subject: `${calculationType} Calculator`,
+      };
+      
+      await storage.createContactSubmission(contactData);
+      
+      // Send the email
+      const emailResult = await sendCalculationEmail({
+        firstName,
+        lastName,
+        email,
+        calculationType,
+        calculationData
+      });
+      
+      if (emailResult) {
+        res.status(200).json({ success: true, message: "Calculation sent successfully" });
+      } else {
+        // Still return success if API key is not configured - this is just for demo/dev
+        res.status(200).json({ 
+          success: true, 
+          message: "Email would be sent in production. API key not configured in development." 
+        });
+      }
+    } catch (error) {
+      console.error("Error sending calculation email:", error);
+      res.status(500).json({ success: false, message: "Failed to send calculation email" });
     }
   });
 

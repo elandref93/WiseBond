@@ -1,129 +1,175 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { parseSharedCalculation } from '@/lib/shareUtils';
 import { CalculationResult } from '@/lib/calculators';
-import CalculationResults from '@/components/calculators/CalculationResults';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calculator, Download, Share2 } from 'lucide-react';
+import { Share2, ArrowLeft, Calculator } from 'lucide-react';
 import ShareCalculation from '@/components/calculators/ShareCalculation';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import EmailCalculationForm from '@/components/calculators/EmailCalculationForm';
 
 export default function SharedCalculation() {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [calculationResult, setCalculationResult] = useState<CalculationResult | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  const [activeTab, setActiveTab] = useState('results');
+  
   useEffect(() => {
-    // Extract the encoded data from the URL
+    // Get the encoded data from the URL query parameters
     const urlParams = new URLSearchParams(window.location.search);
     const encodedData = urlParams.get('data');
-
-    if (!encodedData) {
-      setError('No calculation data found in URL');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      // Parse the shared calculation
-      const result = parseSharedCalculation(encodedData);
-      
-      if (!result) {
-        setError('Invalid calculation data');
-      } else {
-        setCalculationResult(result);
-      }
-    } catch (err) {
-      console.error('Error parsing shared calculation:', err);
-      setError('Failed to load calculation data');
-    }
     
-    setIsLoading(false);
-  }, [location]);
-
-  // Function to go back to calculators page
-  const goToCalculators = () => {
-    window.location.href = '/calculators';
-  };
-
-  // Generate calculator title based on type
-  const getCalculatorTitle = (type: string): string => {
-    switch (type) {
-      case 'bond':
-        return 'Bond Repayment Calculator';
-      case 'affordability':
-        return 'Affordability Calculator';
-      case 'deposit':
-        return 'Deposit Savings Calculator';
-      case 'additional':
-        return 'Additional Payment Calculator';
-      case 'transfer':
-        return 'Transfer Costs Calculator';
-      case 'amortisation':
-        return 'Amortization Calculator';
-      default:
-        return 'Financial Calculator';
+    if (encodedData) {
+      try {
+        // Parse the encoded data
+        const result = parseSharedCalculation(encodedData);
+        if (result) {
+          setCalculationResult(result);
+        } else {
+          // Handle invalid data
+          console.error('Invalid calculation data');
+        }
+      } catch (error) {
+        console.error('Error parsing calculation data:', error);
+      }
+    } else {
+      // No data parameter in URL
+      console.error('No calculation data found in URL');
     }
+  }, []);
+  
+  // Get calculator title based on type
+  const getCalculatorTitle = (type: string) => {
+    const titles: Record<string, string> = {
+      'bond': 'Bond Repayment Calculator',
+      'affordability': 'Affordability Calculator',
+      'deposit': 'Deposit Savings Calculator',
+      'additional': 'Additional Payment Calculator',
+      'transfer': 'Transfer Costs Calculator',
+      'amortisation': 'Amortization Schedule Calculator'
+    };
+    return titles[type] || 'Calculation Results';
   };
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-5xl mx-auto">
-        <Button 
-          variant="ghost" 
-          className="mb-4 text-gray-600 hover:text-gray-900" 
-          onClick={() => window.history.back()}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          </div>
-        ) : error ? (
-          <Alert variant="destructive" className="my-8">
-            <AlertTitle>Error Loading Calculation</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-            <Button 
-              variant="outline" 
-              className="mt-4" 
-              onClick={goToCalculators}
-            >
+  
+  // If no calculation data is found, show error message
+  if (!calculationResult) {
+    return (
+      <div className="container py-10">
+        <Card className="max-w-2xl mx-auto">
+          <CardHeader>
+            <CardTitle>Calculation Not Found</CardTitle>
+            <CardDescription>
+              The shared calculation could not be loaded or may have expired.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Please try again or create a new calculation.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button onClick={() => navigate('/calculators')}>
               <Calculator className="mr-2 h-4 w-4" />
               Go to Calculators
             </Button>
-          </Alert>
-        ) : calculationResult ? (
-          <>
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold text-gray-900">
-                {getCalculatorTitle(calculationResult.type)}
-              </h1>
-              <div className="flex space-x-2">
-                <ShareCalculation result={calculationResult} />
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <div className="text-sm text-gray-500 mb-6">
-                This is a shared financial calculation. You can view the results below or try the calculator yourself.
-              </div>
-              
-              <CalculationResults results={calculationResult} />
-              
-              <div className="mt-8 flex justify-center">
-                <Button onClick={goToCalculators}>
-                  <Calculator className="mr-2 h-4 w-4" />
-                  Try the Calculator Yourself
-                </Button>
-              </div>
-            </div>
-          </>
-        ) : null}
+          </CardFooter>
+        </Card>
       </div>
+    );
+  }
+  
+  return (
+    <div className="container py-10">
+      <Card className="max-w-4xl mx-auto">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>{getCalculatorTitle(calculationResult.type)}</CardTitle>
+            <CardDescription>Shared calculation results</CardDescription>
+          </div>
+          {calculationResult && (
+            <ShareCalculation result={calculationResult} />
+          )}
+        </CardHeader>
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+            <TabsTrigger value="results">View Results</TabsTrigger>
+            <TabsTrigger value="getHelp">Get Expert Help</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="results">
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {calculationResult.displayResults.map((item, index) => (
+                  <div key={index} className="flex flex-col">
+                    <span className="text-sm text-muted-foreground">{item.label}</span>
+                    <span className="text-lg font-semibold">{item.value}</span>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Display any additional data or charts */}
+              {calculationResult.type === 'amortisation' && calculationResult.schedule && (
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold mb-2">Amortization Schedule</h3>
+                  <div className="border rounded-lg overflow-x-auto">
+                    <table className="min-w-full divide-y divide-border">
+                      <thead>
+                        <tr className="bg-muted">
+                          <th className="px-4 py-2 text-left">Year</th>
+                          <th className="px-4 py-2 text-right">Principal</th>
+                          <th className="px-4 py-2 text-right">Interest</th>
+                          <th className="px-4 py-2 text-right">Balance</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {calculationResult.schedule.map((entry: { year: string; principal: string; interest: string; balance: string }, index: number) => (
+                          <tr key={index} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/50'}>
+                            <td className="px-4 py-2">{entry.year}</td>
+                            <td className="px-4 py-2 text-right">{entry.principal}</td>
+                            <td className="px-4 py-2 text-right">{entry.interest}</td>
+                            <td className="px-4 py-2 text-right">{entry.balance}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </TabsContent>
+          
+          <TabsContent value="getHelp">
+            <CardContent>
+              <div className="max-w-md mx-auto">
+                <h3 className="text-lg font-semibold mb-2">Need Help With Your Home Loan?</h3>
+                <p className="text-muted-foreground mb-4">
+                  Our consultants can help you find the best home loan option tailored to your specific needs. Enter your details below and we'll send you this calculation along with personalized advice.
+                </p>
+                
+                <EmailCalculationForm 
+                  result={calculationResult} 
+                  onSuccess={() => setActiveTab('results')}
+                />
+              </div>
+            </CardContent>
+          </TabsContent>
+        </Tabs>
+        
+        <CardFooter className="flex justify-between">
+          <Button variant="outline" onClick={() => navigate('/calculators')}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Calculators
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

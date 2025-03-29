@@ -1,5 +1,4 @@
-import { CalculationResult } from "./calculators";
-import { Buffer } from 'buffer';
+import { CalculationResult } from './calculators';
 
 /**
  * Generate a shareable URL containing encoded calculation data
@@ -7,28 +6,20 @@ import { Buffer } from 'buffer';
  * @returns A URL that can be used to share the calculation
  */
 export function generateShareableUrl(result: CalculationResult): string {
-  // Create a simplified version of the result with only essential data
-  const shareableData = {
-    type: result.type,
-    displayResults: result.displayResults,
-    // Include yearlyData for amortization if available
-    ...(result.type === 'amortisation' && result.yearlyData && { 
-      yearlyData: result.yearlyData,
-      loanAmount: result.loanAmount,
-      interestRate: result.interestRate,
-      loanTermYears: result.loanTermYears,
-      monthlyPayment: result.monthlyPayment,
-      totalPayment: result.totalPayment,
-      totalInterest: result.totalInterest
-    })
-  };
-  
-  // Convert to Base64 (for URL-friendly encoding)
-  const encoded = Buffer.from(JSON.stringify(shareableData)).toString('base64');
-  
-  // Generate URL with encoded data
-  // For real production, should use a shorter path like /s/ for better sharing
-  return `/shared-calculation?data=${encodeURIComponent(encoded)}`;
+  try {
+    // Create a copy of the result to avoid potential circular reference issues
+    const sharableData = JSON.parse(JSON.stringify(result));
+    
+    // Encode the data as a base64 string to include in the URL
+    const encodedData = btoa(JSON.stringify(sharableData));
+    
+    // Generate the full URL with the encoded data as a query parameter
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/shared-calculation?data=${encodedData}`;
+  } catch (error) {
+    console.error('Error generating shareable URL:', error);
+    return window.location.origin;
+  }
 }
 
 /**
@@ -38,18 +29,18 @@ export function generateShareableUrl(result: CalculationResult): string {
  */
 export function parseSharedCalculation(encodedData: string): CalculationResult | null {
   try {
-    // Decode the Base64 string
-    const decoded = Buffer.from(decodeURIComponent(encodedData), 'base64').toString('utf-8');
+    // Decode the base64 string to get the JSON data
+    const jsonString = atob(encodedData);
     
-    // Parse the JSON data
-    const result = JSON.parse(decoded) as CalculationResult;
+    // Parse the JSON string back into an object
+    const calculationData = JSON.parse(jsonString) as CalculationResult;
     
-    // Validate that it has the minimum required structure
-    if (!result || !result.type || !result.displayResults) {
+    // Validate that it's a proper calculation result
+    if (!calculationData || !calculationData.type || !calculationData.displayResults) {
       return null;
     }
     
-    return result;
+    return calculationData;
   } catch (error) {
     console.error('Error parsing shared calculation:', error);
     return null;
@@ -62,20 +53,26 @@ export function parseSharedCalculation(encodedData: string): CalculationResult |
  * @returns A formatted text message for sharing
  */
 export function generateShareableText(result: CalculationResult): string {
-  const title = getCalculatorTitle(result.type);
-  
-  // Create a summary of the results
-  let message = `My ${title} calculation results:\n\n`;
-  
-  // Add the key results
-  result.displayResults.forEach(item => {
-    message += `${item.label}: ${item.value}\n`;
-  });
-  
-  // Add a call to action
-  message += `\nCalculate your own at BetterBond.co.za`;
-  
-  return message;
+  try {
+    const calculatorTitle = getCalculatorTitle(result.type);
+    let message = `Check out my ${calculatorTitle} results: `;
+    
+    // Add key results (limit to first 3 for readability)
+    const keyResults = result.displayResults.slice(0, 3);
+    
+    keyResults.forEach((item, index) => {
+      if (index > 0) message += ', ';
+      message += `${item.label}: ${item.value}`;
+    });
+    
+    // Add call to action
+    message += '. Created with HomeLoanHelper.';
+    
+    return message;
+  } catch (error) {
+    console.error('Error generating shareable text:', error);
+    return 'Check out my home loan calculation results!';
+  }
 }
 
 /**
@@ -84,20 +81,14 @@ export function generateShareableText(result: CalculationResult): string {
  * @returns A formatted title
  */
 function getCalculatorTitle(type: string): string {
-  switch (type) {
-    case 'bond':
-      return 'Bond Repayment';
-    case 'affordability':
-      return 'Affordability';
-    case 'deposit':
-      return 'Deposit Savings';
-    case 'additional':
-      return 'Additional Payment';
-    case 'transfer':
-      return 'Transfer Costs';
-    case 'amortisation':
-      return 'Amortization';
-    default:
-      return 'Calculation';
-  }
+  const titles: Record<string, string> = {
+    'bond': 'Bond Repayment',
+    'affordability': 'Affordability',
+    'deposit': 'Deposit Savings',
+    'additional': 'Additional Payment',
+    'transfer': 'Transfer Costs',
+    'amortisation': 'Amortization Schedule'
+  };
+  
+  return titles[type] || 'Calculation';
 }
