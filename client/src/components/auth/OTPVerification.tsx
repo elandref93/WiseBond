@@ -100,81 +100,69 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
 
   return (
     <div className="w-full max-w-md mx-auto bg-white rounded-lg p-8 shadow-sm">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">Create Account</h1>
-        <p className="text-gray-600">Join WiseBond to start your home loan journey</p>
+      <div className="flex flex-col items-center justify-center mb-6">
+        <div className="bg-gray-50 p-3 rounded-full mb-4">
+          <Smartphone className="h-8 w-8 text-blue-600" />
+        </div>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">Verify Your Account</h3>
+        <p className="text-gray-600 text-center">
+          Enter the 6-digit verification code sent to
+          <br />
+          <span className="font-medium text-gray-800">{email}</span>
+        </p>
       </div>
       
-      <div className="bg-white rounded-lg p-6 border border-gray-100">
-        <h2 className="text-2xl font-medium mb-2">Sign up</h2>
-        <p className="text-gray-500 mb-6">Create your account to save calculations and track applications</p>
-        
-        <div className="bg-white rounded-lg p-6 border border-gray-100 mb-6">
-          <div className="flex flex-col items-center justify-center mb-6">
-            <div className="bg-gray-50 p-3 rounded-full mb-4">
-              <Smartphone className="h-8 w-8 text-blue-600" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Verify Your Account</h3>
-            <p className="text-gray-600 text-center">
-              Enter the 6-digit verification code sent to
-              <br />
-              <span className="font-medium text-gray-800">{email}</span>
-            </p>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="space-y-6">
+          <div className="flex justify-center">
+            <InputOTP
+              maxLength={6}
+              value={form.watch('otp') || ''}
+              onChange={(value) => form.setValue('otp', value, { shouldValidate: true })}
+              render={({ slots }) => (
+                <InputOTPGroup className="gap-2">
+                  {slots.map((slot, i) => (
+                    <InputOTPSlot 
+                      key={i} 
+                      index={i} 
+                      {...slot} 
+                      className="w-12 h-12 text-lg border-gray-300"
+                    />
+                  ))}
+                </InputOTPGroup>
+              )}
+            />
           </div>
           
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="space-y-6">
-              <div className="flex justify-center">
-                <InputOTP
-                  maxLength={6}
-                  value={form.watch('otp') || ''}
-                  onChange={(value) => form.setValue('otp', value, { shouldValidate: true })}
-                  render={({ slots }) => (
-                    <InputOTPGroup className="gap-2">
-                      {slots.map((slot, i) => (
-                        <InputOTPSlot 
-                          key={i} 
-                          index={i} 
-                          {...slot} 
-                          className="w-12 h-12 text-lg border-gray-300"
-                        />
-                      ))}
-                    </InputOTPGroup>
-                  )}
-                />
-              </div>
-              
-              {form.formState.errors.otp && (
-                <p className="text-sm text-red-500 text-center">
-                  {form.formState.errors.otp.message}
-                </p>
-              )}
-              
-              <Button 
-                className="w-full bg-amber-200 hover:bg-amber-300 text-black font-medium py-3"
-                type="submit" 
-                disabled={isLoading || !form.formState.isValid}
-              >
-                {isLoading ? "Verifying..." : "Verify"}
-              </Button>
-              
-              <div className="flex items-center justify-between mt-4">
-                <p className="text-sm text-gray-500">
-                  Didn't receive a code?
-                </p>
-                <Button 
-                  variant="link" 
-                  onClick={handleResendOTP} 
-                  disabled={isResending}
-                  className="text-blue-600 font-medium p-0"
-                >
-                  {isResending ? "Sending..." : "Resend"}
-                </Button>
-              </div>
-            </div>
-          </form>
+          {form.formState.errors.otp && (
+            <p className="text-sm text-red-500 text-center">
+              {form.formState.errors.otp.message}
+            </p>
+          )}
+          
+          <Button 
+            className="w-full bg-amber-200 hover:bg-amber-300 text-black font-medium py-3"
+            type="submit" 
+            disabled={isLoading || !form.formState.isValid}
+          >
+            {isLoading ? "Verifying..." : "Verify"}
+          </Button>
+          
+          <div className="flex items-center justify-between mt-4">
+            <p className="text-sm text-gray-500">
+              Didn't receive a code?
+            </p>
+            <Button 
+              variant="link" 
+              onClick={handleResendOTP} 
+              disabled={isResending}
+              className="text-blue-600 font-medium p-0"
+            >
+              {isResending ? "Sending..." : "Resend"}
+            </Button>
+          </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
