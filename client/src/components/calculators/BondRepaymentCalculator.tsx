@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HomeIcon, InfoIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
@@ -174,6 +173,42 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   const displayPropertyValue = displayCurrencyValue(currentPropertyValue);
   const displayDeposit = displayCurrencyValue(currentDeposit);
   const displayMaxDeposit = displayCurrencyValue(Math.min(5000000, currentPropertyValue * 0.5));
+
+  // Calculate monthly payment
+  const calculateMonthlyPayment = () => {
+    if (!loanDetails) return formatCurrency(0);
+    
+    const monthlyRate = loanDetails.interestRate / 100 / 12;
+    const numberOfPayments = loanDetails.loanTerm * 12;
+    const x = Math.pow(1 + monthlyRate, numberOfPayments);
+    const monthlyPayment = (loanDetails.loanAmount * x * monthlyRate) / (x - 1);
+    
+    return formatCurrency(monthlyPayment);
+  };
+  
+  // Calculate total repayment
+  const calculateTotalRepayment = () => {
+    if (!loanDetails) return formatCurrency(0);
+    
+    const monthlyRate = loanDetails.interestRate / 100 / 12;
+    const numberOfPayments = loanDetails.loanTerm * 12;
+    const x = Math.pow(1 + monthlyRate, numberOfPayments);
+    const monthlyPayment = (loanDetails.loanAmount * x * monthlyRate) / (x - 1);
+    
+    return formatCurrency(monthlyPayment * numberOfPayments);
+  };
+  
+  // Calculate total interest
+  const calculateTotalInterest = () => {
+    if (!loanDetails) return formatCurrency(0);
+    
+    const monthlyRate = loanDetails.interestRate / 100 / 12;
+    const numberOfPayments = loanDetails.loanTerm * 12;
+    const x = Math.pow(1 + monthlyRate, numberOfPayments);
+    const monthlyPayment = (loanDetails.loanAmount * x * monthlyRate) / (x - 1);
+    
+    return formatCurrency(monthlyPayment * numberOfPayments - loanDetails.loanAmount);
+  };
 
   return (
     <div className="space-y-6">
@@ -375,16 +410,12 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                         <Slider
                           defaultValue={[currentDeposit]}
                           max={Math.min(5000000, currentPropertyValue * 0.5)}
-                          step={50000}
+                          step={10000}
                           onValueChange={handleDepositSliderChange}
                         />
                         <div className="flex justify-between text-xs text-gray-500">
                           <span>R0</span>
                           <span>{displayMaxDeposit}</span>
-                        </div>
-                        <div className="text-xs text-gray-500 text-right">
-                          {currentPropertyValue > 0 ? 
-                            `${((currentDeposit / currentPropertyValue) * 100).toFixed(1)}% of property value` : ''}
                         </div>
                       </div>
                     </FormControl>
@@ -392,105 +423,130 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                   </FormItem>
                 )}
               />
-
-              <div className="p-3 bg-gray-50 rounded-lg mt-2 text-xs text-gray-600">
-                Results update automatically as you adjust values
-              </div>
             </div>
           </Form>
+          
+          <div className="text-sm text-gray-500 mt-4">
+            <p>
+              Results update automatically as you adjust values
+            </p>
+          </div>
         </div>
-
-        {/* Charts and Results - Takes 7/12 on large screens, full width on mobile */}
+        
+        {/* Results and Chart - Takes 7/12 on large screens, full width on mobile */}
         <div className="lg:col-span-7">
           {showChart && loanDetails ? (
-            <div className="rounded-lg border bg-card">
-              <Tabs defaultValue="overview" className="w-full">
-                <div className="p-4 border-b">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="overview">Loan Overview</TabsTrigger>
-                    <TabsTrigger value="detailed">Monthly Details</TabsTrigger>
-                  </TabsList>
+            <div className="space-y-6">
+              {/* Key Results */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-3 bg-gray-50 rounded-lg text-center">
+                  <div className="text-sm text-gray-500">Monthly Repayment</div>
+                  <div className="text-lg font-semibold mt-1">
+                    {calculateMonthlyPayment()}
+                  </div>
                 </div>
-                
-                <TabsContent value="overview" className="p-4 m-0">
-                  <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="p-3 bg-gray-50 rounded-lg text-center">
-                      <div className="text-sm text-gray-500">Monthly Payment</div>
-                      <div className="text-lg font-semibold mt-1">
-                        {formatCurrency((loanDetails.loanAmount * Math.pow(1 + loanDetails.interestRate/100/12, loanDetails.loanTerm*12) * 
-                        (loanDetails.interestRate/100/12)) / (Math.pow(1 + loanDetails.interestRate/100/12, loanDetails.loanTerm*12) - 1))}
-                      </div>
-                    </div>
-                    <div className="p-3 bg-gray-50 rounded-lg text-center">
-                      <div className="text-sm text-gray-500">Total Interest</div>
-                      <div className="text-lg font-semibold mt-1">
-                        {formatCurrency(((loanDetails.loanAmount * Math.pow(1 + loanDetails.interestRate/100/12, loanDetails.loanTerm*12) * 
-                        (loanDetails.interestRate/100/12)) / (Math.pow(1 + loanDetails.interestRate/100/12, loanDetails.loanTerm*12) - 1)) * 
-                        loanDetails.loanTerm * 12 - loanDetails.loanAmount)}
-                      </div>
-                    </div>
-                    <div className="p-3 bg-gray-50 rounded-lg text-center">
-                      <div className="text-sm text-gray-500">Total Cost</div>
-                      <div className="text-lg font-semibold mt-1">
-                        {formatCurrency(((loanDetails.loanAmount * Math.pow(1 + loanDetails.interestRate/100/12, loanDetails.loanTerm*12) * 
-                        (loanDetails.interestRate/100/12)) / (Math.pow(1 + loanDetails.interestRate/100/12, loanDetails.loanTerm*12) - 1)) * 
-                        loanDetails.loanTerm * 12)}
-                      </div>
-                    </div>
+                <div className="p-3 bg-gray-50 rounded-lg text-center">
+                  <div className="text-sm text-gray-500">Total Repayment Amount</div>
+                  <div className="text-lg font-semibold mt-1">
+                    {calculateTotalRepayment()}
                   </div>
-                  
-                  {/* Chart with adaptive height */}
-                  <div className="w-full h-[300px] md:h-[400px] overflow-hidden">
-                    <AmortizationChart 
-                      loanAmount={loanDetails.loanAmount}
-                      interestRate={loanDetails.interestRate}
-                      loanTerm={loanDetails.loanTerm}
-                    />
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg text-center">
+                  <div className="text-sm text-gray-500">Total Interest Paid</div>
+                  <div className="text-lg font-semibold mt-1">
+                    {calculateTotalInterest()}
                   </div>
-                </TabsContent>
-                
-                <TabsContent value="detailed" className="p-4 m-0">
-                  <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="p-3 bg-gray-50 rounded-lg text-center">
-                      <div className="text-sm text-gray-500">Loan Amount</div>
-                      <div className="text-lg font-semibold mt-1">{formatCurrency(loanDetails.loanAmount)}</div>
-                    </div>
-                    <div className="p-3 bg-gray-50 rounded-lg text-center">
-                      <div className="text-sm text-gray-500">Interest Rate</div>
-                      <div className="text-lg font-semibold mt-1">{loanDetails.interestRate.toFixed(2)}%</div>
-                    </div>
-                    <div className="p-3 bg-gray-50 rounded-lg text-center">
-                      <div className="text-sm text-gray-500">Loan Term</div>
-                      <div className="text-lg font-semibold mt-1">{loanDetails.loanTerm} years</div>
-                    </div>
-                  </div>
-                  
-                  {/* Second chart or detailed view goes here */}
-                  <div className="hidden md:block w-full h-[400px] overflow-hidden">
-                    <AmortizationChart 
-                      loanAmount={loanDetails.loanAmount}
-                      interestRate={loanDetails.interestRate}
-                      loanTerm={loanDetails.loanTerm}
-                    />
-                  </div>
-                  
-                  {/* Mobile-friendly simple view */}
-                  <div className="md:hidden">
-                    <div className="text-center p-4 text-sm">
-                      Detailed monthly breakdown is available on larger screens. 
-                      Please rotate your device or view on a tablet/desktop.
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
+                </div>
+              </div>
+              
+              <div className="text-xs text-gray-500 italic">
+                This is an estimate based on the information provided. Actual amounts may vary.
+              </div>
+              
+              {/* Amortization Chart */}
+              <div className="bg-white p-4 border rounded-md">
+                <AmortizationChart 
+                  loanAmount={loanDetails.loanAmount} 
+                  interestRate={loanDetails.interestRate} 
+                  loanTerm={loanDetails.loanTerm} 
+                />
+              </div>
+              
+              {/* Amortization Table */}
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
+                      <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Principal Paid</th>
+                      <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Paid</th>
+                      <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {Array.from({ length: Math.min(7, loanDetails.loanTerm) }).map((_, index) => {
+                      const year = index + 1;
+                      
+                      // Calculate yearly data
+                      let balance = loanDetails.loanAmount;
+                      let totalInterestPaid = 0;
+                      let totalPrincipalPaid = 0;
+                      
+                      const monthlyRate = loanDetails.interestRate / 100 / 12;
+                      const monthlyPayment = (loanDetails.loanAmount * Math.pow(1 + monthlyRate, loanDetails.loanTerm * 12) * 
+                        monthlyRate) / (Math.pow(1 + monthlyRate, loanDetails.loanTerm * 12) - 1);
+                      
+                      // Calculate up to the current year
+                      for (let y = 1; y <= year; y++) {
+                        let yearInterest = 0;
+                        let yearPrincipal = 0;
+                        
+                        // Calculate for each month in the year
+                        for (let m = 1; m <= 12; m++) {
+                          if ((y - 1) * 12 + m <= loanDetails.loanTerm * 12) {
+                            const interestPayment = balance * monthlyRate;
+                            const principalPayment = monthlyPayment - interestPayment;
+                            
+                            if (y === year) {
+                              yearInterest += interestPayment;
+                              yearPrincipal += principalPayment;
+                            }
+                            
+                            balance -= principalPayment;
+                            totalInterestPaid += interestPayment;
+                            totalPrincipalPaid += principalPayment;
+                          }
+                        }
+                      }
+                      
+                      return (
+                        <tr key={year}>
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{year}</td>
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{formatCurrency(totalPrincipalPaid)}</td>
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{formatCurrency(totalInterestPaid)}</td>
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{formatCurrency(Math.max(0, balance))}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              
+              {loanDetails.loanTerm > 7 && (
+                <div className="mt-4 text-center text-sm text-gray-500">
+                  Showing first 7 years. Full amortization schedule is {loanDetails.loanTerm} years.
+                </div>
+              )}
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center rounded-lg border border-dashed p-8">
-              <div className="text-center text-gray-500">
-                <HomeIcon className="mx-auto h-12 w-12 opacity-50" />
-                <h3 className="mt-2 text-sm font-semibold">No calculation yet</h3>
-                <p className="mt-1 text-sm">Adjust the values on the left to see your bond repayment analysis</p>
+            <div className="border rounded-lg p-8 text-center bg-gray-50 h-full flex flex-col items-center justify-center">
+              <div className="text-gray-400 mb-4">
+                <HomeIcon className="h-12 w-12 mx-auto" />
               </div>
+              <h3 className="text-lg font-medium text-gray-600 mb-2">No calculation results yet</h3>
+              <p className="text-sm text-gray-500 max-w-md">
+                Adjust the property value, interest rate, loan term, and deposit amount to see your monthly bond repayments and amortization schedule.
+              </p>
             </div>
           )}
         </div>
