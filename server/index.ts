@@ -1,6 +1,18 @@
 // Load environment variables from .env file - must be first!
 import dotenv from 'dotenv';
-dotenv.config();
+const result = dotenv.config();
+
+// Debug environment variables loading
+console.log('dotenv loaded:', result.error ? 'ERROR' : 'SUCCESS');
+if (result.error) {
+  console.error('Error loading .env file:', result.error.message);
+} else {
+  console.log('Checking key environment variables:');
+  console.log('MAILGUN_API_KEY present:', !!process.env.MAILGUN_API_KEY);
+  console.log('MAILGUN_DOMAIN present:', !!process.env.MAILGUN_DOMAIN);
+  console.log('MAILGUN_FROM_EMAIL present:', !!process.env.MAILGUN_FROM_EMAIL);
+  console.log('MAILGUN_DOMAIN value:', process.env.MAILGUN_DOMAIN);
+}
 
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
