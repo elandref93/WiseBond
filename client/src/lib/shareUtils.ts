@@ -66,7 +66,7 @@ export function generateShareableText(result: CalculationResult): string {
     });
     
     // Add call to action
-    message += '. Created with HomeLoanHelper.';
+    message += '. Created with WiseBond.';
     
     return message;
   } catch (error) {

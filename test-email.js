@@ -44,7 +44,7 @@ async function sendTestEmail() {
   console.log(`📨 Using Mailgun domain: ${mailgunDomain}`);
   
   // Set up the test email
-  const fromEmail = process.env.MAILGUN_FROM_EMAIL || 'noreply@homeloanhelper.co.za';
+  const fromEmail = process.env.MAILGUN_FROM_EMAIL || 'noreply@wisebond.co.za';
   console.log(`📤 Using sender email: ${fromEmail}`);
   
   // For sandbox domains, use an authorized recipient if provided, otherwise default to the from address
@@ -61,18 +61,18 @@ async function sendTestEmail() {
   const testEmail = {
     to: toEmail,
     from: fromEmail,
-    subject: 'HomeLoanHelper - Mailgun Test Email',
-    text: 'This is a test email from HomeLoanHelper to verify that Mailgun is configured correctly.',
+    subject: 'WiseBond - Mailgun Test Email',
+    text: 'This is a test email from WiseBond to verify that Mailgun is configured correctly.',
     html: `
       <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background-color: #f8f8f8; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
             <h1 style="color: #2563eb; margin-top: 0;">Mailgun Test Email</h1>
-            <p>This is a test email from HomeLoanHelper to verify that Mailgun is configured correctly.</p>
+            <p>This is a test email from WiseBond to verify that Mailgun is configured correctly.</p>
           </div>
           <p>If you're receiving this email, it means your Mailgun configuration is working properly!</p>
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666;">
-            <p>HomeLoanHelper.co.za | <a href="https://www.homeloanhelper.co.za">www.homeloanhelper.co.za</a></p>
+            <p>WiseBond.co.za | <a href="https://www.wisebond.co.za">www.wisebond.co.za</a></p>
           </div>
         </body>
       </html>
