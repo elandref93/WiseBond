@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HomeIcon, InfoIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
@@ -195,216 +196,305 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         </div>
       </div>
 
-      <Form {...form}>
-        <div className="space-y-6">
-          {/* Property Value Field with Slider */}
-          <FormField
-            control={form.control}
-            name="propertyValue"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>Property Value</FormLabel>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <InfoIcon className="h-4 w-4 text-gray-400" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs">This is the full purchase price of the property.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <FormControl>
-                  <div className="space-y-3">
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">R</span>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Calculator Inputs - Takes 5/12 on large screens, full width on mobile */}
+        <div className="lg:col-span-5">
+          <Form {...form}>
+            <div className="space-y-4">
+              {/* Property Value Field with Slider */}
+              <FormField
+                control={form.control}
+                name="propertyValue"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Property Value</FormLabel>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon className="h-4 w-4 text-gray-400" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-xs">This is the full purchase price of the property.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <FormControl>
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span className="text-gray-500 sm:text-sm">R</span>
+                          </div>
+                          <Input
+                            {...field}
+                            className="pl-8"
+                            onChange={(e) => {
+                              // Keep only digits by removing any non-numeric characters
+                              const numericValue = handleCurrencyInput(e.target.value);
+                              field.onChange(numericValue);
+                            }}
+                          />
+                        </div>
+                        <Slider
+                          defaultValue={[currentPropertyValue]}
+                          max={20000000}
+                          step={100000}
+                          onValueChange={handlePropertyValueSliderChange}
+                        />
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>R500,000</span>
+                          <span>R20,000,000</span>
+                        </div>
                       </div>
-                      <Input
-                        {...field}
-                        className="pl-8"
-                        onChange={(e) => {
-                          // Keep only digits by removing any non-numeric characters
-                          const numericValue = handleCurrencyInput(e.target.value);
-                          field.onChange(numericValue);
-                        }}
-                      />
-                    </div>
-                    <Slider
-                      defaultValue={[currentPropertyValue]}
-                      max={20000000}
-                      step={100000}
-                      onValueChange={handlePropertyValueSliderChange}
-                    />
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>R500,000</span>
-                      <span>R20,000,000</span>
-                    </div>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Interest Rate Field with Slider */}
-          <FormField
-            control={form.control}
-            name="interestRate"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>Interest Rate (%)</FormLabel>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <InfoIcon className="h-4 w-4 text-gray-400" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs">South Africa's prime rate is currently around 11.25%. Your actual rate may be prime plus a percentage based on your credit profile.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <FormControl>
-                  <div className="space-y-3">
-                    <div className="relative">
-                      <Input {...field} className="pr-8" />
-                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">%</span>
+              {/* Interest Rate Field with Slider */}
+              <FormField
+                control={form.control}
+                name="interestRate"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Interest Rate (%)</FormLabel>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon className="h-4 w-4 text-gray-400" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-xs">South Africa's prime rate is currently around 11.25%. Your actual rate may be prime plus a percentage based on your credit profile.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <FormControl>
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <Input {...field} className="pr-8" />
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <span className="text-gray-500 sm:text-sm">%</span>
+                          </div>
+                        </div>
+                        <Slider
+                          defaultValue={[currentInterestRate]}
+                          min={5}
+                          max={20}
+                          step={0.25}
+                          onValueChange={handleInterestRateSliderChange}
+                        />
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>5%</span>
+                          <span>20%</span>
+                        </div>
                       </div>
-                    </div>
-                    <Slider
-                      defaultValue={[currentInterestRate]}
-                      min={5}
-                      max={20}
-                      step={0.25}
-                      onValueChange={handleInterestRateSliderChange}
-                    />
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>5%</span>
-                      <span>20%</span>
-                    </div>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Loan Term Field */}
-          <FormField
-            control={form.control}
-            name="loanTerm"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>Loan Term</FormLabel>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <InfoIcon className="h-4 w-4 text-gray-400" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs">Standard home loan terms in South Africa range from 20 to 30 years. A longer term means lower monthly payments but more interest paid overall.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select loan term" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="20">20 years</SelectItem>
-                    <SelectItem value="25">25 years</SelectItem>
-                    <SelectItem value="30">30 years</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              {/* Loan Term Field */}
+              <FormField
+                control={form.control}
+                name="loanTerm"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Loan Term</FormLabel>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon className="h-4 w-4 text-gray-400" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-xs">Standard home loan terms in South Africa range from 20 to 30 years. A longer term means lower monthly payments but more interest paid overall.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select loan term" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="20">20 years</SelectItem>
+                        <SelectItem value="25">25 years</SelectItem>
+                        <SelectItem value="30">30 years</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Deposit Field with Slider */}
-          <FormField
-            control={form.control}
-            name="deposit"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>Deposit</FormLabel>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <InfoIcon className="h-4 w-4 text-gray-400" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs">A higher deposit means a better interest rate and lower monthly payments. Banks typically require at least a 10% deposit.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <FormControl>
-                  <div className="space-y-3">
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">R</span>
+              {/* Deposit Field with Slider */}
+              <FormField
+                control={form.control}
+                name="deposit"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Deposit</FormLabel>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <InfoIcon className="h-4 w-4 text-gray-400" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-xs">A higher deposit means a better interest rate and lower monthly payments. Banks typically require at least a 10% deposit.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <FormControl>
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span className="text-gray-500 sm:text-sm">R</span>
+                          </div>
+                          <Input
+                            {...field}
+                            className="pl-8"
+                            onChange={(e) => {
+                              // Keep only digits by removing any non-numeric characters
+                              const numericValue = handleCurrencyInput(e.target.value);
+                              field.onChange(numericValue);
+                            }}
+                          />
+                        </div>
+                        <Slider
+                          defaultValue={[currentDeposit]}
+                          max={Math.min(5000000, currentPropertyValue * 0.5)}
+                          step={50000}
+                          onValueChange={handleDepositSliderChange}
+                        />
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>R0</span>
+                          <span>{displayMaxDeposit}</span>
+                        </div>
+                        <div className="text-xs text-gray-500 text-right">
+                          {currentPropertyValue > 0 ? 
+                            `${((currentDeposit / currentPropertyValue) * 100).toFixed(1)}% of property value` : ''}
+                        </div>
                       </div>
-                      <Input
-                        {...field}
-                        className="pl-8"
-                        onChange={(e) => {
-                          // Keep only digits by removing any non-numeric characters
-                          const numericValue = handleCurrencyInput(e.target.value);
-                          field.onChange(numericValue);
-                        }}
-                      />
-                    </div>
-                    <Slider
-                      defaultValue={[currentDeposit]}
-                      max={Math.min(5000000, currentPropertyValue * 0.5)}
-                      step={50000}
-                      onValueChange={handleDepositSliderChange}
-                    />
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>R0</span>
-                      <span>{displayMaxDeposit}</span>
-                    </div>
-                    <div className="text-xs text-gray-500 text-right">
-                      {currentPropertyValue > 0 ? 
-                        `${((currentDeposit / currentPropertyValue) * 100).toFixed(1)}% of property value` : ''}
-                    </div>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <div className="p-4 bg-gray-50 rounded-lg mt-2 text-sm text-gray-600">
-            Results update automatically as you adjust values
-          </div>
+              <div className="p-3 bg-gray-50 rounded-lg mt-2 text-xs text-gray-600">
+                Results update automatically as you adjust values
+              </div>
+            </div>
+          </Form>
         </div>
-      </Form>
 
-      {/* Amortization Chart */}
-      {showChart && loanDetails && (
-        <div className="mt-8">
-          <AmortizationChart 
-            loanAmount={loanDetails.loanAmount}
-            interestRate={loanDetails.interestRate}
-            loanTerm={loanDetails.loanTerm}
-          />
+        {/* Charts and Results - Takes 7/12 on large screens, full width on mobile */}
+        <div className="lg:col-span-7">
+          {showChart && loanDetails ? (
+            <div className="rounded-lg border bg-card">
+              <Tabs defaultValue="overview" className="w-full">
+                <div className="p-4 border-b">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="overview">Loan Overview</TabsTrigger>
+                    <TabsTrigger value="detailed">Monthly Details</TabsTrigger>
+                  </TabsList>
+                </div>
+                
+                <TabsContent value="overview" className="p-4 m-0">
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="p-3 bg-gray-50 rounded-lg text-center">
+                      <div className="text-sm text-gray-500">Monthly Payment</div>
+                      <div className="text-lg font-semibold mt-1">
+                        {formatCurrency((loanDetails.loanAmount * Math.pow(1 + loanDetails.interestRate/100/12, loanDetails.loanTerm*12) * 
+                        (loanDetails.interestRate/100/12)) / (Math.pow(1 + loanDetails.interestRate/100/12, loanDetails.loanTerm*12) - 1))}
+                      </div>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg text-center">
+                      <div className="text-sm text-gray-500">Total Interest</div>
+                      <div className="text-lg font-semibold mt-1">
+                        {formatCurrency(((loanDetails.loanAmount * Math.pow(1 + loanDetails.interestRate/100/12, loanDetails.loanTerm*12) * 
+                        (loanDetails.interestRate/100/12)) / (Math.pow(1 + loanDetails.interestRate/100/12, loanDetails.loanTerm*12) - 1)) * 
+                        loanDetails.loanTerm * 12 - loanDetails.loanAmount)}
+                      </div>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg text-center">
+                      <div className="text-sm text-gray-500">Total Cost</div>
+                      <div className="text-lg font-semibold mt-1">
+                        {formatCurrency(((loanDetails.loanAmount * Math.pow(1 + loanDetails.interestRate/100/12, loanDetails.loanTerm*12) * 
+                        (loanDetails.interestRate/100/12)) / (Math.pow(1 + loanDetails.interestRate/100/12, loanDetails.loanTerm*12) - 1)) * 
+                        loanDetails.loanTerm * 12)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Chart with adaptive height */}
+                  <div className="w-full h-[300px] md:h-[400px] overflow-hidden">
+                    <AmortizationChart 
+                      loanAmount={loanDetails.loanAmount}
+                      interestRate={loanDetails.interestRate}
+                      loanTerm={loanDetails.loanTerm}
+                    />
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="detailed" className="p-4 m-0">
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="p-3 bg-gray-50 rounded-lg text-center">
+                      <div className="text-sm text-gray-500">Loan Amount</div>
+                      <div className="text-lg font-semibold mt-1">{formatCurrency(loanDetails.loanAmount)}</div>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg text-center">
+                      <div className="text-sm text-gray-500">Interest Rate</div>
+                      <div className="text-lg font-semibold mt-1">{loanDetails.interestRate.toFixed(2)}%</div>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg text-center">
+                      <div className="text-sm text-gray-500">Loan Term</div>
+                      <div className="text-lg font-semibold mt-1">{loanDetails.loanTerm} years</div>
+                    </div>
+                  </div>
+                  
+                  {/* Second chart or detailed view goes here */}
+                  <div className="hidden md:block w-full h-[400px] overflow-hidden">
+                    <AmortizationChart 
+                      loanAmount={loanDetails.loanAmount}
+                      interestRate={loanDetails.interestRate}
+                      loanTerm={loanDetails.loanTerm}
+                    />
+                  </div>
+                  
+                  {/* Mobile-friendly simple view */}
+                  <div className="md:hidden">
+                    <div className="text-center p-4 text-sm">
+                      Detailed monthly breakdown is available on larger screens. 
+                      Please rotate your device or view on a tablet/desktop.
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+          ) : (
+            <div className="h-full flex items-center justify-center rounded-lg border border-dashed p-8">
+              <div className="text-center text-gray-500">
+                <HomeIcon className="mx-auto h-12 w-12 opacity-50" />
+                <h3 className="mt-2 text-sm font-semibold">No calculation yet</h3>
+                <p className="mt-1 text-sm">Adjust the values on the left to see your bond repayment analysis</p>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
