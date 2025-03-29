@@ -1,12 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  loadGoogleMapsApi, 
-  isGoogleMapsLoaded, 
-  findAddressComponent, 
-  getGoogleMapsLoadingState 
-} from '@/lib/googleMapsApi';
 
 interface GooglePlacesAutocompleteProps {
   value: string;
@@ -30,76 +24,110 @@ export default function GooglePlacesAutocomplete({
 }: GooglePlacesAutocompleteProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any>(null);
-  const [scriptLoaded, setScriptLoaded] = useState(isGoogleMapsLoaded());
-  const [error, setError] = useState<string | null>(getGoogleMapsLoadingState().hasError ? getGoogleMapsLoadingState().errorMessage : null);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Load Google Maps API script
   useEffect(() => {
-    if (!isGoogleMapsLoaded()) {
-      loadGoogleMapsApi()
-        .then(() => {
-          setScriptLoaded(true);
-          setError(null);
-        })
-        .catch((err) => {
-          setError(err.message);
-          console.error('Google Maps API loading error:', err);
-        });
+    if (!window.google) {
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      
+      if (!apiKey) {
+        console.error('Google Maps API key is missing');
+        setError('Google Maps API key is missing');
+        return;
+      }
+      
+      console.log('Loading Google Maps API...');
+      
+      // Create script element
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      
+      // Set up callback
+      script.onload = () => {
+        console.log('Google Maps API loaded successfully');
+        setScriptLoaded(true);
+      };
+      
+      script.onerror = () => {
+        console.error('Failed to load Google Maps API');
+        setError('Failed to load Google Maps API');
+      };
+      
+      // Add to document
+      document.head.appendChild(script);
+      
+      return () => {
+        // Clean up on unmount
+        document.head.removeChild(script);
+      };
+    } else {
+      console.log('Google Maps API already loaded');
+      setScriptLoaded(true);
     }
   }, []);
 
   // Initialize autocomplete once script is loaded
   useEffect(() => {
-    if (scriptLoaded && inputRef.current && window.google?.maps?.places) {
+    if (scriptLoaded && inputRef.current) {
       try {
-        // Initialize autocomplete with South Africa as the only allowed country
-        autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
-          componentRestrictions: { country: 'za' }, // Strictly restrict to South Africa only
-          fields: ['address_components', 'formatted_address', 'geometry'],
-          types: ['address'],
-        });
+        console.log('Initializing Google Places Autocomplete');
         
-        // Add strict validation to ensure only South African addresses are accepted
-        const southAfricaBounds = new window.google.maps.LatLngBounds(
-          new window.google.maps.LatLng(-34.839828, 16.451056), // SW point of South Africa
-          new window.google.maps.LatLng(-22.126612, 32.891137)  // NE point of South Africa
+        // Initialize autocomplete with South Africa as the default country
+        const options = {
+          componentRestrictions: { country: 'za' },
+          fields: ['address_components', 'formatted_address'],
+          types: ['address'],
+        };
+        
+        autocompleteRef.current = new window.google.maps.places.Autocomplete(
+          inputRef.current,
+          options
         );
-        autocompleteRef.current.setBounds(southAfricaBounds);
-        autocompleteRef.current.setOptions({ strictBounds: true });
-
+        
         // Add listener for place selection
         autocompleteRef.current.addListener('place_changed', () => {
-          const place = autocompleteRef.current?.getPlace();
+          const place = autocompleteRef.current.getPlace();
           
           if (place && place.address_components) {
-            // First, validate that this is indeed a South African address
-            const country = findAddressComponent(place.address_components, 'country');
-            const isInSouthAfrica = country?.short_name === 'ZA';
-            
-            if (!isInSouthAfrica) {
-              setError('Only South African addresses are supported. Please select an address within South Africa.');
-              return;
-            }
-            
             // Update input value with formatted address
-            const formattedAddress = place.formatted_address;
-            if (formattedAddress) {
-              onChange(formattedAddress);
+            if (place.formatted_address) {
+              onChange(place.formatted_address);
             }
             
-            // Extract address components
+            // Extract address components for callback
             if (onSelect) {
-              const streetNumber = findAddressComponent(place.address_components, 'street_number')?.short_name || '';
-              const route = findAddressComponent(place.address_components, 'route')?.long_name || '';
-              const streetAddress = streetNumber && route ? `${streetNumber} ${route}` : formattedAddress || '';
-              const city = findAddressComponent(place.address_components, 'locality')?.long_name || 
-                          findAddressComponent(place.address_components, 'sublocality')?.long_name || '';
-              const province = findAddressComponent(place.address_components, 'administrative_area_level_1')?.long_name || '';
-              const postalCode = findAddressComponent(place.address_components, 'postal_code')?.short_name || '';
+              // Helper function to find address component
+              const findComponent = (type: string) => {
+                const component = place.address_components.find(
+                  (comp: any) => comp.types.includes(type)
+                );
+                return component ? component.long_name : '';
+              };
               
-              // Clear any previous errors
-              setError(null);
+              // Get the short name for postal code and street number
+              const findShortComponent = (type: string) => {
+                const component = place.address_components.find(
+                  (comp: any) => comp.types.includes(type)
+                );
+                return component ? component.short_name : '';
+              };
+
+              // Extract components
+              const streetNumber = findShortComponent('street_number');
+              const route = findComponent('route');
+              const streetAddress = streetNumber && route 
+                ? `${streetNumber} ${route}` 
+                : place.formatted_address || '';
+                
+              const city = findComponent('locality') || findComponent('sublocality');
+              const province = findComponent('administrative_area_level_1');
+              const postalCode = findShortComponent('postal_code');
               
+              // Call the callback with extracted data
               onSelect({
                 streetAddress,
                 city,
@@ -107,14 +135,11 @@ export default function GooglePlacesAutocomplete({
                 postalCode,
               });
             }
-          } else {
-            // If place doesn't have address components, show an error
-            setError('Please select a valid address from the dropdown suggestions.');
           }
         });
       } catch (err) {
         console.error('Error initializing Google Places Autocomplete:', err);
-        setError('Error initializing address search. Please try typing your address manually.');
+        setError('Error initializing address search');
       }
     }
   }, [scriptLoaded, onSelect, onChange]);
