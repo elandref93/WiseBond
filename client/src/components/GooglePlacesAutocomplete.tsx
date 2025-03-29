@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { loadGoogleMapsAPI, getGoogleMapsLoadingState } from '@/lib/loadGoogleMapsAPI';
+import BasicAddressInput from './BasicAddressInput';
 
 interface GooglePlacesAutocompleteProps {
   value: string;
@@ -22,107 +24,135 @@ export default function GooglePlacesAutocomplete({
   placeholder = 'Enter an address',
   className,
 }: GooglePlacesAutocompleteProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<any>(null);
-  const initialized = useRef(false);
+  // State
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [error, setError] = useState<string | null>(null);
+  
+  // Refs
+  const inputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const hasBeenInitialized = useRef<boolean>(false);
 
-  // We're directly initializing since the Google Maps script is loaded in index.html
+  // Try to load the Google Maps API
   useEffect(() => {
-    // Function to initialize autocomplete
-    const initializeAutocomplete = () => {
-      if (!window.google?.maps?.places || !inputRef.current || initialized.current) {
-        return false;
+    // Only attempt to load if not already loaded or initializing
+    if (!hasBeenInitialized.current) {
+      setStatus('loading');
+      
+      loadGoogleMapsAPI()
+        .then(() => {
+          setStatus('ready');
+          setError(null);
+        })
+        .catch((err) => {
+          console.error('Failed to load Google Maps API:', err);
+          setStatus('error');
+          setError('Could not load address search functionality. Please enter your address manually.');
+        });
+    }
+    
+    // Clean up on unmount
+    return () => {
+      if (autocompleteRef.current) {
+        // No explicit cleanup needed for Google Places Autocomplete
+        autocompleteRef.current = null;
       }
+    };
+  }, []);
 
+  // Initialize Autocomplete when API is ready and input is available
+  useEffect(() => {
+    // Only initialize if we're ready and have an input element
+    if (status === 'ready' && inputRef.current && !hasBeenInitialized.current) {
       try {
-        console.log('🔍 INITIALIZING GOOGLE PLACES AUTOCOMPLETE 🔍');
-        
-        // Initialize autocomplete with South Africa as the default country
-        const options = {
+        // Create the autocomplete instance
+        autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
           componentRestrictions: { country: 'za' },
           fields: ['address_components', 'formatted_address'],
-          types: ['address'],
-        };
-        
-        autocompleteRef.current = new window.google.maps.places.Autocomplete(
-          inputRef.current,
-          options
-        );
-        
-        // Add listener for place selection
+          types: ['address']
+        });
+
+        // Add a listener for place selection
         autocompleteRef.current.addListener('place_changed', () => {
+          if (!autocompleteRef.current) return;
+          
           const place = autocompleteRef.current.getPlace();
           
+          // Handle the selected place
           if (place && place.address_components) {
-            // Update input value with formatted address
+            // Update the input value
             if (place.formatted_address) {
               onChange(place.formatted_address);
             }
             
-            // Extract address components for callback
+            // Extract address components if callback provided
             if (onSelect) {
-              // Helper function to find address component
-              const findComponent = (type: string) => {
-                const component = place.address_components.find(
-                  (comp: any) => comp.types.includes(type)
+              // Helper functions to extract components
+              const findComponent = (type: string): string => {
+                const component = place.address_components?.find(
+                  (comp) => comp.types.includes(type)
                 );
                 return component ? component.long_name : '';
               };
               
-              // Get the short name for postal code and street number
-              const findShortComponent = (type: string) => {
-                const component = place.address_components.find(
-                  (comp: any) => comp.types.includes(type)
+              const findShortComponent = (type: string): string => {
+                const component = place.address_components?.find(
+                  (comp) => comp.types.includes(type)
                 );
                 return component ? component.short_name : '';
               };
-
-              // Extract components
+              
+              // Extract the components
               const streetNumber = findShortComponent('street_number');
               const route = findComponent('route');
               const streetAddress = streetNumber && route 
-                ? `${streetNumber} ${route}` 
+                ? `${streetNumber} ${route}`
                 : place.formatted_address || '';
-                
+              
               const city = findComponent('locality') || findComponent('sublocality');
               const province = findComponent('administrative_area_level_1');
               const postalCode = findShortComponent('postal_code');
               
-              // Call the callback with extracted data
+              // Call the callback
               onSelect({
                 streetAddress,
                 city,
                 province,
-                postalCode,
+                postalCode
               });
             }
           }
         });
         
-        initialized.current = true;
-        return true;
+        hasBeenInitialized.current = true;
       } catch (err) {
         console.error('Error initializing Google Places Autocomplete:', err);
-        setError('Error initializing address search');
-        return false;
+        setStatus('error');
+        setError('Error initializing address search. Please enter your address manually.');
       }
-    };
-
-    // Try to initialize immediately
-    if (!initializeAutocomplete()) {
-      // If it fails, retry after a delay (in case the script is still loading)
-      const timeoutId = setTimeout(() => {
-        if (!initializeAutocomplete()) {
-          // Still failed after retry - show error
-          setError('Address auto-completion is unavailable. Please type your address manually.');
-        }
-      }, 2000);
-      
-      return () => clearTimeout(timeoutId);
     }
-  }, [onChange, onSelect]);
+  }, [status, onChange, onSelect]);
 
+  // If there's an error, fall back to the basic input
+  if (status === 'error') {
+    return (
+      <div className="w-full">
+        <BasicAddressInput
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className={className}
+        />
+        {error && (
+          <Alert variant="destructive" className="mt-2">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+      </div>
+    );
+  }
+
+  // Otherwise render the input that will be enhanced with autocomplete
   return (
     <div className="w-full">
       <Input
@@ -130,13 +160,18 @@ export default function GooglePlacesAutocomplete({
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
+        placeholder={status === 'loading' ? 'Loading address search...' : placeholder}
         className={className}
       />
       {error && (
         <Alert variant="destructive" className="mt-2">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
+      )}
+      {status === 'loading' && (
+        <p className="text-xs text-muted-foreground mt-1">
+          Loading address search functionality...
+        </p>
       )}
     </div>
   );
