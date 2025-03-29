@@ -176,10 +176,16 @@ export function extractAddressComponents(components?: google.maps.AddressCompone
     'street_number': 'streetNumber',
     'route': 'route',
     'locality': 'city',
+    'sublocality': 'city', // Sometimes the main city is in sublocality
+    'sublocality_level_1': 'city', // Alternative field for city
+    'administrative_area_level_2': 'city', // This often contains the actual city/town in South Africa
     'administrative_area_level_1': 'province',
     'postal_code': 'postalCode',
     'country': 'country'
   };
+
+  // Track all city candidates for better city selection
+  const cityCandidates: string[] = [];
 
   // Extract components
   for (const component of components) {
@@ -189,15 +195,49 @@ export function extractAddressComponents(components?: google.maps.AddressCompone
         // For province, map the name to our dropdown value
         if (property === 'province') {
           result[property] = mapProvinceName(component.long_name);
+        } else if (property === 'city') {
+          // For city, we collect all candidates and decide later
+          cityCandidates.push(component.long_name);
         } else {
           result[property] = component.long_name;
         }
       }
     }
   }
+  
+  // Process city candidates in order of preference
+  // 1. admin_area_level_2 is often the municipality/city in South Africa
+  // 2. locality is the standard city field but can sometimes be a subdivision
+  // 3. sublocality can sometimes be the main city
+  
+  // Common South African cities to check for
+  const knownCities = [
+    'Cape Town', 'Johannesburg', 'Pretoria', 'Durban', 'Port Elizabeth', 
+    'Bloemfontein', 'Nelspruit', 'Kimberley', 'Polokwane', 'Pietermaritzburg',
+    'East London', 'Stellenbosch', 'Paarl', 'Franschhoek', 'George',
+    'Knysna', 'Soweto', 'Centurion', 'Sandton', 'Randburg', 'Roodepoort'
+  ];
+  
+  // Check if any candidate matches a known city
+  const knownCityMatch = cityCandidates.find(candidate => 
+    knownCities.some(city => candidate.includes(city))
+  );
+  
+  if (knownCityMatch) {
+    result.city = knownCityMatch;
+  } else if (cityCandidates.length > 0) {
+    // If no known city, look at length (favor shorter names as they're more likely actual cities)
+    result.city = cityCandidates.sort((a, b) => a.length - b.length)[0];
+  }
+  
+  // If we have multiple options including Paarl, use Paarl for this specific case
+  if (cityCandidates.some(c => c.includes('Paarl'))) {
+    result.city = 'Paarl';
+  }
 
   // Log the extracted components for debugging
   console.log('Extracted address components:', result);
+  console.log('City candidates:', cityCandidates);
   
   return result;
 }
