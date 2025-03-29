@@ -154,11 +154,8 @@ export default function AdditionalPaymentChart({
   ];
   
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Additional Payment Impact</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className="w-full bg-white p-6 rounded-lg shadow-sm">
+      <h2 className="text-2xl font-bold mb-6">Additional Payment Impact</h2>
         <Tabs defaultValue="comparison">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="comparison">Payment Comparison</TabsTrigger>
@@ -166,7 +163,7 @@ export default function AdditionalPaymentChart({
           </TabsList>
           
           <TabsContent value="comparison" className="space-y-4">
-            <div className="h-80">
+            <div className="h-[500px] mb-8">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={comparisonData}
@@ -308,7 +305,6 @@ export default function AdditionalPaymentChart({
             </Card>
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
+      </div>
   );
 }
