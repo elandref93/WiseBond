@@ -5,8 +5,11 @@ import { z } from 'zod';
 import { 
   InputOTP, 
   InputOTPGroup, 
-  InputOTPSlot 
+  InputOTPSlot
 } from "@/components/ui/input-otp";
+
+// Regex pattern to only allow digits
+const REGEXP_ONLY_DIGITS = "^\\d+$";
 import { useToast } from '@/hooks/use-toast';
 import { Button } from "@/components/ui/button";
 import { apiRequest } from '@/lib/queryClient';
@@ -29,7 +32,9 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
+  const [countdownTime, setCountdownTime] = useState(0);
   const otpRef = useRef<HTMLInputElement>(null);
+  const otpInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<OTPFormValues>({
     resolver: zodResolver(formSchema),
@@ -39,16 +44,28 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
     mode: "onChange"
   });
   
-  // Manually register the OTP field
+  // Countdown timer for resend button
+  useEffect(() => {
+    if (countdownTime > 0) {
+      const timer = setTimeout(() => {
+        setCountdownTime(countdownTime - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdownTime]);
+
+  // Manually register the OTP field and set initial focus
   useEffect(() => {
     form.register("otp");
     
-    // Focus on the first OTP field when component mounts
-    if (otpRef.current) {
-      setTimeout(() => {
-        otpRef.current?.focus();
-      }, 300);
-    }
+    // Focus the input when component mounts
+    const timer = setTimeout(() => {
+      if (otpInputRef.current) {
+        otpInputRef.current.focus();
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [form]);
 
   const onSubmit = async (values: OTPFormValues) => {
@@ -82,6 +99,8 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
   };
 
   const handleResendOTP = async () => {
+    if (countdownTime > 0) return;
+    
     setIsResending(true);
     try {
       await apiRequest('/api/auth/resend-otp', {
@@ -94,6 +113,9 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
         description: `A new verification code has been sent to ${email}`,
         variant: "default",
       });
+      
+      // Set countdown timer for 60 seconds
+      setCountdownTime(60);
     } catch (error) {
       console.error('Failed to resend OTP:', error);
       toast({
@@ -125,8 +147,16 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
           <div className="flex justify-center">
             <InputOTP
               maxLength={6}
+              pattern={REGEXP_ONLY_DIGITS}
+              ref={otpInputRef}
               value={form.watch('otp') || ''}
               onChange={(value) => form.setValue('otp', value, { shouldValidate: true })}
+              onComplete={(otp) => {
+                form.setValue('otp', otp, { shouldValidate: true });
+                if (otp.length === 6) {
+                  form.handleSubmit(onSubmit)();
+                }
+              }}
               render={({ slots }) => (
                 <InputOTPGroup className="gap-2">
                   {slots.map((slot, i) => (
@@ -164,10 +194,10 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
             <Button 
               variant="link" 
               onClick={handleResendOTP} 
-              disabled={isResending}
+              disabled={isResending || countdownTime > 0}
               className="text-blue-600 font-medium p-0"
             >
-              {isResending ? "Sending..." : "Resend"}
+              {isResending ? "Sending..." : countdownTime > 0 ? `Resend (${countdownTime}s)` : "Resend"}
             </Button>
           </div>
         </div>
