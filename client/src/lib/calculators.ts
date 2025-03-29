@@ -158,14 +158,27 @@ export function calculateAffordability(
   existingDebt: number,
   interestRate: number
 ): CalculationResult {
-  // Calculate disposable income
+  // Calculate disposable income after expenses and existing debt
   const disposableIncome = grossIncome - monthlyExpenses - existingDebt;
   
-  // Maximum recommended debt service ratio (30% of gross income)
-  const maxMonthlyPayment = grossIncome * 0.3;
+  // Maximum recommended debt-to-income ratio (28% of gross income for housing)
+  // This is a common financial guideline in South Africa
+  const maxAllowedForHousing = grossIncome * 0.28;
   
-  // Actual available amount for home loan (lower of disposable or max)
-  const availableForLoan = Math.min(disposableIncome, maxMonthlyPayment);
+  // Maximum total debt-to-income ratio (36% of gross income for all debt including housing)
+  // Need to subtract existing debt to find how much is available for housing
+  const maxTotalDebtPayment = grossIncome * 0.36;
+  const availableAfterExistingDebt = maxTotalDebtPayment - existingDebt;
+  
+  // Use the most restrictive of the three limits:
+  // 1. Disposable income (cash flow reality)
+  // 2. Housing debt ratio (28% rule)
+  // 3. Total debt ratio (36% rule)
+  const availableForLoan = Math.min(
+    disposableIncome * 0.9, // Keep 10% buffer for unexpected expenses
+    maxAllowedForHousing,
+    availableAfterExistingDebt
+  );
   
   // Monthly interest rate
   const monthlyRate = interestRate / 100 / 12;
@@ -184,7 +197,8 @@ export function calculateAffordability(
   return {
     type: 'affordability',
     disposableIncome,
-    maxMonthlyPayment,
+    maxAllowedForHousing,
+    availableAfterExistingDebt,
     availableForLoan,
     maxLoanAmount,
     recommendedPropertyPrice,
@@ -203,6 +217,21 @@ export function calculateAffordability(
         label: 'Recommended Property Price',
         value: formatCurrency(recommendedPropertyPrice),
         tooltip: 'The suggested property price range you should consider, assuming a standard deposit amount.'
+      },
+      {
+        label: 'Available After Expenses & Debt',
+        value: formatCurrency(disposableIncome * 0.9),
+        tooltip: 'Your disposable income after monthly expenses and existing debt, with a 10% buffer for unexpected costs.'
+      },
+      {
+        label: 'Housing Payment Limit (28%)',
+        value: formatCurrency(maxAllowedForHousing),
+        tooltip: 'The maximum recommended amount for housing based on the 28% rule of your gross income.'
+      },
+      {
+        label: 'Debt Ratio Impact (36%)',
+        value: formatCurrency(availableAfterExistingDebt),
+        tooltip: 'The amount available for housing after accounting for your existing debt, based on the 36% total debt-to-income guideline.'
       }
     ]
   };
