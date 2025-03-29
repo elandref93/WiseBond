@@ -176,7 +176,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
 
   // Calculate monthly payment
   const calculateMonthlyPayment = () => {
-    if (!loanDetails) return formatCurrency(0);
+    if (!loanDetails) return "R0";
     
     const monthlyRate = loanDetails.interestRate / 100 / 12;
     const numberOfPayments = loanDetails.loanTerm * 12;
@@ -188,7 +188,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   
   // Calculate total repayment
   const calculateTotalRepayment = () => {
-    if (!loanDetails) return formatCurrency(0);
+    if (!loanDetails) return "R0";
     
     const monthlyRate = loanDetails.interestRate / 100 / 12;
     const numberOfPayments = loanDetails.loanTerm * 12;
@@ -200,7 +200,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   
   // Calculate total interest
   const calculateTotalInterest = () => {
-    if (!loanDetails) return formatCurrency(0);
+    if (!loanDetails) return "R0";
     
     const monthlyRate = loanDetails.interestRate / 100 / 12;
     const numberOfPayments = loanDetails.loanTerm * 12;
@@ -210,9 +210,53 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     return formatCurrency(monthlyPayment * numberOfPayments - loanDetails.loanAmount);
   };
 
+  // Generate yearly amortization data for table
+  const generateYearlyData = () => {
+    if (!loanDetails) return [];
+    
+    const yearlyData = [];
+    let balance = loanDetails.loanAmount;
+    let totalInterestPaid = 0;
+    let totalPrincipalPaid = 0;
+    
+    const monthlyRate = loanDetails.interestRate / 100 / 12;
+    const monthlyPayment = (loanDetails.loanAmount * Math.pow(1 + monthlyRate, loanDetails.loanTerm * 12) * 
+      monthlyRate) / (Math.pow(1 + monthlyRate, loanDetails.loanTerm * 12) - 1);
+    
+    for (let year = 1; year <= Math.min(7, loanDetails.loanTerm); year++) {
+      let yearInterest = 0;
+      let yearPrincipal = 0;
+      
+      for (let month = 1; month <= 12; month++) {
+        if ((year - 1) * 12 + month <= loanDetails.loanTerm * 12) {
+          const interestPayment = balance * monthlyRate;
+          const principalPayment = monthlyPayment - interestPayment;
+          
+          yearInterest += interestPayment;
+          yearPrincipal += principalPayment;
+          balance -= principalPayment;
+        }
+      }
+      
+      totalInterestPaid += yearInterest;
+      totalPrincipalPaid += yearPrincipal;
+      
+      yearlyData.push({
+        year,
+        yearlyInterest: yearInterest,
+        yearlyPrincipal: yearPrincipal,
+        balance: Math.max(0, balance),
+        totalInterestPaid,
+        totalPrincipalPaid,
+      });
+    }
+    
+    return yearlyData;
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center mb-4">
+    <div className="space-y-4">
+      <div className="flex items-center mb-2">
         <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-white mr-4">
           <HomeIcon className="h-5 w-5" />
         </div>
@@ -221,7 +265,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         </h3>
       </div>
 
-      <div className="bg-blue-50 rounded-lg p-4 mb-6">
+      <div className="bg-blue-50 rounded-lg p-4 mb-4">
         <div className="flex">
           <InfoIcon className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-blue-700">
@@ -231,9 +275,9 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Calculator Inputs - Takes 5/12 on large screens, full width on mobile */}
-        <div className="lg:col-span-5">
+      <div className="flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-6">
+        {/* Left column - Calculator inputs */}
+        <div className="w-full md:w-1/3">
           <Form {...form}>
             <div className="space-y-4">
               {/* Property Value Field with Slider */}
@@ -271,15 +315,17 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                             }}
                           />
                         </div>
-                        <Slider
-                          defaultValue={[currentPropertyValue]}
-                          max={20000000}
-                          step={100000}
-                          onValueChange={handlePropertyValueSliderChange}
-                        />
-                        <div className="flex justify-between text-xs text-gray-500">
-                          <span>R500,000</span>
-                          <span>R20,000,000</span>
+                        <div className="flex items-center">
+                          <span className="text-xs text-gray-500 w-16">R500,000</span>
+                          <Slider
+                            defaultValue={[currentPropertyValue]}
+                            min={500000}
+                            max={20000000}
+                            step={100000}
+                            onValueChange={handlePropertyValueSliderChange}
+                            className="mx-2 flex-grow"
+                          />
+                          <span className="text-xs text-gray-500 w-20 text-right">R20,000,000</span>
                         </div>
                       </div>
                     </FormControl>
@@ -315,16 +361,17 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                             <span className="text-gray-500 sm:text-sm">%</span>
                           </div>
                         </div>
-                        <Slider
-                          defaultValue={[currentInterestRate]}
-                          min={5}
-                          max={20}
-                          step={0.25}
-                          onValueChange={handleInterestRateSliderChange}
-                        />
-                        <div className="flex justify-between text-xs text-gray-500">
-                          <span>5%</span>
-                          <span>20%</span>
+                        <div className="flex items-center">
+                          <span className="text-xs text-gray-500 w-6">5%</span>
+                          <Slider
+                            defaultValue={[currentInterestRate]}
+                            min={5}
+                            max={20}
+                            step={0.25}
+                            onValueChange={handleInterestRateSliderChange}
+                            className="mx-2 flex-grow"
+                          />
+                          <span className="text-xs text-gray-500 w-8 text-right">20%</span>
                         </div>
                       </div>
                     </FormControl>
@@ -407,15 +454,16 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                             }}
                           />
                         </div>
-                        <Slider
-                          defaultValue={[currentDeposit]}
-                          max={Math.min(5000000, currentPropertyValue * 0.5)}
-                          step={10000}
-                          onValueChange={handleDepositSliderChange}
-                        />
-                        <div className="flex justify-between text-xs text-gray-500">
-                          <span>R0</span>
-                          <span>{displayMaxDeposit}</span>
+                        <div className="flex items-center">
+                          <span className="text-xs text-gray-500 w-4">R0</span>
+                          <Slider
+                            defaultValue={[currentDeposit]}
+                            max={Math.min(5000000, currentPropertyValue * 0.5)}
+                            step={10000}
+                            onValueChange={handleDepositSliderChange}
+                            className="mx-2 flex-grow"
+                          />
+                          <span className="text-xs text-gray-500 w-16 text-right">{displayMaxDeposit}</span>
                         </div>
                       </div>
                     </FormControl>
@@ -433,110 +481,106 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
           </div>
         </div>
         
-        {/* Results and Chart - Takes 7/12 on large screens, full width on mobile */}
-        <div className="lg:col-span-7">
+        {/* Right column - Results and chart */}
+        <div className="w-full md:w-2/3">
           {showChart && loanDetails ? (
-            <div className="space-y-6">
-              {/* Key Results */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-3 bg-gray-50 rounded-lg text-center">
-                  <div className="text-sm text-gray-500">Monthly Repayment</div>
-                  <div className="text-lg font-semibold mt-1">
-                    {calculateMonthlyPayment()}
+            <div>
+              {/* Key summary stats */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Calculation Results</h4>
+                
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <div className="text-xs text-gray-500">Monthly Repayment</div>
+                    <div className="text-xl font-bold">{calculateMonthlyPayment()}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500">Total Repayment Amount</div>
+                    <div className="text-xl font-bold">{calculateTotalRepayment()}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500">Total Interest Paid</div>
+                    <div className="text-xl font-bold">{calculateTotalInterest()}</div>
                   </div>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg text-center">
-                  <div className="text-sm text-gray-500">Total Repayment Amount</div>
-                  <div className="text-lg font-semibold mt-1">
-                    {calculateTotalRepayment()}
-                  </div>
-                </div>
-                <div className="p-3 bg-gray-50 rounded-lg text-center">
-                  <div className="text-sm text-gray-500">Total Interest Paid</div>
-                  <div className="text-lg font-semibold mt-1">
-                    {calculateTotalInterest()}
-                  </div>
+                
+                <div className="text-xs text-gray-500 italic mt-2">
+                  This is an estimate based on the information provided. Actual amounts may vary. <a href="#" className="text-blue-600 hover:underline">Learn more about how these calculations work</a>.
                 </div>
               </div>
               
-              <div className="text-xs text-gray-500 italic">
-                This is an estimate based on the information provided. Actual amounts may vary.
-              </div>
-              
-              {/* Amortization Chart */}
-              <div className="bg-white p-4 border rounded-md">
-                <AmortizationChart 
-                  loanAmount={loanDetails.loanAmount} 
-                  interestRate={loanDetails.interestRate} 
-                  loanTerm={loanDetails.loanTerm} 
-                />
-              </div>
-              
-              {/* Amortization Table */}
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
-                      <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Principal Paid</th>
-                      <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Paid</th>
-                      <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {Array.from({ length: Math.min(7, loanDetails.loanTerm) }).map((_, index) => {
-                      const year = index + 1;
-                      
-                      // Calculate yearly data
-                      let balance = loanDetails.loanAmount;
-                      let totalInterestPaid = 0;
-                      let totalPrincipalPaid = 0;
-                      
-                      const monthlyRate = loanDetails.interestRate / 100 / 12;
-                      const monthlyPayment = (loanDetails.loanAmount * Math.pow(1 + monthlyRate, loanDetails.loanTerm * 12) * 
-                        monthlyRate) / (Math.pow(1 + monthlyRate, loanDetails.loanTerm * 12) - 1);
-                      
-                      // Calculate up to the current year
-                      for (let y = 1; y <= year; y++) {
-                        let yearInterest = 0;
-                        let yearPrincipal = 0;
-                        
-                        // Calculate for each month in the year
-                        for (let m = 1; m <= 12; m++) {
-                          if ((y - 1) * 12 + m <= loanDetails.loanTerm * 12) {
-                            const interestPayment = balance * monthlyRate;
-                            const principalPayment = monthlyPayment - interestPayment;
-                            
-                            if (y === year) {
-                              yearInterest += interestPayment;
-                              yearPrincipal += principalPayment;
-                            }
-                            
-                            balance -= principalPayment;
-                            totalInterestPaid += interestPayment;
-                            totalPrincipalPaid += principalPayment;
-                          }
-                        }
-                      }
-                      
-                      return (
-                        <tr key={year}>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{year}</td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{formatCurrency(totalPrincipalPaid)}</td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{formatCurrency(totalInterestPaid)}</td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{formatCurrency(Math.max(0, balance))}</td>
+              {/* Loan Overview section */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium text-gray-700">Loan Overview</h4>
+                  <div className="text-xs text-gray-500">
+                    <span className="mr-4">
+                      <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
+                      Principal
+                    </span>
+                    <span className="mr-4">
+                      <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-1"></span>
+                      Interest
+                    </span>
+                    <span>
+                      <span className="inline-block w-3 h-3 bg-yellow-400 rounded-full mr-1"></span>
+                      Balance
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Simple summary table */}
+                <div className="grid grid-cols-3 text-sm mb-4">
+                  <div>
+                    <div className="text-gray-500">Monthly Payment</div>
+                    <div className="font-medium">{calculateMonthlyPayment()}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">Total Interest</div>
+                    <div className="font-medium">{calculateTotalInterest()}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">Total Cost</div>
+                    <div className="font-medium">{calculateTotalRepayment()}</div>
+                  </div>
+                </div>
+                
+                {/* Chart */}
+                <div className="border rounded-lg p-4 bg-white">
+                  <AmortizationChart 
+                    loanAmount={loanDetails.loanAmount} 
+                    interestRate={loanDetails.interestRate} 
+                    loanTerm={loanDetails.loanTerm} 
+                  />
+                </div>
+                
+                {/* Yearly data table */}
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Yearly Breakdown</h4>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200 text-sm">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
+                          <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Principal Paid</th>
+                          <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Interest Paid</th>
+                          <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Remaining Balance</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              
-              {loanDetails.loanTerm > 7 && (
-                <div className="mt-4 text-center text-sm text-gray-500">
-                  Showing first 7 years. Full amortization schedule is {loanDetails.loanTerm} years.
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {generateYearlyData().map((data) => (
+                          <tr key={data.year}>
+                            <td className="px-3 py-2 whitespace-nowrap">{data.year}</td>
+                            <td className="px-3 py-2 whitespace-nowrap">{formatCurrency(data.totalPrincipalPaid)}</td>
+                            <td className="px-3 py-2 whitespace-nowrap">{formatCurrency(data.totalInterestPaid)}</td>
+                            <td className="px-3 py-2 whitespace-nowrap">{formatCurrency(data.balance)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           ) : (
             <div className="border rounded-lg p-8 text-center bg-gray-50 h-full flex flex-col items-center justify-center">
