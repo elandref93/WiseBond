@@ -75,8 +75,9 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
     // Auto-advance to next field or auto-submit if complete
     if (value && index < 5) {
       // Move to next input
-      if (inputRefs.current[index + 1]) {
-        inputRefs.current[index + 1].focus();
+      const nextInput = inputRefs.current[index + 1];
+      if (nextInput !== null && nextInput !== undefined) {
+        nextInput.focus();
       }
     } else if (index === 5 && newOtp.length === 6) {
       // Auto-submit if all 6 digits are filled
@@ -87,21 +88,24 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     // Handle backspace to move to previous field
     if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
-      if (inputRefs.current[index - 1]) {
-        inputRefs.current[index - 1].focus();
+      const prevInput = inputRefs.current[index - 1];
+      if (prevInput) {
+        prevInput.focus();
       }
     }
     
     // Handle arrow keys for navigation between inputs
     if (e.key === 'ArrowLeft' && index > 0) {
-      if (inputRefs.current[index - 1]) {
-        inputRefs.current[index - 1].focus();
+      const prevInput = inputRefs.current[index - 1];
+      if (prevInput) {
+        prevInput.focus();
       }
     }
     
     if (e.key === 'ArrowRight' && index < 5) {
-      if (inputRefs.current[index + 1]) {
-        inputRefs.current[index + 1].focus();
+      const nextInput = inputRefs.current[index + 1];
+      if (nextInput) {
+        nextInput.focus();
       }
     }
   };

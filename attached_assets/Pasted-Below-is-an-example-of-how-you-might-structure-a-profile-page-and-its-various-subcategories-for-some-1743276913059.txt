@@ -1,0 +1,214 @@
+Below is an example of how you might structure a profile page and its various subcategories for someone who is attempting to register a bond for a home. Each subcategory contains suggested data fields that the user can fill out or the system might require. Feel free to customize these depending on your organization’s needs and the legal/financial requirements in your region.
+
+Main Profile Page
+1. Personal Information
+Full Name (as per ID)
+
+ID/Passport Number
+
+Date of Birth
+
+Gender
+
+Marital Status
+
+Nationality
+
+2. Contact Details
+Email Address
+
+Mobile Phone Number
+
+Home Phone Number (optional)
+
+Physical Address (street, city, postal code)
+
+Postal Address (if different from physical address)
+
+3. Login & Security
+Username (system-generated or user-chosen)
+
+Password (encrypted storage)
+
+Two-Factor Authentication Setup (optional)
+
+Security Questions/Answers (optional)
+
+Subcategory: Employment & Income
+Employment Status
+
+Employed, Self-Employed, Unemployed, etc.
+
+Employer Details (for employed individuals)
+
+Employer Name
+
+Employer Address
+
+Position/Job Title
+
+Employment Start Date
+
+Employer Contact Number
+
+Self-Employment Details (for self-employed individuals)
+
+Business Name
+
+Type of Business
+
+Business Registration Number (if applicable)
+
+Business Address
+
+Date Established
+
+Income Information
+
+Monthly Gross Salary / Income
+
+Monthly Net Salary / Income
+
+Other Sources of Income (rental income, freelance, investments, etc.)
+
+Upload Recent Payslips (last 3–6 months)
+
+Upload Bank Statements (last 3–6 months)
+
+Subcategory: Financial & Credit Information
+Banking Details
+
+Primary Bank Name
+
+Account Type (savings, checking, etc.)
+
+Account Number (securely stored/encrypted or partially hidden)
+
+Credit Score/Rating
+
+Current Credit Score (if available)
+
+Credit Bureau / Agency (who provided the score)
+
+Liabilities & Debts
+
+Existing Loans (auto, personal, student, etc.)
+
+Credit Card Balances
+
+Other Debts / Monthly Obligations
+
+Monthly Debt Repayment Amount
+
+Assets
+
+Real Estate Properties Owned
+
+Investment Accounts (stocks, bonds, mutual funds)
+
+Other Notable Assets (vehicles, valuable goods)
+
+Financial Stability Documentation
+
+Upload Detailed Bank Statements
+
+Upload Tax Returns (e.g., last 2–3 years)
+
+Proof of Additional Income or Grants
+
+Subcategory: Property & Bond Details
+Property Details
+
+Property Address
+
+Property Type (house, apartment, townhouse, etc.)
+
+Estimated Purchase Price / Valuation
+
+Size of Property (square meters/feet)
+
+Description / Features (optional text field)
+
+Loan/Bond Details
+
+Desired Loan Amount
+
+Proposed Deposit (if any)
+
+Loan Term (years)
+
+Interest Rate (if pre-approved or indicative)
+
+Mortgage Provider (if user already in discussion with one)
+
+Documents & Proof
+
+Sale Agreement (if available)
+
+Property Valuation / Appraisal Reports
+
+Home Inspection Reports (optional, but recommended)
+
+Subcategory: References & Co-Applicants
+References
+
+Reference Name
+
+Relationship (friend, colleague, relative)
+
+Contact Details (phone, email)
+
+Co-Applicant Details (if any)
+
+Full Name of Co-Applicant
+
+Relationship (spouse, sibling, business partner, etc.)
+
+Co-Applicant’s Employment & Income Information
+
+Co-Applicant’s Contact Details
+
+Subcategory: Additional Declarations & Consents
+Consent to Credit Checks
+
+Checkbox or toggle allowing the lender to perform credit checks
+
+Consent to Terms & Conditions
+
+Checkbox or toggle acknowledging acceptance
+
+Data Privacy & Sharing
+
+Checkbox or toggle acknowledging data privacy policy
+
+Option to share data with partner banks or mortgage providers
+
+Electronic Signature
+
+Space or mechanism for digital signature
+
+Date of Signature
+
+Putting It All Together
+Navigation:
+Each subcategory (Employment & Income, Financial & Credit, Property & Bond, etc.) can be organized in a tabbed or step-by-step form wizard. The user can see their progress or completion status.
+
+Validation:
+Key fields (such as ID/Passport, date fields, or numerical fields for income/debt) should have validation to ensure correct data formats.
+
+Uploads & Attachments:
+Provide a secure way to upload PDF, JPG, or PNG documentation.
+Examples: identity documents, payslips, bank statements, signed contracts.
+
+Progress Tracking & Draft Saving:
+Allow users to save partially completed profiles. They can log in later to finish or update their details.
+
+Review & Submit Step:
+A final step with a summary of all entered information, so the user can review and confirm accuracy before submitting.
+
+By structuring your registration/profile form in these categories, you ensure that you collect all the necessary data for bond registration while maintaining clarity and a logical flow for the user. You can customize the above outline based on regional regulations (for example, certain countries may require additional tax or identification information).
+
+
+
+
+
