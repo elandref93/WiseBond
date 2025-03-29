@@ -72,6 +72,7 @@ export default function Profile() {
       employerName: '',
       employmentSector: '',
       jobTitle: '',
+      employmentDuration: '',
       monthlyIncome: 0,
     },
   });
@@ -96,6 +97,7 @@ export default function Profile() {
         employerName: profileData.employerName || undefined,
         employmentSector: profileData.employmentSector || undefined,
         jobTitle: profileData.jobTitle || undefined,
+        employmentDuration: profileData.employmentDuration || undefined,
         monthlyIncome: profileData.monthlyIncome || undefined,
         otpVerified: profileData.otpVerified || undefined,
         profileComplete: profileData.profileComplete || undefined
@@ -561,21 +563,59 @@ export default function Profile() {
                           
                           <FormField
                             control={form.control}
+                            name="employmentDuration"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Length of Employment</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select duration" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="less_than_1">Less than 1 year</SelectItem>
+                                    <SelectItem value="1_to_2">1-2 years</SelectItem>
+                                    <SelectItem value="3_to_5">3-5 years</SelectItem>
+                                    <SelectItem value="6_to_10">6-10 years</SelectItem>
+                                    <SelectItem value="more_than_10">More than 10 years</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormDescription>
+                                  How long have you been with your current employer?
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
                             name="monthlyIncome"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Monthly Income (R)</FormLabel>
+                                <FormLabel>Monthly Income</FormLabel>
                                 <FormControl>
-                                  <Input 
-                                    {...field} 
-                                    type="number" 
-                                    placeholder="Your gross monthly income" 
-                                    onChange={(e) => {
-                                      const value = e.target.value === '' ? 0 : parseInt(e.target.value);
-                                      field.onChange(value);
-                                    }}
-                                  />
+                                  <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">R</span>
+                                    <Input 
+                                      {...field} 
+                                      type="number" 
+                                      className="pl-7"
+                                      placeholder="Your gross monthly income" 
+                                      onChange={(e) => {
+                                        const value = e.target.value === '' ? 0 : parseInt(e.target.value);
+                                        field.onChange(value);
+                                      }}
+                                    />
+                                  </div>
                                 </FormControl>
+                                <FormDescription>
+                                  Your gross monthly income before tax and deductions
+                                </FormDescription>
                                 <FormMessage />
                               </FormItem>
                             )}

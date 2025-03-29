@@ -133,10 +133,10 @@ export default function Contact() {
                         <FormItem>
                           <FormLabel>Phone Number (Optional)</FormLabel>
                           <FormControl>
-                            <Input placeholder="+27 123 456 7890" {...field} />
+                            <Input placeholder="0821234567 or +27821234567" {...field} />
                           </FormControl>
                           <FormDescription>
-                            Add your phone number if you prefer to be contacted by phone.
+                            Add your phone number if you prefer to be contacted by phone. Use format 0821234567 or +27821234567.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>

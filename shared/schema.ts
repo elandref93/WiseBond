@@ -21,6 +21,7 @@ export const users = pgTable("users", {
   employerName: text("employer_name"),
   employmentSector: text("employment_sector"),
   jobTitle: text("job_title"),
+  employmentDuration: text("employment_duration"), // Duration of employment in current position
   monthlyIncome: integer("monthly_income"),
   otpVerified: boolean("otp_verified").default(false),
   profileComplete: boolean("profile_complete").default(false),
@@ -46,6 +47,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   employerName: true,
   employmentSector: true,
   jobTitle: true,
+  employmentDuration: true,
   monthlyIncome: true,
   otpVerified: true,
   profileComplete: true,
