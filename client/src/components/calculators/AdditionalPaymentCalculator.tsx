@@ -228,9 +228,9 @@ export default function AdditionalPaymentCalculator({ onCalculate }: AdditionalP
                           {...field}
                           className="pl-8"
                           onChange={(e) => {
-                            const value = e.target.value.replace(/[^0-9.]/g, "");
+                            const value = e.target.value.replace(/[^0-9]/g, "");
                             const formattedValue = value
-                              ? formatCurrency(parseFloat(value))
+                              ? formatCurrency(parseInt(value))
                               : "";
                             field.onChange(formattedValue);
                           }}
