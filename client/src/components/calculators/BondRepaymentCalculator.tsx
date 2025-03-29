@@ -20,6 +20,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import AmortizationChart from "./charts/AmortizationChart";
+import { FinancialTermTooltip } from "@/components/ui/financial-term-tooltip";
+import { FinancialTermsHighlighter } from "@/components/ui/financial-terms-highlighter";
+import { financialTerms } from "@/lib/financialTerms";
 
 // Form schema with validation
 const formSchema = z.object({
@@ -262,8 +265,9 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         <div className="flex">
           <InfoIcon className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-blue-700">
-            Calculate your monthly bond repayments based on the property value, interest rate, loan term, and deposit amount. 
-            This helps you understand the true cost of your home loan and plan your budget accordingly.
+            <FinancialTermsHighlighter 
+              text="Calculate your monthly bond repayments based on the property value, interest rate, loan term, and deposit amount. This helps you understand the true cost of your home loan and plan your budget accordingly."
+            />
           </p>
         </div>
       </div>
@@ -281,16 +285,12 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                   <FormItem className="space-y-1">
                     <div className="flex items-center justify-between">
                       <FormLabel className="text-sm font-medium">Property Value</FormLabel>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <InfoIcon className="h-4 w-4 text-gray-400" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">This is the full purchase price of the property.</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <FinancialTermTooltip
+                        term="market value"
+                        definition={financialTerms["market value"]}
+                        showIcon={true}
+                        iconClass="h-4 w-4 text-gray-400"
+                      />
                     </div>
                     <FormControl>
                       <div className="space-y-2">
@@ -335,16 +335,12 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                   <FormItem className="space-y-1">
                     <div className="flex items-center justify-between">
                       <FormLabel className="text-sm font-medium">Interest Rate (%)</FormLabel>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <InfoIcon className="h-4 w-4 text-gray-400" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">South Africa's prime rate is currently around 11.25%. Your actual rate may be prime plus a percentage based on your credit profile.</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <FinancialTermTooltip
+                        term="interest rate"
+                        definition={financialTerms["interest rate"]}
+                        showIcon={true}
+                        iconClass="h-4 w-4 text-gray-400"
+                      />
                     </div>
                     <FormControl>
                       <div className="space-y-2">
@@ -381,16 +377,12 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                   <FormItem className="space-y-1">
                     <div className="flex items-center justify-between">
                       <FormLabel className="text-sm font-medium">Loan Term</FormLabel>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <InfoIcon className="h-4 w-4 text-gray-400" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">Standard home loan terms in South Africa range from 20 to 30 years. A longer term means lower monthly payments but more interest paid overall.</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <FinancialTermTooltip
+                        term="amortization"
+                        definition={financialTerms["amortization"]}
+                        showIcon={true}
+                        iconClass="h-4 w-4 text-gray-400"
+                      />
                     </div>
                     <Select
                       onValueChange={field.onChange}
@@ -420,16 +412,12 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                   <FormItem className="space-y-1">
                     <div className="flex items-center justify-between">
                       <FormLabel className="text-sm font-medium">Deposit</FormLabel>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <InfoIcon className="h-4 w-4 text-gray-400" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">A higher deposit means a better interest rate and lower monthly payments. Banks typically require at least a 10% deposit.</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <FinancialTermTooltip
+                        term="deposit"
+                        definition={financialTerms["deposit"]}
+                        showIcon={true}
+                        iconClass="h-4 w-4 text-gray-400"
+                      />
                     </div>
                     <FormControl>
                       <div className="space-y-2">
