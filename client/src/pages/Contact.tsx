@@ -133,7 +133,25 @@ export default function Contact() {
                         <FormItem>
                           <FormLabel>Phone Number (Optional)</FormLabel>
                           <FormControl>
-                            <Input placeholder="0821234567 or +27821234567" {...field} />
+                            <Input 
+                              placeholder="0821234567 or +27821234567" 
+                              {...field} 
+                              maxLength={12}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                // Allow only digits and plus sign
+                                const sanitized = value.replace(/[^\d+]/g, '');
+                                
+                                // Enforce length constraints
+                                if (sanitized.startsWith('+27') && sanitized.length > 12) {
+                                  field.onChange(sanitized.substring(0, 12));
+                                } else if (sanitized.startsWith('0') && sanitized.length > 10) {
+                                  field.onChange(sanitized.substring(0, 10));
+                                } else {
+                                  field.onChange(sanitized);
+                                }
+                              }}
+                            />
                           </FormControl>
                           <FormDescription>
                             Add your phone number if you prefer to be contacted by phone. Use format 0821234567 or +27821234567.
