@@ -115,12 +115,21 @@ export default function AffordabilityCalculator({ onCalculate }: AffordabilityCa
                     <Input
                       {...field}
                       className="pl-8"
+                      value={field.value || ""}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/[^0-9]/g, "");
-                        if (value) {
-                          field.onChange(formatCurrency(value));
-                        } else {
+                        let value = e.target.value.replace(/[^0-9]/g, "");
+                        if (value === "") {
                           field.onChange("");
+                        } else {
+                          const numValue = Number(value);
+                          if (!isNaN(numValue)) {
+                            field.onChange(numValue.toString());
+                          }
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (field.value) {
+                          field.onChange(formatCurrency(field.value));
                         }
                       }}
                     />
@@ -145,12 +154,21 @@ export default function AffordabilityCalculator({ onCalculate }: AffordabilityCa
                     <Input
                       {...field}
                       className="pl-8"
+                      value={field.value || ""}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/[^0-9]/g, "");
-                        if (value) {
-                          field.onChange(formatCurrency(value));
-                        } else {
+                        let value = e.target.value.replace(/[^0-9]/g, "");
+                        if (value === "") {
                           field.onChange("");
+                        } else {
+                          const numValue = Number(value);
+                          if (!isNaN(numValue)) {
+                            field.onChange(numValue.toString());
+                          }
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (field.value) {
+                          field.onChange(formatCurrency(field.value));
                         }
                       }}
                     />
@@ -175,12 +193,21 @@ export default function AffordabilityCalculator({ onCalculate }: AffordabilityCa
                     <Input
                       {...field}
                       className="pl-8"
+                      value={field.value || ""}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/[^0-9]/g, "");
-                        if (value) {
-                          field.onChange(formatCurrency(value));
-                        } else {
+                        let value = e.target.value.replace(/[^0-9]/g, "");
+                        if (value === "") {
                           field.onChange("");
+                        } else {
+                          const numValue = Number(value);
+                          if (!isNaN(numValue)) {
+                            field.onChange(numValue.toString());
+                          }
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (field.value) {
+                          field.onChange(formatCurrency(field.value));
                         }
                       }}
                     />
