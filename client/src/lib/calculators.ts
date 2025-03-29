@@ -316,10 +316,9 @@ export function calculateDepositSavings(
       totalAccumulated = monthlySaving * 
         ((Math.pow(1 + monthlyInterestRate, totalMonths) - 1) / 
         monthlyInterestRate);
-        
-      // When we calculate time to reach the deposit amount, we want to make sure we hit
-      // exactly that amount, so we'll use the deposit amount for better UX
-      totalAccumulated = depositAmount;
+      
+      // We shouldn't override the calculated value, as it includes the interest earned
+      // Keep totalAccumulated as calculated to show proper interest earnings
     }
     
     // Interest earned is the difference between total accumulated and contributions
