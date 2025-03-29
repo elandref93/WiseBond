@@ -135,9 +135,9 @@ export default function BondsTransferCostsCalculator({ onCalculate }: BondsTrans
                     <Input
                       {...field}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/[^0-9.]/g, "");
+                        const value = e.target.value.replace(/[^0-9]/g, "");
                         const formattedValue = value
-                          ? formatCurrency(parseFloat(value))
+                          ? formatCurrency(parseInt(value))
                           : "";
                         field.onChange(formattedValue);
                       }}
