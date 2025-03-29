@@ -177,41 +177,11 @@ export default function ImprovedAddressInput({
             ? `${components.streetNumber} ${components.route}`
             : components.route;
           
-          // Special case handling for Golf Estates and developments in South Africa
-          let cityValue = components.city;
-          
-          // Map of known developments/estates to their parent cities
-          const estateToCityMap: Record<string, string> = {
-            'Pearl Valley': 'Paarl',
-            'Pearl Valley Golf Estate': 'Paarl',
-            'Pearl Valley Golf Estate and Spa': 'Paarl',
-            'Val de Vie': 'Paarl',
-            'Boschenmeer': 'Paarl',
-            'Silver Lakes': 'Pretoria',
-            'Woodhill': 'Pretoria',
-            'Eagle Canyon': 'Johannesburg',
-            'Dainfern': 'Johannesburg',
-            'Fancourt': 'George',
-            'Simbithi': 'Ballito',
-            'Atlantic Beach': 'Cape Town',
-            'Steyn City': 'Johannesburg',
-            'Zimbali': 'Ballito'
-          };
-          
-          // Check if the description matches any known estate
-          for (const [estate, city] of Object.entries(estateToCityMap)) {
-            if (description.includes(estate)) {
-              console.log(`Detected ${estate}, setting city to ${city}`);
-              cityValue = city;
-              break;
-            }
-          }
-          
           // Call onSelect if provided
           if (onSelect) {
             onSelect({
               streetAddress: streetAddress || description,
-              city: cityValue,
+              city: components.city,
               province: components.province,
               postalCode: components.postalCode
             });
