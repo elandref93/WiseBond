@@ -227,6 +227,9 @@ export default function ImprovedAddressInput({
     setIsFocused(true);
     if (localValue.length >= 3 && predictions.length > 0) {
       setIsOpen(true);
+    } else if (localValue.length >= 3 && apiStatus.isLoaded) {
+      // Try to fetch predictions if input has at least 2 characters
+      fetchPredictions(localValue);
     }
   };
 

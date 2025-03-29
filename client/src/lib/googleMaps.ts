@@ -112,6 +112,42 @@ export function resetGoogleMapsError(): void {
 }
 
 /**
+ * Map South African province names to dropdown values
+ */
+function mapProvinceName(provinceName: string): string {
+  // Map of province names to province values in our dropdown
+  const provinceMap: Record<string, string> = {
+    // Full names
+    'Eastern Cape': 'eastern_cape',
+    'Free State': 'free_state',
+    'Gauteng': 'gauteng',
+    'KwaZulu-Natal': 'kwazulu_natal',
+    'Limpopo': 'limpopo',
+    'Mpumalanga': 'mpumalanga',
+    'Northern Cape': 'northern_cape',
+    'North West': 'north_west',
+    'Western Cape': 'western_cape',
+    
+    // Abbreviations or alternate forms
+    'EC': 'eastern_cape',
+    'FS': 'free_state',
+    'GP': 'gauteng',
+    'KZN': 'kwazulu_natal',
+    'LP': 'limpopo',
+    'MP': 'mpumalanga',
+    'NC': 'northern_cape',
+    'NW': 'north_west',
+    'WC': 'western_cape',
+    
+    // Common variations
+    'KwaZulu Natal': 'kwazulu_natal',
+    'North-West': 'north_west'
+  };
+  
+  return provinceMap[provinceName] || '';
+}
+
+/**
  * Extract address components from Google Places result
  */
 export function extractAddressComponents(components?: google.maps.AddressComponent[]) {
@@ -150,11 +186,19 @@ export function extractAddressComponents(components?: google.maps.AddressCompone
     for (const type of component.types) {
       const property = componentTypeMap[type];
       if (property) {
-        result[property] = component.long_name;
+        // For province, map the name to our dropdown value
+        if (property === 'province') {
+          result[property] = mapProvinceName(component.long_name);
+        } else {
+          result[property] = component.long_name;
+        }
       }
     }
   }
 
+  // Log the extracted components for debugging
+  console.log('Extracted address components:', result);
+  
   return result;
 }
 
