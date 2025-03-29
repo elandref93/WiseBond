@@ -60,9 +60,21 @@ export default function GooglePlacesAutocomplete({
       // Add to document
       document.head.appendChild(script);
       
+      // Set a timeout to handle cases where the script might not load properly
+      const timeoutId = setTimeout(() => {
+        if (!window.google?.maps?.places) {
+          console.log('Google Maps API did not load within expected time, entering fallback mode');
+          // Allow user to at least type in the address manually
+          setError('Address auto-completion is unavailable. Please type your address manually.');
+        }
+      }, 5000);
+      
       return () => {
         // Clean up on unmount
-        document.head.removeChild(script);
+        clearTimeout(timeoutId);
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
       };
     } else {
       console.log('Google Maps API already loaded');
@@ -70,9 +82,12 @@ export default function GooglePlacesAutocomplete({
     }
   }, []);
 
+  // Ensure we don't try to initialize multiple times
+  const initialized = useRef(false);
+  
   // Initialize autocomplete once script is loaded
   useEffect(() => {
-    if (scriptLoaded && inputRef.current) {
+    if (scriptLoaded && inputRef.current && !initialized.current) {
       try {
         console.log('Initializing Google Places Autocomplete');
         
@@ -87,6 +102,8 @@ export default function GooglePlacesAutocomplete({
           inputRef.current,
           options
         );
+        
+        initialized.current = true;
         
         // Add listener for place selection
         autocompleteRef.current.addListener('place_changed', () => {
@@ -153,7 +170,7 @@ export default function GooglePlacesAutocomplete({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className={className}
-        disabled={!scriptLoaded}
+        // Never disable the input field, even if the script is loading
       />
       {error && (
         <Alert variant="destructive" className="mt-2">
