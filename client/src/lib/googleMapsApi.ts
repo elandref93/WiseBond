@@ -124,3 +124,5 @@ export function findAddressComponent(
 ): google.maps.GeocoderAddressComponent | undefined {
   return components.find(component => component.types.includes(type));
 }
+
+// Types are defined in ../types/google-maps.d.ts

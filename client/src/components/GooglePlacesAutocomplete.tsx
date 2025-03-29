@@ -52,18 +52,35 @@ export default function GooglePlacesAutocomplete({
   useEffect(() => {
     if (scriptLoaded && inputRef.current && window.google?.maps?.places) {
       try {
-        // Initialize autocomplete with South Africa as the default country
+        // Initialize autocomplete with South Africa as the only allowed country
         autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
-          componentRestrictions: { country: 'za' },
-          fields: ['address_components', 'formatted_address'],
+          componentRestrictions: { country: 'za' }, // Strictly restrict to South Africa only
+          fields: ['address_components', 'formatted_address', 'geometry'],
           types: ['address'],
         });
+        
+        // Add strict validation to ensure only South African addresses are accepted
+        const southAfricaBounds = new window.google.maps.LatLngBounds(
+          new window.google.maps.LatLng(-34.839828, 16.451056), // SW point of South Africa
+          new window.google.maps.LatLng(-22.126612, 32.891137)  // NE point of South Africa
+        );
+        autocompleteRef.current.setBounds(southAfricaBounds);
+        autocompleteRef.current.setOptions({ strictBounds: true });
 
         // Add listener for place selection
         autocompleteRef.current.addListener('place_changed', () => {
           const place = autocompleteRef.current?.getPlace();
           
           if (place && place.address_components) {
+            // First, validate that this is indeed a South African address
+            const country = findAddressComponent(place.address_components, 'country');
+            const isInSouthAfrica = country?.short_name === 'ZA';
+            
+            if (!isInSouthAfrica) {
+              setError('Only South African addresses are supported. Please select an address within South Africa.');
+              return;
+            }
+            
             // Update input value with formatted address
             const formattedAddress = place.formatted_address;
             if (formattedAddress) {
@@ -80,6 +97,9 @@ export default function GooglePlacesAutocomplete({
               const province = findAddressComponent(place.address_components, 'administrative_area_level_1')?.long_name || '';
               const postalCode = findAddressComponent(place.address_components, 'postal_code')?.short_name || '';
               
+              // Clear any previous errors
+              setError(null);
+              
               onSelect({
                 streetAddress,
                 city,
@@ -87,6 +107,9 @@ export default function GooglePlacesAutocomplete({
                 postalCode,
               });
             }
+          } else {
+            // If place doesn't have address components, show an error
+            setError('Please select a valid address from the dropdown suggestions.');
           }
         });
       } catch (err) {
