@@ -13,8 +13,61 @@ export interface CalculationResult {
 
 // Format currency with thousands separator and Rand symbol
 export function formatCurrency(value: string | number): string {
-  const num = typeof value === 'string' ? parseFloat(value) : value;
-  return `R${num.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+  if (value === "" || value === null || value === undefined) return "";
+  
+  // Parse the input value to a number
+  let num: number;
+  if (typeof value === 'string') {
+    // Remove any non-numeric characters except decimal point
+    const cleanValue = value.replace(/[^0-9.]/g, "");
+    num = parseFloat(cleanValue);
+  } else {
+    num = value;
+  }
+  
+  // Check if the parsing resulted in a valid number
+  if (isNaN(num)) return "";
+  
+  // For displaying: Format with thousands separator and Rand symbol
+  // We'll use full numbers without decimal for Rand currency (common in SA)
+  const options = {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+    style: 'decimal', // Use decimal to avoid automatic currency symbol
+    useGrouping: true // Ensure thousand separators are used
+  };
+  
+  try {
+    // Round to nearest integer for Rand
+    const roundedNum = Math.round(num);
+    // Format with thousands separator
+    return `R${roundedNum.toLocaleString('en-ZA', options)}`;
+  } catch (error) {
+    // Fallback formatting if toLocaleString fails
+    // Format manually with commas as thousands separators
+    const parts = Math.round(num).toString().split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return `R${parts.join('.')}`;
+  }
+}
+
+// Parse a currency string back to a number (for calculations)
+export function parseCurrency(currencyStr: string): number {
+  if (!currencyStr) return 0;
+  
+  // Handle both string and number inputs
+  if (typeof currencyStr === 'number') return currencyStr;
+  
+  // Remove currency symbol, spaces, commas and any other non-numeric characters
+  // except for decimal points
+  const cleanedValue = currencyStr.replace(/[^0-9.]/g, "");
+  
+  // Handle empty string after cleaning
+  if (cleanedValue === "") return 0;
+  
+  // Parse as float and handle NaN
+  const value = parseFloat(cleanedValue);
+  return isNaN(value) ? 0 : value;
 }
 
 // Calculate the monthly repayment amount for a bond

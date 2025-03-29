@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { HomeIcon, InfoIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { calculateBondRepayment, formatCurrency, type CalculationResult } from "@/lib/calculators";
+import { calculateBondRepayment, formatCurrency, parseCurrency, type CalculationResult } from "@/lib/calculators";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -17,14 +17,14 @@ import AmortizationChart from "./charts/AmortizationChart";
 
 // Form schema with validation
 const formSchema = z.object({
-  propertyValue: z.string().refine((val) => !isNaN(Number(val.replace(/,/g, ""))), {
+  propertyValue: z.string().refine((val) => !isNaN(Number(val.replace(/[^0-9]/g, ""))), {
     message: "Property value must be a number",
   }),
   interestRate: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) < 100, {
     message: "Interest rate must be between 0 and 100",
   }),
   loanTerm: z.string(),
-  deposit: z.string().refine((val) => !isNaN(Number(val.replace(/,/g, ""))), {
+  deposit: z.string().refine((val) => !isNaN(Number(val.replace(/[^0-9]/g, ""))), {
     message: "Deposit must be a number",
   }),
 });
@@ -77,10 +77,10 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     setIsCalculating(true);
     try {
       // Parse input values
-      const propertyValue = Number(values.propertyValue.replace(/,/g, ""));
+      const propertyValue = parseCurrency(values.propertyValue);
       const interestRate = Number(values.interestRate);
       const loanTerm = Number(values.loanTerm);
-      const deposit = Number(values.deposit.replace(/,/g, ""));
+      const deposit = parseCurrency(values.deposit);
 
       // Calculate results
       const results = calculateBondRepayment(propertyValue, interestRate, loanTerm, deposit);
@@ -120,8 +120,8 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   };
 
   // Get current property value and deposit for sliders
-  const currentPropertyValue = Number(form.watch("propertyValue").replace(/,/g, "")) || 1000000;
-  const currentDeposit = Number(form.watch("deposit").replace(/,/g, "")) || 100000;
+  const currentPropertyValue = parseCurrency(form.watch("propertyValue")) || 1000000;
+  const currentDeposit = parseCurrency(form.watch("deposit")) || 100000;
   const currentInterestRate = Number(form.watch("interestRate")) || 11.25;
 
   return (
@@ -175,9 +175,34 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                       <Input
                         {...field}
                         className="pl-8"
+                        onChange={(e) => {
+                          // If user is typing R or pasting a formatted value, clean it
+                          const input = e.target.value;
+                          
+                          // Keep only digits
+                          const numericValue = input.replace(/[^0-9]/g, "");
+                          
+                          // Don't format if it's empty
+                          if (!numericValue) {
+                            field.onChange("");
+                            return;
+                          }
+                          
+                          // For raw input of digits, let user continue typing without formatting
+                          if (input === numericValue) {
+                            field.onChange(numericValue);
+                          } else {
+                            // Format when pasting or if the value already had formatting
+                            const value = parseFloat(numericValue);
+                            if (!isNaN(value)) {
+                              field.onChange(formatCurrency(value));
+                            }
+                          }
+                        }}
                         onBlur={(e) => {
-                          const value = e.target.value.replace(/,/g, "");
-                          if (!isNaN(Number(value))) {
+                          // Format on blur to ensure proper display
+                          const value = parseCurrency(e.target.value);
+                          if (value > 0) {
                             field.onChange(formatCurrency(value));
                           }
                         }}
@@ -312,9 +337,34 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                       <Input
                         {...field}
                         className="pl-8"
+                        onChange={(e) => {
+                          // If user is typing R or pasting a formatted value, clean it
+                          const input = e.target.value;
+                          
+                          // Keep only digits
+                          const numericValue = input.replace(/[^0-9]/g, "");
+                          
+                          // Don't format if it's empty
+                          if (!numericValue) {
+                            field.onChange("");
+                            return;
+                          }
+                          
+                          // For raw input of digits, let user continue typing without formatting
+                          if (input === numericValue) {
+                            field.onChange(numericValue);
+                          } else {
+                            // Format when pasting or if the value already had formatting
+                            const value = parseFloat(numericValue);
+                            if (!isNaN(value)) {
+                              field.onChange(formatCurrency(value));
+                            }
+                          }
+                        }}
                         onBlur={(e) => {
-                          const value = e.target.value.replace(/,/g, "");
-                          if (!isNaN(Number(value))) {
+                          // Format on blur to ensure proper display
+                          const value = parseCurrency(e.target.value);
+                          if (value > 0) {
                             field.onChange(formatCurrency(value));
                           }
                         }}

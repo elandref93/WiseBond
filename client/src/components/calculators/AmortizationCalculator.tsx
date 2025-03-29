@@ -13,8 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/calculators";
-import { CalculationResult } from "@/lib/calculators";
+import { formatCurrency, parseCurrency, CalculationResult } from "@/lib/calculators";
 
 const formSchema = z.object({
   loanAmount: z.string().min(1, { message: "Loan amount is required" }),
@@ -45,9 +44,8 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
   const onSubmit = async (values: AmortizationFormValues) => {
     setIsSubmitting(true);
     try {
-      // Remove currency symbols, commas, and spaces to properly parse the loan amount
-      const cleanedLoanAmount = values.loanAmount.replace(/[R,\s]/g, "");
-      const loanAmount = parseFloat(cleanedLoanAmount);
+      // Use our parseCurrency utility to properly handle currency strings
+      const loanAmount = parseCurrency(values.loanAmount);
       const interestRate = parseFloat(values.interestRate) / 100;
       const loanTermYears = parseFloat(values.loanTerm);
       const loanTermMonths = loanTermYears * 12;
@@ -183,24 +181,39 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
                     <Input
                       {...field}
                       onChange={(e) => {
-                        // Strip all non-numeric characters except decimal point
-                        const rawValue = e.target.value.replace(/[^0-9.]/g, "");
+                        // If user is typing R or is pasting a formatted value, clean it
+                        const input = e.target.value;
+                        
+                        // Keep only digits and at most one decimal point
+                        const numericValue = input.replace(/[^0-9.]/g, "")
+                                                .replace(/(\..*)\./g, '$1');
                         
                         // Don't format if it's empty
-                        if (!rawValue) {
+                        if (!numericValue) {
                           field.onChange("");
                           return;
                         }
                         
-                        // Parse the numeric value
-                        const numericValue = parseFloat(rawValue);
-                        
-                        // Format only if it's a valid number
-                        if (!isNaN(numericValue)) {
-                          field.onChange(formatCurrency(numericValue));
+                        // For raw input of digits, let user continue typing without formatting
+                        // Only format when input contains non-numeric characters or loses focus
+                        if (input === numericValue) {
+                          field.onChange(numericValue);
+                        } else {
+                          // Format when pasting or if the value already had formatting
+                          const value = parseFloat(numericValue);
+                          if (!isNaN(value)) {
+                            field.onChange(formatCurrency(value));
+                          }
                         }
                       }}
-                      placeholder="e.g., R1,000,000"
+                      onBlur={(e) => {
+                        // Format on blur to ensure proper display
+                        const value = parseCurrency(e.target.value);
+                        if (value > 0) {
+                          field.onChange(formatCurrency(value));
+                        }
+                      }}
+                      placeholder="e.g., 1000000"
                     />
                   </FormControl>
                   <FormMessage />
