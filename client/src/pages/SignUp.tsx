@@ -1,5 +1,5 @@
 import SignUpForm from "@/components/auth/SignUpForm";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function SignUp() {
   return (
@@ -14,14 +14,8 @@ export default function SignUp() {
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign up</CardTitle>
-            <CardDescription>
-              Create your account to save calculations and track applications
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+        <Card className="shadow-sm">
+          <CardContent className="pt-6">
             <SignUpForm />
           </CardContent>
         </Card>

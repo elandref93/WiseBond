@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -29,6 +29,7 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
+  const otpRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<OTPFormValues>({
     resolver: zodResolver(formSchema),
@@ -41,6 +42,13 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
   // Manually register the OTP field
   useEffect(() => {
     form.register("otp");
+    
+    // Focus on the first OTP field when component mounts
+    if (otpRef.current) {
+      setTimeout(() => {
+        otpRef.current?.focus();
+      }, 300);
+    }
   }, [form]);
 
   const onSubmit = async (values: OTPFormValues) => {
@@ -127,6 +135,7 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
                       index={i} 
                       {...slot} 
                       className="w-12 h-12 text-lg border-gray-300"
+                      ref={i === 0 ? otpRef : undefined}
                     />
                   ))}
                 </InputOTPGroup>
