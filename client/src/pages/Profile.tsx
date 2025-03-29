@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { UpdateProfile } from '@shared/schema';
+import { UpdateProfile, User as UserType } from '@shared/schema';
 import { updateProfileSchema } from '@shared/schema';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import GooglePlacesAutocomplete from '@/components/GooglePlacesAutocomplete';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -28,7 +29,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { 
-  User, 
+  UserCircle as UserIcon, 
   Home, 
   Briefcase, 
   CreditCard, 
@@ -50,7 +51,7 @@ export default function Profile() {
   }>({ isValid: false });
   
   // Fetch user profile data
-  const { data: profileData, isLoading: isProfileLoading } = useQuery({
+  const { data: profileData, isLoading: isProfileLoading } = useQuery<UserType>({
     queryKey: ['/api/user/profile', user?.id],
     enabled: !!user,
   });
@@ -80,27 +81,27 @@ export default function Profile() {
   // Update form values when profile data is loaded
   useEffect(() => {
     if (profileData) {
-      // Create a sanitized version of the profile data
+      // Create a sanitized version of the profile data with empty string/number fallbacks
       const formData: UpdateProfile = {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
         email: profileData.email,
-        phone: profileData.phone || undefined,
-        idNumber: profileData.idNumber || undefined,
-        dateOfBirth: profileData.dateOfBirth || undefined,
-        age: profileData.age || undefined,
-        address: profileData.address || undefined,
-        city: profileData.city || undefined,
-        postalCode: profileData.postalCode || undefined,
-        province: profileData.province || undefined,
-        employmentStatus: profileData.employmentStatus || undefined,
-        employerName: profileData.employerName || undefined,
-        employmentSector: profileData.employmentSector || undefined,
-        jobTitle: profileData.jobTitle || undefined,
-        employmentDuration: profileData.employmentDuration || undefined,
-        monthlyIncome: profileData.monthlyIncome || undefined,
-        otpVerified: profileData.otpVerified || undefined,
-        profileComplete: profileData.profileComplete || undefined
+        phone: profileData.phone || '',
+        idNumber: profileData.idNumber || '',
+        dateOfBirth: profileData.dateOfBirth || '',
+        age: profileData.age || 0,
+        address: profileData.address || '',
+        city: profileData.city || '',
+        postalCode: profileData.postalCode || '',
+        province: profileData.province || '',
+        employmentStatus: profileData.employmentStatus || '',
+        employerName: profileData.employerName || '',
+        employmentSector: profileData.employmentSector || '',
+        jobTitle: profileData.jobTitle || '',
+        employmentDuration: profileData.employmentDuration || '',
+        monthlyIncome: profileData.monthlyIncome || 0,
+        otpVerified: profileData.otpVerified || false,
+        profileComplete: profileData.profileComplete || false
       };
       
       form.reset(formData);
@@ -184,7 +185,7 @@ export default function Profile() {
   
   // Tab navigation items 
   const tabs = [
-    { id: 'personal', label: 'Personal Information', icon: <User className="h-5 w-5 mr-2" /> },
+    { id: 'personal', label: 'Personal Information', icon: <UserIcon className="h-5 w-5 mr-2" /> },
     { id: 'address', label: 'Address & Contact', icon: <Home className="h-5 w-5 mr-2" /> },
     { id: 'employment', label: 'Employment & Income', icon: <Briefcase className="h-5 w-5 mr-2" /> },
     { id: 'financial', label: 'Financial Information', icon: <CreditCard className="h-5 w-5 mr-2" />, disabled: true },
@@ -403,7 +404,17 @@ export default function Profile() {
                           <FormItem>
                             <FormLabel>Street Address</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="Your street address" />
+                              <GooglePlacesAutocomplete
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                placeholder="Your street address"
+                                onSelect={(address) => {
+                                  field.onChange(address.streetAddress);
+                                  form.setValue('city', address.city);
+                                  form.setValue('province', address.province);
+                                  form.setValue('postalCode', address.postalCode);
+                                }}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -418,7 +429,7 @@ export default function Profile() {
                             <FormItem>
                               <FormLabel>City</FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="Your city" />
+                                <Input {...field} placeholder="Your city" value={field.value || ''} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -433,7 +444,7 @@ export default function Profile() {
                               <FormLabel>Province</FormLabel>
                               <Select
                                 onValueChange={field.onChange}
-                                defaultValue={field.value}
+                                value={field.value || ""}
                               >
                                 <FormControl>
                                   <SelectTrigger>
@@ -464,7 +475,7 @@ export default function Profile() {
                             <FormItem>
                               <FormLabel>Postal Code</FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="e.g. 2000" />
+                                <Input {...field} placeholder="e.g. 2000" value={field.value || ''} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -487,7 +498,7 @@ export default function Profile() {
                             <FormLabel>Employment Status</FormLabel>
                             <Select
                               onValueChange={field.onChange}
-                              defaultValue={field.value}
+                              value={field.value || ""}
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -519,7 +530,7 @@ export default function Profile() {
                                 <FormItem>
                                   <FormLabel>Employer / Company Name</FormLabel>
                                   <FormControl>
-                                    <Input {...field} placeholder="Name of your employer or business" />
+                                    <Input {...field} placeholder="Name of your employer or business" value={field.value || ''} />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -533,7 +544,7 @@ export default function Profile() {
                                 <FormItem>
                                   <FormLabel>Job Title / Position</FormLabel>
                                   <FormControl>
-                                    <Input {...field} placeholder="Your job title" />
+                                    <Input {...field} placeholder="Your job title" value={field.value || ''} />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -549,7 +560,7 @@ export default function Profile() {
                                 <FormLabel>Industry / Sector</FormLabel>
                                 <Select
                                   onValueChange={field.onChange}
-                                  defaultValue={field.value}
+                                  value={field.value || ""}
                                 >
                                   <FormControl>
                                     <SelectTrigger>
@@ -584,7 +595,7 @@ export default function Profile() {
                                 <FormLabel>Length of Employment</FormLabel>
                                 <Select
                                   onValueChange={field.onChange}
-                                  defaultValue={field.value}
+                                  value={field.value || ""}
                                 >
                                   <FormControl>
                                     <SelectTrigger>
@@ -621,6 +632,7 @@ export default function Profile() {
                                       type="number" 
                                       className="pl-7"
                                       placeholder="Your gross monthly income" 
+                                      value={field.value ?? 0}
                                       onChange={(e) => {
                                         const value = e.target.value === '' ? 0 : parseInt(e.target.value);
                                         field.onChange(value);
