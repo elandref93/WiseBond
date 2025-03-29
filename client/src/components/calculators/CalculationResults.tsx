@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import AmortizationResults from "./AmortizationResults";
+import ShareCalculation from "./ShareCalculation";
 
 interface CalculationResultsProps {
   results: CalculationResult;
@@ -24,9 +25,12 @@ export default function CalculationResults({ results }: CalculationResultsProps)
     return (
       <div className="mt-8 px-4">
         <div className="p-6 bg-gray-50 rounded-lg border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Amortization Results
-          </h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Amortization Results
+            </h3>
+            <ShareCalculation result={results} size="sm" />
+          </div>
           <AmortizationResults results={results as any} />
         </div>
       </div>
@@ -37,9 +41,12 @@ export default function CalculationResults({ results }: CalculationResultsProps)
   return (
     <div className="mt-8 px-4">
       <div className="p-6 bg-gray-50 rounded-lg border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Calculation Results
-        </h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Calculation Results
+          </h3>
+          <ShareCalculation result={results} size="sm" />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {results.displayResults.map((result, index) => (
             <Card key={index} className="bg-white shadow-sm">
