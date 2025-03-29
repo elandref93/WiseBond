@@ -30,10 +30,10 @@ export function formatCurrency(value: string | number): string {
   
   // For displaying: Format with thousands separator and Rand symbol
   // We'll use full numbers without decimal for Rand currency (common in SA)
-  const options = {
+  const options: Intl.NumberFormatOptions = {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-    style: 'decimal', // Use decimal to avoid automatic currency symbol
+    style: 'decimal' as const, // Use decimal to avoid automatic currency symbol
     useGrouping: true // Ensure thousand separators are used
   };
   
@@ -52,7 +52,7 @@ export function formatCurrency(value: string | number): string {
 }
 
 // Parse a currency string back to a number (for calculations)
-export function parseCurrency(currencyStr: string): number {
+export function parseCurrency(currencyStr: string | number): number {
   if (!currencyStr) return 0;
   
   // Handle both string and number inputs
@@ -68,6 +68,34 @@ export function parseCurrency(currencyStr: string): number {
   // Parse as float and handle NaN
   const value = parseFloat(cleanedValue);
   return isNaN(value) ? 0 : value;
+}
+
+// Handle currency input field values - keeps numeric strings without formatting
+// Use when you want to preserve raw numeric input without 'R' 
+export function handleCurrencyInput(value: string): string {
+  if (!value) return "";
+  
+  // Remove any currency symbols or other non-numeric characters
+  const numericValue = value.replace(/[^0-9]/g, "");
+  
+  // Don't format if empty
+  if (!numericValue) return "";
+  
+  // Return just the cleaned numeric string - no formatting, no R symbol
+  return numericValue;
+}
+
+// Display a numeric value with currency formatting for UI display
+// But without affecting the underlying form data
+export function displayCurrencyValue(value: string | number): string {
+  if (!value) return "";
+  
+  const numValue = typeof value === 'string' ? parseCurrency(value) : value;
+  const options: Intl.NumberFormatOptions = {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  };
+  return `R${numValue.toLocaleString('en-ZA', options)}`;
 }
 
 // Calculate the monthly repayment amount for a bond

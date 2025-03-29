@@ -16,8 +16,7 @@ import { Slider } from "@/components/ui/slider";
 import { Card, CardContent } from "@/components/ui/card";
 import { InfoIcon, PlusCircleIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatCurrency } from "@/lib/calculators";
-import { CalculationResult } from "@/lib/calculators";
+import { formatCurrency, parseCurrency, handleCurrencyInput, type CalculationResult } from "@/lib/calculators";
 import AdditionalPaymentChart from "./charts/AdditionalPaymentChart";
 
 const formSchema = z.object({
@@ -68,11 +67,11 @@ export default function AdditionalPaymentCalculator({ onCalculate }: AdditionalP
   const onSubmit = async (values: AdditionalPaymentFormValues) => {
     setIsSubmitting(true);
     try {
-      const loanAmount = parseFloat(values.loanAmount.replace(/[^0-9.]/g, ""));
+      const loanAmount = parseCurrency(values.loanAmount);
       const interestRate = parseFloat(values.interestRate);
       const loanTermYears = parseFloat(values.loanTerm);
       const loanTermMonths = loanTermYears * 12;
-      const additionalPayment = parseFloat(values.additionalPayment.replace(/[^0-9.]/g, ""));
+      const additionalPayment = parseCurrency(values.additionalPayment);
       
       // Calculate standard monthly payment
       const monthlyRate = interestRate / 100 / 12;
@@ -174,7 +173,7 @@ export default function AdditionalPaymentCalculator({ onCalculate }: AdditionalP
   };
 
   // Get current values for sliders
-  const currentAdditionalPayment = Number(form.watch("additionalPayment").replace(/[^0-9.]/g, "")) || 1000;
+  const currentAdditionalPayment = parseCurrency(form.watch("additionalPayment")) || 1000;
   const currentInterestRate = Number(form.watch("interestRate")) || 11.25;
 
   return (
@@ -228,11 +227,8 @@ export default function AdditionalPaymentCalculator({ onCalculate }: AdditionalP
                           {...field}
                           className="pl-8"
                           onChange={(e) => {
-                            const value = e.target.value.replace(/[^0-9]/g, "");
-                            const formattedValue = value
-                              ? formatCurrency(parseInt(value))
-                              : "";
-                            field.onChange(formattedValue);
+                            const numericValue = handleCurrencyInput(e.target.value);
+                            field.onChange(numericValue);
                           }}
                           placeholder="e.g., R900,000"
                         />
@@ -341,11 +337,8 @@ export default function AdditionalPaymentCalculator({ onCalculate }: AdditionalP
                             {...field}
                             className="pl-8"
                             onChange={(e) => {
-                              const value = e.target.value.replace(/[^0-9.]/g, "");
-                              const formattedValue = value
-                                ? formatCurrency(parseFloat(value))
-                                : "";
-                              field.onChange(formattedValue);
+                              const numericValue = handleCurrencyInput(e.target.value);
+                              field.onChange(numericValue);
                             }}
                             placeholder="e.g., R1,000"
                           />

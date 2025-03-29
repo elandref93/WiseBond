@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { formatCurrency } from '@/lib/calculators';
 
 interface AmortizationChartProps {
   loanAmount: number;
@@ -127,13 +128,10 @@ export default function AmortizationChart({ loanAmount, interestRate, loanTerm }
     return monthlyData.filter(item => item.year === yearView);
   };
   
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-ZA', { 
-      style: 'currency', 
-      currency: 'ZAR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
+  // Format currency for tooltip and axis labels - using our central formatting function
+  const formatChartCurrency = (value: number | string) => {
+    const numValue = typeof value === 'string' ? Number(value) : value;
+    return formatCurrency(numValue).toString();
   };
   
   const yearlyData = generateYearlyData();
@@ -160,8 +158,8 @@ export default function AmortizationChart({ loanAmount, interestRate, loanTerm }
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="year" label={{ value: 'Years', position: 'insideBottomRight', offset: 0 }} />
-                  <YAxis tickFormatter={(value) => formatCurrency(Number(value)).toString()} />
-                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                  <YAxis tickFormatter={formatChartCurrency} />
+                  <Tooltip formatter={formatChartCurrency} />
                   <Legend />
                   <Area
                     type="monotone"
@@ -259,9 +257,9 @@ export default function AmortizationChart({ loanAmount, interestRate, loanTerm }
                     tickFormatter={(value) => ((value - 1) % 12 + 1).toString()}
                     label={{ value: 'Month', position: 'insideBottomRight', offset: 0 }} 
                   />
-                  <YAxis tickFormatter={(value) => formatCurrency(Number(value)).toString()} />
+                  <YAxis tickFormatter={formatChartCurrency} />
                   <Tooltip 
-                    formatter={(value) => formatCurrency(Number(value))}
+                    formatter={formatChartCurrency}
                     labelFormatter={(label) => `Month ${(Number(label) - 1) % 12 + 1}`}
                   />
                   <Legend />

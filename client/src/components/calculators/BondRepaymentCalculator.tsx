@@ -9,7 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { HomeIcon, InfoIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { calculateBondRepayment, formatCurrency, parseCurrency, type CalculationResult } from "@/lib/calculators";
+import { 
+  calculateBondRepayment, 
+  formatCurrency, 
+  parseCurrency, 
+  handleCurrencyInput,
+  displayCurrencyValue,
+  type CalculationResult 
+} from "@/lib/calculators";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -47,10 +54,10 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
 
   // Default form values
   const defaultValues: BondRepaymentFormValues = {
-    propertyValue: "1,000,000",
+    propertyValue: "1000000",
     interestRate: "11.25",
     loanTerm: "25",
-    deposit: "100,000",
+    deposit: "100000",
   };
 
   const form = useForm<BondRepaymentFormValues>({
@@ -60,12 +67,12 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
 
   // For property value slider
   const handlePropertyValueSliderChange = (value: number[]) => {
-    form.setValue("propertyValue", formatCurrency(value[0].toString()));
+    form.setValue("propertyValue", value[0].toString());
   };
 
   // For deposit slider
   const handleDepositSliderChange = (value: number[]) => {
-    form.setValue("deposit", formatCurrency(value[0].toString()));
+    form.setValue("deposit", value[0].toString());
   };
 
   // For interest rate slider
@@ -76,7 +83,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   const onSubmit = async (values: BondRepaymentFormValues) => {
     setIsCalculating(true);
     try {
-      // Parse input values
+      // Parse input values - using our robust currency parser
       const propertyValue = parseCurrency(values.propertyValue);
       const interestRate = Number(values.interestRate);
       const loanTerm = Number(values.loanTerm);
@@ -123,6 +130,11 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   const currentPropertyValue = parseCurrency(form.watch("propertyValue")) || 1000000;
   const currentDeposit = parseCurrency(form.watch("deposit")) || 100000;
   const currentInterestRate = Number(form.watch("interestRate")) || 11.25;
+
+  // For rendering displayed values with currency formatting
+  const displayPropertyValue = displayCurrencyValue(currentPropertyValue);
+  const displayDeposit = displayCurrencyValue(currentDeposit);
+  const displayMaxDeposit = displayCurrencyValue(Math.min(5000000, currentPropertyValue * 0.5));
 
   return (
     <div className="space-y-6">
@@ -176,35 +188,9 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                         {...field}
                         className="pl-8"
                         onChange={(e) => {
-                          // If user is typing R or pasting a formatted value, clean it
-                          const input = e.target.value;
-                          
-                          // Keep only digits
-                          const numericValue = input.replace(/[^0-9]/g, "");
-                          
-                          // Don't format if it's empty
-                          if (!numericValue) {
-                            field.onChange("");
-                            return;
-                          }
-                          
-                          // For raw input of digits, let user continue typing without formatting
-                          if (input === numericValue) {
-                            field.onChange(numericValue);
-                          } else {
-                            // Format when pasting or if the value already had formatting
-                            const value = parseFloat(numericValue);
-                            if (!isNaN(value)) {
-                              field.onChange(formatCurrency(value));
-                            }
-                          }
-                        }}
-                        onBlur={(e) => {
-                          // Format on blur to ensure proper display
-                          const value = parseCurrency(e.target.value);
-                          if (value > 0) {
-                            field.onChange(formatCurrency(value));
-                          }
+                          // Keep only digits by removing any non-numeric characters
+                          const numericValue = handleCurrencyInput(e.target.value);
+                          field.onChange(numericValue);
                         }}
                       />
                     </div>
@@ -338,35 +324,9 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                         {...field}
                         className="pl-8"
                         onChange={(e) => {
-                          // If user is typing R or pasting a formatted value, clean it
-                          const input = e.target.value;
-                          
-                          // Keep only digits
-                          const numericValue = input.replace(/[^0-9]/g, "");
-                          
-                          // Don't format if it's empty
-                          if (!numericValue) {
-                            field.onChange("");
-                            return;
-                          }
-                          
-                          // For raw input of digits, let user continue typing without formatting
-                          if (input === numericValue) {
-                            field.onChange(numericValue);
-                          } else {
-                            // Format when pasting or if the value already had formatting
-                            const value = parseFloat(numericValue);
-                            if (!isNaN(value)) {
-                              field.onChange(formatCurrency(value));
-                            }
-                          }
-                        }}
-                        onBlur={(e) => {
-                          // Format on blur to ensure proper display
-                          const value = parseCurrency(e.target.value);
-                          if (value > 0) {
-                            field.onChange(formatCurrency(value));
-                          }
+                          // Keep only digits by removing any non-numeric characters
+                          const numericValue = handleCurrencyInput(e.target.value);
+                          field.onChange(numericValue);
                         }}
                       />
                     </div>
@@ -378,7 +338,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                     />
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>R0</span>
-                      <span>R{formatCurrency(Math.min(5000000, currentPropertyValue * 0.5))}</span>
+                      <span>{displayMaxDeposit}</span>
                     </div>
                     <div className="text-xs text-gray-500 text-right">
                       {currentPropertyValue > 0 ? 
