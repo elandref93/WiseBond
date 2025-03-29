@@ -16,7 +16,7 @@ export default function FAQ() {
         "A bond originator is a professional service that helps home buyers apply for home loans (bonds) with multiple banks simultaneously. We handle the application process, paperwork, and negotiations on your behalf to secure the best possible interest rate.",
     },
     {
-      question: "How much does it cost to use HomeBondSA?",
+      question: "How much does it cost to use WiseBond?",
       answer:
         "Our service is completely free to you as the home buyer. We are paid a commission by the bank when your home loan is successfully approved. This commission does not affect your interest rate or loan terms in any way.",
     },

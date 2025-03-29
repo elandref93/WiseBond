@@ -10,7 +10,7 @@ export default function Login() {
             Welcome Back
           </h1>
           <p className="mt-2 text-gray-600">
-            Log in to access your HomeBondSA account
+            Log in to access your WiseBond account
           </p>
         </div>
 

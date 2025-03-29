@@ -5,7 +5,7 @@ export default function About() {
       <div className="bg-gray-50 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
-            About HomeBondSA
+            About WiseBond
           </h1>
           <p className="mt-4 text-xl text-gray-500 max-w-3xl mx-auto">
             South Africa's trusted home loan originator helping you secure the
@@ -23,7 +23,7 @@ export default function About() {
                 Our Mission
               </h2>
               <p className="mt-4 text-lg text-gray-500">
-                HomeBondSA was founded with a clear mission: to make the home loan
+                WiseBond was founded with a clear mission: to make the home loan
                 application process simpler, faster, and more transparent for
                 South Africans. We believe that everyone deserves a fair chance at
                 homeownership, and our goal is to help our clients secure the best
@@ -165,7 +165,7 @@ export default function About() {
               Our Leadership Team
             </h2>
             <p className="mt-4 text-lg text-gray-500 max-w-3xl mx-auto">
-              Meet the experienced professionals who lead HomeBondSA to success,
+              Meet the experienced professionals who lead WiseBond to success,
               bringing decades of combined experience in South African finance,
               real estate, and customer service.
             </p>
@@ -266,7 +266,7 @@ export default function About() {
               Our Locations
             </h2>
             <p className="mt-4 text-lg text-gray-500 max-w-3xl mx-auto">
-              HomeBondSA has offices across South Africa to better serve our
+              WiseBond has offices across South Africa to better serve our
               clients nationwide. Visit us at any of our locations or connect
               with us online.
             </p>

@@ -13,7 +13,7 @@ export default function Services() {
             Our Services
           </h1>
           <p className="mt-4 text-xl text-gray-500 max-w-3xl mx-auto">
-            HomeBondSA offers a comprehensive range of home loan services
+            WiseBond offers a comprehensive range of home loan services
             designed to make your property financing journey seamless and
             successful.
           </p>
@@ -155,7 +155,7 @@ export default function Services() {
               Specialized Solutions
             </h2>
             <p className="mt-4 text-lg text-gray-500 max-w-3xl mx-auto">
-              Beyond our core offerings, HomeBondSA provides specialized services
+              Beyond our core offerings, WiseBond provides specialized services
               to meet unique financing needs
             </p>
           </div>

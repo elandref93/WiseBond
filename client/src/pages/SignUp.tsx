@@ -10,7 +10,7 @@ export default function SignUp() {
             Create Account
           </h1>
           <p className="mt-2 text-gray-600">
-            Join HomeBondSA to start your home loan journey
+            Join WiseBond to start your home loan journey
           </p>
         </div>
 

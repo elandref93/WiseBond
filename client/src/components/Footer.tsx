@@ -12,7 +12,7 @@ export default function Footer() {
           <div className="space-y-8 xl:col-span-1">
             <Link href="/">
               <span className="text-primary font-bold text-2xl cursor-pointer">
-                HomeBond<span className="text-secondary-700">SA</span>
+                WiseBond
               </span>
             </Link>
             <p className="text-gray-500 text-base">
@@ -203,8 +203,8 @@ export default function Footer() {
         </div>
         <div className="mt-12 border-t border-gray-200 pt-8">
           <p className="text-base text-gray-400 xl:text-center">
-            &copy; {new Date().getFullYear()} HomeBondSA. All rights reserved.
-            HomeBondSA is a registered Financial Service Provider (FSP12345).
+            &copy; {new Date().getFullYear()} WiseBond. All rights reserved.
+            WiseBond is a registered Financial Service Provider (FSP12345).
           </p>
         </div>
       </div>

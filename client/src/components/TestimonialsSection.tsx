@@ -6,7 +6,7 @@ export default function TestimonialsSection() {
     {
       id: 1,
       content:
-        "HomeBondSA saved us thousands on our home loan! They secured an interest rate nearly 1% below what our bank initially offered. The process was smooth and their consultant was incredibly helpful.",
+        "WiseBond saved us thousands on our home loan! They secured an interest rate nearly 1% below what our bank initially offered. The process was smooth and their consultant was incredibly helpful.",
       author: {
         name: "Sarah Nkosi",
         location: "Cape Town",
@@ -17,7 +17,7 @@ export default function TestimonialsSection() {
     {
       id: 2,
       content:
-        "As first-time home buyers, we had no idea where to start. The team at HomeBondSA guided us through every step and found us a loan when our bank had rejected our application. Their service is worth every penny!",
+        "As first-time home buyers, we had no idea where to start. The team at WiseBond guided us through every step and found us a loan when our bank had rejected our application. Their service is worth every penny!",
       author: {
         name: "Thabo Molefe",
         location: "Johannesburg",
@@ -28,7 +28,7 @@ export default function TestimonialsSection() {
     {
       id: 3,
       content:
-        "I was skeptical at first about using a bond originator, but I'm so glad I did! HomeBondSA made the entire process stress-free and managed to get me approved for a larger loan amount than I expected.",
+        "I was skeptical at first about using a bond originator, but I'm so glad I did! WiseBond made the entire process stress-free and managed to get me approved for a larger loan amount than I expected.",
       author: {
         name: "Lerato Khumalo",
         location: "Durban",
