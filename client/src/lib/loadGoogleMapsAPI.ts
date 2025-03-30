@@ -23,7 +23,11 @@ export function loadGoogleMapsAPI(): Promise<void> {
     return Promise.resolve();
   }
   
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyA53hiST6HodGZbUPDsUawuykiyYZM5hIk';
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  
+  if (!apiKey) {
+    console.error('Google Maps API key not found. Please check Azure Key Vault configuration.');
+  }
   
   console.log('Loading Google Maps API...');
   isLoading = true;

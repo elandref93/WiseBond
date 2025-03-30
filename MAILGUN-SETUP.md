@@ -8,9 +8,11 @@ This document explains how to set up and configure Mailgun for email functionali
 - Domain verified with Mailgun (wisebond.co.za)
 - API credentials
 
-## Configuration Method: Azure Key Vault
+## Configuration Methods
 
-WiseBond uses Azure Key Vault exclusively for storing and retrieving sensitive credentials:
+### Primary Method: Azure Key Vault (Production)
+
+WiseBond uses Azure Key Vault as the primary method for storing and retrieving sensitive credentials:
 
 1. Create an Azure Key Vault instance named "wisebond"
 2. Add the following secrets (using lowercase naming convention with hyphens):
@@ -18,6 +20,18 @@ WiseBond uses Azure Key Vault exclusively for storing and retrieving sensitive c
    - `mailgun-domain` - Your verified Mailgun domain (wisebond.co.za)
    - `mailgun-from-email` - Your sender email (postmaster@wisebond.co.za)
 3. Configure Azure credentials in your environment (for local development only)
+
+### Alternative Method: Replit Secrets (Development)
+
+For development environments like Replit where Azure Key Vault may not be accessible, you can use Replit's built-in secrets management:
+
+1. In your Replit project, go to "Secrets" in the Tools sidebar
+2. Add the following secrets:
+   - `MAILGUN_API_KEY` - Your Mailgun Private API key
+   - `MAILGUN_DOMAIN` - Your verified Mailgun domain (wisebond.co.za) 
+   - `MAILGUN_FROM_EMAIL` - Your sender email (postmaster@wisebond.co.za)
+
+The application will automatically use these secrets if Azure Key Vault is not available.
 
 ## Testing Email Functionality
 
@@ -68,3 +82,17 @@ The application includes pre-built templates for:
 - Account verification emails
 
 You can customize these templates in the `server/email.ts` file.
+
+## Secret Naming Conventions
+
+It's important to follow consistent naming conventions for secrets across different environments:
+
+| Purpose | Azure Key Vault | Replit/Environment Variables |
+|---------|----------------|-----------------------------|
+| Mailgun API Key | `mailgun-api-key` | `MAILGUN_API_KEY` |
+| Mailgun Domain | `mailgun-domain` | `MAILGUN_DOMAIN` |
+| Mailgun From Email | `mailgun-from-email` | `MAILGUN_FROM_EMAIL` |
+| Google Maps API Key | `google-maps-api-key` | `GOOGLE_MAPS_API_KEY` / `VITE_GOOGLE_MAPS_API_KEY` |
+| SendGrid API Key | `sendgrid-api-key` | `SENDGRID_API_KEY` |
+
+The application automatically converts between these formats as needed.

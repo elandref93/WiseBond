@@ -5,7 +5,6 @@ import FormData from 'form-data';
 import Mailgun from 'mailgun.js';
 import readline from 'readline';
 import dotenv from 'dotenv';
-import { initializeSecretsFromKeyVault } from './server/keyVault.js';
 
 // Initialize environment
 dotenv.config();
@@ -27,14 +26,7 @@ async function sendTestEmail() {
   console.log('🛠️  Mailgun Test Email Configuration');
   console.log('-----------------------------------');
   
-  console.log('Attempting to load credentials from Azure Key Vault...');
-  try {
-    await initializeSecretsFromKeyVault();
-    console.log('Key Vault initialization complete.');
-  } catch (error) {
-    console.warn('Unable to access Azure Key Vault:', error.message);
-    console.log('Falling back to manual credential entry.');
-  }
+  console.log('Falling back to manual credential entry since Azure Key Vault is not available in this environment.');
   
   // Try to get credentials from environment variables first (set by Key Vault)
   let apiKey = process.env.MAILGUN_API_KEY;
@@ -45,19 +37,19 @@ async function sendTestEmail() {
   if (!apiKey) {
     apiKey = await getUserInput('Enter Mailgun API Key: ');
   } else {
-    console.log('✅ Using Mailgun API Key from Azure Key Vault');
+    console.log('✅ Using Mailgun API Key from environment');
   }
   
   if (!domain) {
     domain = await getUserInput('Enter Mailgun Domain: ');
   } else {
-    console.log(`✅ Using Mailgun Domain from Azure Key Vault: ${domain}`);
+    console.log(`✅ Using Mailgun Domain from environment: ${domain}`);
   }
   
   if (!fromEmail) {
     fromEmail = await getUserInput('Enter From Email (default: postmaster@domain): ') || `postmaster@${domain}`;
   } else {
-    console.log(`✅ Using From Email from Azure Key Vault: ${fromEmail}`);
+    console.log(`✅ Using From Email from environment: ${fromEmail}`);
   }
   
   const toEmail = await getUserInput('Enter To Email (who should receive the test): ');
