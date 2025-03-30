@@ -9,8 +9,14 @@ import puppeteer from 'puppeteer';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import { CalculationResult as DBCalculationResult } from '../../../shared/schema';
 import { CalculationResult } from '../../../client/src/lib/calculators';
+
+// Get the directory name in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // PDF generation options
 interface PdfGenerationOptions {
@@ -112,17 +118,9 @@ export async function generateBondRepaymentPdf(
   inputData: any,
   options: PdfGenerationOptions = {}
 ): Promise<Buffer> {
-  // Read the HTML template
-  const templatePath = path.join(__dirname, '../../../client/src/templates/bond-repayment-report.html');
-  
-  // If template doesn't exist, create one dynamically
-  let templateHtml = '';
-  try {
-    templateHtml = fs.readFileSync(templatePath, 'utf8');
-  } catch (error) {
-    console.log('Template file not found, using dynamic template');
-    templateHtml = createDynamicBondRepaymentTemplate();
-  }
+  // Use the dynamic template as the primary source
+  // This avoids filesystem issues with different environments
+  let templateHtml = createDynamicBondRepaymentTemplate();
   
   // Generate HTML content for the PDF
   const htmlContent = renderBondRepaymentTemplate(templateHtml, calculationResult, inputData);
