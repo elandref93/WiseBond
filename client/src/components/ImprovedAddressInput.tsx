@@ -161,26 +161,42 @@ export default function ImprovedAddressInput({
     onChange(description);
     setIsOpen(false);
     
-    // Fetch place details
+    // Fetch place details with more fields
     placesServiceRef.current.getDetails(
       {
         placeId,
-        fields: ['address_components', 'formatted_address']
+        fields: [
+          'address_components',
+          'formatted_address',
+          'geometry',
+          'name',
+          'place_id',
+          'types'
+        ]
       },
       (place: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && place) {
-          // Extract address components
+          // Store raw data for reference
+          console.log('Google Place details:', place);
+          
+          // Extract address components with original data preserved
           const components = extractAddressComponents(place.address_components);
+          
+          // Store the raw place data for reference
+          components.rawData = place;
           
           // Create street address
           const streetAddress = components.streetNumber
             ? `${components.streetNumber} ${components.route}`
             : components.route;
           
+          // Use formatted_address as fallback if street address components are missing
+          const finalStreetAddress = streetAddress || place.formatted_address || description;
+          
           // Call onSelect if provided
           if (onSelect) {
             onSelect({
-              streetAddress: streetAddress || description,
+              streetAddress: finalStreetAddress,
               city: components.city,
               province: components.province,
               postalCode: components.postalCode

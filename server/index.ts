@@ -1,5 +1,7 @@
 // Load environment variables from .env file - must be first!
 import dotenv from 'dotenv';
+import { initializeSecretsFromKeyVault, listAvailableKeys } from './keyVault';
+
 const result = dotenv.config();
 
 // Debug environment variables loading
@@ -53,6 +55,19 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  try {
+    // Try to load secrets from Azure Key Vault
+    console.log('Attempting to load secrets from Azure Key Vault...');
+    await initializeSecretsFromKeyVault();
+    
+    // List available keys for debugging
+    const availableKeys = await listAvailableKeys();
+    console.log('Available keys in Azure Key Vault:', availableKeys);
+  } catch (error) {
+    console.error('Error initializing Azure Key Vault:', error);
+    console.log('Continuing with environment variables from .env file...');
+  }
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

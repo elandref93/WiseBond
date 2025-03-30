@@ -1,99 +1,73 @@
-# Mailgun Email Integration Setup
+# Mailgun Setup Guide for WiseBond
 
-This application uses Mailgun for email delivery for calculator result sharing and lead generation. To enable email functionality, you need to configure your Mailgun credentials.
+This document explains how to set up and configure Mailgun for email functionality in the WiseBond application.
 
-## Configuration Steps
+## Requirements
 
-1. Create an account on [Mailgun](https://www.mailgun.com/) if you don't already have one.
-2. Once logged in, go to your dashboard to find your API key and domain.
-3. Create a `.env` file in the root directory of this project (you can copy from `.env.example`).
-4. Add the following Mailgun-related environment variables to your `.env` file:
+- A Mailgun account
+- Domain verified with Mailgun
+- API credentials
+
+## Configuration Options
+
+The application supports two methods for configuring Mailgun:
+
+### 1. Environment Variables (.env file)
+
+Add your Mailgun credentials to the `.env` file in the project root:
 
 ```
-# Mailgun Configuration
-MAILGUN_API_KEY=your_mailgun_api_key_here
-MAILGUN_DOMAIN=your_mailgun_domain_here
-MAILGUN_FROM_EMAIL=noreply@yourdomain.com
+MAILGUN_API_KEY=your-mailgun-api-key
+MAILGUN_DOMAIN=your-domain.com
+MAILGUN_FROM_EMAIL=sender@your-domain.com
 ```
 
-Replace the placeholder values with your actual Mailgun API key, domain, and the email address you want to use as the sender.
+### 2. Azure Key Vault (Recommended for Production)
 
-## Email Features
+For secure storage of credentials in production, the application can fetch secrets from Azure Key Vault:
 
-### 1. Calculator Result Sharing
+1. Create an Azure Key Vault instance
+2. Add the following secrets:
+   - `MAILGUN-API-KEY`
+   - `MAILGUN-DOMAIN`
+   - `MAILGUN-FROM-EMAIL`
+3. Configure Azure credentials in your environment
 
-The application allows users to share their calculator results via email. This feature:
-- Collects lead information (name, email)
-- Sends a professionally formatted email with the calculation results
-- Stores the lead information in the database for follow-up
+## Testing Email Functionality
 
-### 2. Email Templates
+You can test the email functionality using the `test-email.js` script:
 
-The email templates are customized for each calculator type and include:
-- The specific calculation results
-- Call-to-action for contacting a home loan consultant
-- Professional formatting with HTML and plain text alternatives
+```
+node test-email.js
+```
 
-## Development Notes
-
-- In development mode without valid Mailgun credentials, the application will still function, but emails won't be sent
-- API calls to the email endpoint will return success responses even if the email isn't sent during development
-- Check the console logs for any Mailgun-related errors
-- For testing purposes, you may want to use Mailgun's sandbox domain during development
+This will attempt to send a test email using the configured Mailgun credentials.
 
 ## Troubleshooting
 
-### General Issues
-If emails are not being sent:
-1. Check that your Mailgun API key and domain are correctly configured in the `.env` file
-2. Verify your Mailgun account is active and not restricted
-3. Check server logs for any Mailgun-related errors
-4. Ensure your Mailgun sending domain is properly verified
-
 ### Sandbox Domain Restrictions
-If you're using a Mailgun sandbox domain (which is common for new accounts), be aware of these limitations:
 
-1. **Authorized Recipients Only**: Sandbox domains can only send to email addresses that have been verified as authorized recipients.
-   - Log in to your Mailgun dashboard
-   - Go to Sending → Domains
-   - Click on your sandbox domain
-   - Under "Authorized Recipients", add the email addresses you want to send to
-   - Recipients will need to click a verification link sent to their email
+If you're using a Mailgun sandbox domain, you can only send emails to authorized recipients. To add authorized recipients:
 
-2. **Daily Sending Limits**: Sandbox domains typically have very low sending limits (e.g., 300 emails per day)
+1. Log in to your Mailgun dashboard
+2. Navigate to Sending → Domains
+3. Select your sandbox domain
+4. Go to the "Authorized Recipients" section
+5. Add the email addresses you want to send to
 
-3. **From Address Requirements**: The "From" email address must use the sandbox domain
+### API Key Issues
 
-### Testing Your Configuration
-You can run a simple test to verify your Mailgun setup:
+If you're experiencing authentication issues, verify your API key is correct and that you're using the Private API Key, not the Public API Key.
 
-```bash
-# Test with default recipient
-node test-email.js
+### DNS Configuration
 
-# Test with a specific recipient
-TEST_EMAIL_TO=your.email@example.com node test-email.js
-```
+For production domains, ensure all required DNS records (SPF, DKIM, etc.) are properly configured according to Mailgun's instructions.
 
-This script will attempt to send a test email and provide detailed error information if it fails.
+## Email Templates
 
-### Production Recommendations
+The application includes pre-built templates for:
 
-For production use:
+- Calculation results emails
+- Account verification emails
 
-1. **Upgrade to a paid Mailgun plan** to remove sandbox restrictions and increase sending limits
-2. **Set up and verify a custom domain** for better deliverability and professional appearance
-3. **Implement email delivery monitoring** using Mailgun's event tracking APIs
-4. **Set up SPF and DKIM records** for your sending domain to improve deliverability
-
-### Environment Variables for Production
-
-For production environments, consider these additional variables:
-
-```
-# Optional: EU region endpoint if your Mailgun account is in the EU
-MAILGUN_API_ENDPOINT=https://api.eu.mailgun.net
-
-# Optional: Track open and click events (requires paid plan)
-MAILGUN_ENABLE_TRACKING=true
-```
+You can customize these templates in the `server/email.ts` file.

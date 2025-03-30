@@ -65,8 +65,19 @@ export function loadGoogleMapsApi(): Promise<void> {
       // Create script element
       const script = document.createElement('script');
       // Try to get API key from environment variable
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyA53hiST6HodGZbUPDsUawuykiyYZM5hIk';
-      console.log('Using Google Maps API key:', apiKey ? 'Available' : 'Missing');
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      
+      // Log detailed information about the API key
+      console.log('Google Maps API Key Details:');
+      console.log('- Key available:', !!apiKey);
+      console.log('- Key length:', apiKey ? apiKey.length : 0);
+      console.log('- Key prefix:', apiKey ? `${apiKey.substring(0, 5)}...` : 'N/A');
+      
+      if (!apiKey) {
+        console.error('Google Maps API key not found. Please check your environment variables.');
+      } else {
+        console.log('Google Maps API key is available and will be used for Places API requests');
+      }
       
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=googleMapsCallback`;
       script.async = true;
@@ -149,6 +160,7 @@ function mapProvinceName(provinceName: string): string {
 
 /**
  * Extract address components from Google Places result
+ * This improved version preserves all original data from Google's API
  */
 export function extractAddressComponents(components?: google.maps.AddressComponent[]) {
   if (!components) {
@@ -158,7 +170,10 @@ export function extractAddressComponents(components?: google.maps.AddressCompone
       city: '',
       province: '',
       postalCode: '',
-      country: ''
+      country: '',
+      // Original data
+      originalComponents: [],
+      rawData: null
     };
   }
 
@@ -168,7 +183,10 @@ export function extractAddressComponents(components?: google.maps.AddressCompone
     city: '',
     province: '',
     postalCode: '',
-    country: ''
+    country: '',
+    // Original data from Google, preserved for reference
+    originalComponents: components,
+    rawData: null as any
   };
 
   // Map component types to properties
@@ -181,6 +199,12 @@ export function extractAddressComponents(components?: google.maps.AddressCompone
     'country': 'country'
   };
 
+  // Also check for sublocality when city is not available
+  const fallbackTypeMap: Record<string, keyof typeof result> = {
+    'sublocality_level_1': 'city',
+    'sublocality': 'city'
+  };
+
   // Extract components
   for (const component of components) {
     for (const type of component.types) {
@@ -191,6 +215,18 @@ export function extractAddressComponents(components?: google.maps.AddressCompone
           result[property] = mapProvinceName(component.long_name);
         } else {
           result[property] = component.long_name;
+        }
+      }
+    }
+  }
+
+  // Apply fallbacks if primary values are missing
+  if (!result.city) {
+    for (const component of components) {
+      for (const type of component.types) {
+        const fallbackProperty = fallbackTypeMap[type];
+        if (fallbackProperty && !result[fallbackProperty]) {
+          result[fallbackProperty] = component.long_name;
         }
       }
     }

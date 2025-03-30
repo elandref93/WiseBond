@@ -6,14 +6,42 @@
 //
 // Note: For Mailgun sandbox domains, the recipient must be authorized in your Mailgun account.
 // See MAILGUN-SETUP.md for detailed instructions.
+//
+// This script can also load credentials from Azure Key Vault if configured
 
 import 'dotenv/config';
 import FormData from 'form-data';
 import Mailgun from 'mailgun.js';
 
+// Try to import the Azure Key Vault utilities
+let keyVaultModule;
+try {
+  keyVaultModule = await import('./server/keyVault.js');
+} catch (err) {
+  console.log('Azure Key Vault utilities not available, using only environment variables');
+}
+
 // Function to send a test email
 async function sendTestEmail() {
-  // Check if environment variables are set
+  // Try to load from Azure Key Vault first if available
+  if (keyVaultModule) {
+    console.log('🔐 Attempting to load credentials from Azure Key Vault...');
+    try {
+      // Try to initialize from Key Vault
+      await keyVaultModule.initializeSecretsFromKeyVault();
+      
+      // List available keys for debugging
+      const availableKeys = await keyVaultModule.listAvailableKeys();
+      console.log('Available keys in Azure Key Vault:', availableKeys);
+      
+      console.log('✅ Successfully loaded credentials from Azure Key Vault');
+    } catch (error) {
+      console.error('❌ Error loading from Azure Key Vault:', error.message);
+      console.log('⚠️ Falling back to environment variables in .env file');
+    }
+  }
+  
+  // Check if environment variables are set (either from .env or Key Vault)
   if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
     console.error('❌ Error: MAILGUN_API_KEY and MAILGUN_DOMAIN environment variables must be set');
     console.log('');
