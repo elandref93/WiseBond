@@ -734,15 +734,21 @@ function renderBondRepaymentTemplate(
       : parseInt(String(calculationResult.loanTerm) || '20');
       
     const interestRate = inputData?.interestRate 
-      ? parseFloat(String(inputData.interestRate)) / 100 
-      : parseFloat(String(calculationResult.interestRate || '0').replace('%', '')) / 100;
-      
-    const monthlyRate = interestRate / 12;
-    const totalMonths = loanTerm * 12;
+      ? parseFloat(String(inputData.interestRate)) 
+      : parseFloat(String(calculationResult.interestRate || '0').replace('%', ''));
     
-    // Use the exact same loan amount and total interest to ensure consistency
-    let balance = loanAmount;
-    const originalBalance = balance;
+    // =====================================================================
+    // IMPORTANT: Use the exact same calculation logic as AmortizationChart.tsx
+    // =====================================================================
+    
+    // Calculate the monthly payment (same formula as in client/src/components/calculators/charts/AmortizationChart.tsx)
+    const monthlyRate = interestRate / 100 / 12;
+    const totalPayments = loanTerm * 12;
+    const calculatedMonthlyPayment = (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) /
+        (Math.pow(1 + monthlyRate, totalPayments) - 1);
+    
+    // Generate chart data using the same logic as AmortizationChart.tsx
+    let remainingBalance = loanAmount;
     let yearlyLabels = [];
     let yearlyBalances = [];
     let yearlyPrincipalPaid = [];
@@ -751,146 +757,65 @@ function renderBondRepaymentTemplate(
     
     let cumulativePrincipalPaid = 0;
     let cumulativeInterestPaid = 0;
-    let cumulativeTotalPaid = 0;
     
     // Calculate yearly amortization schedule
     for (let year = 0; year <= loanTerm; year++) {
       yearlyLabels.push(year);
       
-      // Opening balance for this year
-      const openingBalance = balance;
-      yearlyBalances.push(openingBalance);
-      
-      // For year 0, we only record the initial balance
       if (year === 0) {
+        // Starting point
+        yearlyBalances.push(loanAmount);
+        yearlyPrincipalPaid.push(0);
+        yearlyInterestPaid.push(0);
+        
         yearlyTableRows += `
           <tr>
             <td>${year}</td>
-            <td>R ${openingBalance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+            <td>R ${loanAmount.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
             <td>R 0.00</td>
             <td>R 0.00</td>
-            <td>R ${openingBalance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+            <td>R ${loanAmount.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
           </tr>
         `;
-        yearlyPrincipalPaid.push(0);
-        yearlyInterestPaid.push(0);
         continue;
       }
       
-      // Calculate payments for this year (12 months)
-      let yearPrincipalPaid = 0;
-      let yearInterestPaid = 0;
+      // Calculate payments for this year exactly as in AmortizationChart.tsx
+      let yearlyPrincipal = 0;
+      let yearlyInterest = 0;
       
+      // Calculate monthly payments for the year - using the exact same logic as the client chart
       for (let month = 1; month <= 12; month++) {
-        // Skip if we've paid off the loan
-        if (balance <= 0) break;
-        
-        // Calculate interest for this month
-        const interestForMonth = balance * monthlyRate;
-        
-        // Calculate principal for this month
-        let principalForMonth = monthlyPayment - interestForMonth;
-        
-        // If this payment would pay off the loan, adjust it
-        if (principalForMonth > balance) {
-          principalForMonth = balance;
+        if ((year - 1) * 12 + month <= loanTerm * 12) {
+          const monthlyInterest = remainingBalance * (interestRate / 100 / 12);
+          const monthlyPrincipal = calculatedMonthlyPayment - monthlyInterest;
+          
+          yearlyInterest += monthlyInterest;
+          yearlyPrincipal += monthlyPrincipal;
+          remainingBalance -= monthlyPrincipal;
+          
+          // Prevent negative balance from floating point errors
+          if (remainingBalance < 0.01) remainingBalance = 0;
         }
-        
-        // Update balances
-        yearInterestPaid += interestForMonth;
-        yearPrincipalPaid += principalForMonth;
-        balance -= principalForMonth;
-        
-        // If balance is very small (floating point errors), set to zero
-        if (balance < 0.01) balance = 0;
       }
       
-      cumulativePrincipalPaid += yearPrincipalPaid;
-      cumulativeInterestPaid += yearInterestPaid;
-      cumulativeTotalPaid = cumulativePrincipalPaid + cumulativeInterestPaid;
+      cumulativePrincipalPaid += yearlyPrincipal;
+      cumulativeInterestPaid += yearlyInterest;
       
-      // Add to yearly arrays for charts
-      yearlyPrincipalPaid.push(yearPrincipalPaid);
-      yearlyInterestPaid.push(yearInterestPaid);
+      yearlyPrincipalPaid.push(yearlyPrincipal);
+      yearlyInterestPaid.push(yearlyInterest);
+      yearlyBalances.push(Math.max(0, remainingBalance));
       
       // Add row to table
       yearlyTableRows += `
         <tr>
           <td>${year}</td>
-          <td>R ${openingBalance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-          <td>R ${yearInterestPaid.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-          <td>R ${yearPrincipalPaid.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-          <td>R ${balance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+          <td>R ${(loanAmount - cumulativePrincipalPaid + yearlyPrincipal).toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+          <td>R ${yearlyInterest.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+          <td>R ${yearlyPrincipal.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+          <td>R ${Math.max(0, remainingBalance).toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
         </tr>
       `;
-    }
-    
-    // Check if our calculated values are close to the original calculation
-    // If not, adjust them to match (this ensures consistency with the main results)
-    const calculatedPrincipal = cumulativePrincipalPaid;
-    const calculatedInterest = cumulativeInterestPaid;
-    
-    // If there's a significant difference, scale our calculations to match
-    if (Math.abs(calculatedInterest - totalInterest) > 0.01 * totalInterest) {
-      const interestScaleFactor = totalInterest / calculatedInterest;
-      
-      // Regenerate the yearly data with the correct scaling
-      balance = originalBalance;
-      yearlyBalances = [originalBalance];
-      yearlyPrincipalPaid = [0];
-      yearlyInterestPaid = [0];
-      yearlyTableRows = `
-        <tr>
-          <td>0</td>
-          <td>R ${originalBalance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-          <td>R 0.00</td>
-          <td>R 0.00</td>
-          <td>R ${originalBalance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-        </tr>
-      `;
-      
-      // Adjust the interest calculation to match the main calculation
-      for (let year = 1; year <= loanTerm; year++) {
-        // Calculate for this year with adjusted interest
-        const openingBalance = balance;
-        
-        let yearPrincipalPaid = 0;
-        let yearInterestPaid = 0;
-        
-        for (let month = 1; month <= 12; month++) {
-          if (balance <= 0) break;
-          
-          // Calculate adjusted interest for this month
-          const interestForMonth = (balance * monthlyRate) * interestScaleFactor;
-          
-          // Calculate principal for this month
-          let principalForMonth = monthlyPayment - interestForMonth;
-          
-          if (principalForMonth > balance) {
-            principalForMonth = balance;
-          }
-          
-          yearInterestPaid += interestForMonth;
-          yearPrincipalPaid += principalForMonth;
-          balance -= principalForMonth;
-          
-          if (balance < 0.01) balance = 0;
-        }
-        
-        yearlyBalances.push(balance);
-        yearlyPrincipalPaid.push(yearPrincipalPaid);
-        yearlyInterestPaid.push(yearInterestPaid);
-        
-        yearlyTableRows += `
-          <tr>
-            <td>${year}</td>
-            <td>R ${openingBalance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-            <td>R ${yearInterestPaid.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-            <td>R ${yearPrincipalPaid.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-            <td>R ${balance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-          </tr>
-        `;
-      }
     }
     
     // Add yearly data to template
