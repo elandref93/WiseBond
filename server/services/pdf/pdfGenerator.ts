@@ -832,8 +832,18 @@ function renderBondRepaymentTemplate(
     // Extract data for the chart and table
     const yearlyLabels = amortizationData.map((item: {year: number}) => item.year);
     const yearlyBalances = amortizationData.map((item: {balance: number}) => item.balance);
-    const yearlyPrincipalPaid = amortizationData.map((item: {principal: number}) => item.principal);
-    const yearlyInterestPaid = amortizationData.map((item: {interest: number}) => item.interest);
+    
+    // For the chart, we need to use cumulative values (as in the frontend)
+    // to match what the user sees on the website
+    const yearlyPrincipalPaid = amortizationData.map((item: {
+      principal: number;
+      cumulativePrincipal?: number;
+    }) => item.cumulativePrincipal || 0);
+    
+    const yearlyInterestPaid = amortizationData.map((item: {
+      interest: number;
+      cumulativeInterest?: number;
+    }) => item.cumulativeInterest || 0);
     
     // Generate HTML for the yearly breakdown table
     let yearlyTableRows = '';
