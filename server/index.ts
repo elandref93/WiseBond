@@ -1,27 +1,9 @@
-// Load environment variables from .env file - must be first!
-import dotenv from 'dotenv';
+// Only use Azure Key Vault for configuration
 import { initializeSecretsFromKeyVault, listAvailableKeys } from './keyVault';
 
-const result = dotenv.config();
-
-// Debug environment variables loading
-console.log('dotenv loaded:', result.error ? 'ERROR' : 'SUCCESS');
-if (result.error) {
-  console.error('Error loading .env file:', result.error.message);
-} else {
-  console.log('Checking key environment variables:');
-  console.log('MAILGUN_API_KEY present:', !!process.env.MAILGUN_API_KEY);
-  console.log('MAILGUN_DOMAIN present:', !!process.env.MAILGUN_DOMAIN);
-  console.log('MAILGUN_FROM_EMAIL present:', !!process.env.MAILGUN_FROM_EMAIL);
-  console.log('MAILGUN_DOMAIN value:', process.env.MAILGUN_DOMAIN);
-  console.log('GOOGLE_MAPS_API_KEY present:', !!process.env.GOOGLE_MAPS_API_KEY);
-  
-  // Ensure Google Maps API key is available for the frontend
-  if (process.env.GOOGLE_MAPS_API_KEY && !process.env.VITE_GOOGLE_MAPS_API_KEY) {
-    process.env.VITE_GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
-    console.log('Set VITE_GOOGLE_MAPS_API_KEY from GOOGLE_MAPS_API_KEY');
-  }
-}
+// We only need dotenv for non-secret configuration (e.g. SESSION_SECRET)
+import dotenv from 'dotenv';
+dotenv.config();
 
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";

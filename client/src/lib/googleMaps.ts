@@ -64,19 +64,11 @@ export function loadGoogleMapsApi(): Promise<void> {
       
       // Create script element
       const script = document.createElement('script');
-      // Try to get API key from environment variable
+      // Get API key from environment variable (set by Key Vault via server)
       const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
       
-      // Log detailed information about the API key
-      console.log('Google Maps API Key Details:');
-      console.log('- Key available:', !!apiKey);
-      console.log('- Key length:', apiKey ? apiKey.length : 0);
-      console.log('- Key prefix:', apiKey ? `${apiKey.substring(0, 5)}...` : 'N/A');
-      
       if (!apiKey) {
-        console.error('Google Maps API key not found. Please check your environment variables.');
-      } else {
-        console.log('Google Maps API key is available and will be used for Places API requests');
+        console.error('Google Maps API key not found. Please check Azure Key Vault configuration.');
       }
       
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=googleMapsCallback`;
@@ -232,9 +224,6 @@ export function extractAddressComponents(components?: google.maps.AddressCompone
     }
   }
 
-  // Log the extracted components for debugging
-  console.log('Extracted address components:', result);
-  
   return result;
 }
 

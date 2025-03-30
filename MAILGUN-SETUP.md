@@ -5,43 +5,40 @@ This document explains how to set up and configure Mailgun for email functionali
 ## Requirements
 
 - A Mailgun account
-- Domain verified with Mailgun
+- Domain verified with Mailgun (wisebond.co.za)
 - API credentials
 
-## Configuration Options
+## Configuration Method: Azure Key Vault
 
-The application supports two methods for configuring Mailgun:
+WiseBond uses Azure Key Vault exclusively for storing and retrieving sensitive credentials:
 
-### 1. Environment Variables (.env file)
-
-Add your Mailgun credentials to the `.env` file in the project root:
-
-```
-MAILGUN_API_KEY=your-mailgun-api-key
-MAILGUN_DOMAIN=your-domain.com
-MAILGUN_FROM_EMAIL=sender@your-domain.com
-```
-
-### 2. Azure Key Vault (Recommended for Production)
-
-For secure storage of credentials in production, the application can fetch secrets from Azure Key Vault:
-
-1. Create an Azure Key Vault instance
-2. Add the following secrets (using lowercase naming convention):
-   - `mailgun-api-key`
-   - `mailgun-domain`
-   - `mailgun-from-email`
-3. Configure Azure credentials in your environment
+1. Create an Azure Key Vault instance named "wisebond"
+2. Add the following secrets (using lowercase naming convention with hyphens):
+   - `mailgun-api-key` - Your Mailgun Private API key
+   - `mailgun-domain` - Your verified Mailgun domain (wisebond.co.za)
+   - `mailgun-from-email` - Your sender email (postmaster@wisebond.co.za)
+3. Configure Azure credentials in your environment (for local development only)
 
 ## Testing Email Functionality
 
-You can test the email functionality using the `test-email.js` script:
+You can test the email functionality using the provided test scripts:
 
-```
-node test-email.js
-```
+1. Test Azure Key Vault secrets:
+   ```
+   node test-keyvault.js
+   ```
 
-This will attempt to send a test email using the configured Mailgun credentials.
+2. Test Mailgun directly (uses Key Vault for credentials):
+   ```
+   node test-mailgun.js
+   ```
+
+3. Test the email functionality through the application:
+   ```
+   node test-email.js
+   ```
+
+These tests will verify your Azure Key Vault is properly configured and that emails can be sent using the retrieved credentials.
 
 ## Troubleshooting
 
