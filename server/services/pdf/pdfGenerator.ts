@@ -1524,12 +1524,29 @@ function renderAdditionalPaymentTemplate(
     // Extract values from the calculation result
     const standardMonthlyPayment = calculationResult.standardMonthlyPayment || 0;
     const newMonthlyPayment = calculationResult.newMonthlyPayment || 0;
-    const standardLoanTermMonths = numLoanTerm * 12;
+    
+    // Use provided values or calculate if missing
+    const standardLoanTermMonths = calculationResult.standardLoanTermMonths || numLoanTerm * 12;
     const newLoanTermMonths = calculationResult.newTermMonths || 0;
-    const totalStandardInterest = calculationResult.totalStandardInterest || (standardMonthlyPayment * standardLoanTermMonths) - numLoanAmount;
-    const totalNewInterest = calculationResult.totalNewInterest || (newMonthlyPayment * newLoanTermMonths) - numLoanAmount;
+    
+    // For chart data - use provided values or calculate if missing
+    const totalStandardInterest = calculationResult.totalStandardInterest || 
+      ((standardMonthlyPayment * standardLoanTermMonths) - numLoanAmount);
+    
+    const totalNewInterest = calculationResult.totalNewInterest || 
+      ((newMonthlyPayment * newLoanTermMonths) - numLoanAmount);
+    
     const timeSavedMonths = calculationResult.timeSavedMonths || 0;
     const interestSaved = calculationResult.interestSaved || 0;
+    
+    console.log("Chart data values:", {
+      standardMonthlyPayment,
+      newMonthlyPayment,
+      standardLoanTermMonths,
+      newLoanTermMonths,
+      totalStandardInterest,
+      totalNewInterest
+    });
     
     // Format time saved for display
     let timeSavedText = '';

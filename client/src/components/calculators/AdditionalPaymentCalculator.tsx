@@ -164,6 +164,10 @@ export default function AdditionalPaymentCalculator({ onCalculate }: AdditionalP
           newTermMonths,
           timeSavedMonths,
           interestSaved,
+          // Add missing fields for PDF charts
+          totalStandardInterest,
+          totalNewInterest,
+          standardLoanTermMonths: loanTermMonths
         };
 
         onCalculate(result);
