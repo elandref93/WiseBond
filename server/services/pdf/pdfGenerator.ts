@@ -701,8 +701,90 @@ function renderBondRepaymentTemplate(
   
   // Set chart data and prepare values for calculations
   if (calculationResult) {
-    // Import the shared amortization utility functions directly
-    const { generateAmortizationData } = require('../../../client/src/lib/amortizationUtils');
+    // Import the amortization utility functions - implement the calculation here directly
+    // to avoid import path issues between client/server
+    const generateAmortizationData = (
+      loanAmount: number,
+      interestRate: number,
+      loanTerm: number
+    ) => {
+      // Calculate monthly payment function
+      const calculateMonthlyPayment = (
+        principal: number, 
+        interestRate: number, 
+        termYears: number
+      ): number => {
+        const monthlyRate = interestRate / 100 / 12;
+        const totalPayments = termYears * 12;
+        return (
+          (principal * monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) /
+          (Math.pow(1 + monthlyRate, totalPayments) - 1)
+        );
+      };
+
+      const data: Array<{
+        year: number;
+        principal: number;
+        interest: number;
+        balance: number;
+        cumulativePrincipal?: number;
+        cumulativeInterest?: number;
+      }> = [];
+      
+      let remainingBalance = loanAmount;
+      let cumulativeInterest = 0;
+      let cumulativePrincipal = 0;
+
+      const monthlyPayment = calculateMonthlyPayment(loanAmount, interestRate, loanTerm);
+
+      // Calculate yearly data
+      for (let year = 0; year <= loanTerm; year++) {
+        if (year === 0) {
+          // Starting point
+          data.push({
+            year,
+            principal: 0,
+            interest: 0,
+            balance: loanAmount,
+            cumulativePrincipal: 0,
+            cumulativeInterest: 0
+          });
+          continue;
+        }
+
+        let yearlyPrincipal = 0;
+        let yearlyInterest = 0;
+
+        // Calculate monthly payments for the year
+        for (let month = 1; month <= 12; month++) {
+          if ((year - 1) * 12 + month <= loanTerm * 12) {
+            const monthlyInterest = remainingBalance * (interestRate / 100 / 12);
+            const monthlyPrincipal = monthlyPayment - monthlyInterest;
+
+            yearlyInterest += monthlyInterest;
+            yearlyPrincipal += monthlyPrincipal;
+            remainingBalance -= monthlyPrincipal;
+
+            // Prevent negative balance from floating point errors
+            if (remainingBalance < 0.01) remainingBalance = 0;
+          }
+        }
+
+        cumulativeInterest += yearlyInterest;
+        cumulativePrincipal += yearlyPrincipal;
+
+        data.push({
+          year,
+          principal: yearlyPrincipal,
+          interest: yearlyInterest,
+          balance: Math.max(0, remainingBalance),
+          cumulativePrincipal,
+          cumulativeInterest
+        });
+      }
+
+      return data;
+    };
     
     // Helper function to parse currency values
     const parseCurrencyValue = (value: string | number | undefined): number => {
@@ -748,15 +830,20 @@ function renderBondRepaymentTemplate(
     const amortizationData = generateAmortizationData(loanAmount, interestRate, loanTerm);
     
     // Extract data for the chart and table
-    const yearlyLabels = amortizationData.map(item => item.year);
-    const yearlyBalances = amortizationData.map(item => item.balance);
-    const yearlyPrincipalPaid = amortizationData.map(item => item.principal);
-    const yearlyInterestPaid = amortizationData.map(item => item.interest);
+    const yearlyLabels = amortizationData.map((item: {year: number}) => item.year);
+    const yearlyBalances = amortizationData.map((item: {balance: number}) => item.balance);
+    const yearlyPrincipalPaid = amortizationData.map((item: {principal: number}) => item.principal);
+    const yearlyInterestPaid = amortizationData.map((item: {interest: number}) => item.interest);
     
     // Generate HTML for the yearly breakdown table
     let yearlyTableRows = '';
     
-    amortizationData.forEach(yearData => {
+    amortizationData.forEach((yearData: {
+      year: number;
+      principal: number;
+      interest: number;
+      balance: number;
+    }) => {
       const openingBalance = yearData.year === 0 
         ? loanAmount 
         : (yearData.balance + yearData.principal); // Opening balance is closing balance + principal paid
