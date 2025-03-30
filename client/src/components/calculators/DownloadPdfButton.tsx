@@ -25,6 +25,9 @@ export default function DownloadPdfButton({
     try {
       setLoading(true);
       
+      console.log("Download requested for calculation type:", result.type);
+      console.log("Form values:", formValues);
+      
       // For bond calculator
       if (result.type === 'bond') {
         const response = await fetch('/api/reports/bond-repayment', {
@@ -71,6 +74,14 @@ export default function DownloadPdfButton({
       } 
       // For additional payment calculator
       else if (result.type === 'additional') {
+        console.log("Sending additional payment PDF request with data:", {
+          loanAmount: formValues?.loanAmount,
+          interestRate: formValues?.interestRate,
+          loanTerm: formValues?.loanTerm,
+          additionalPayment: formValues?.additionalPayment,
+          calculationResult: result
+        });
+        
         const response = await fetch('/api/reports/additional-payment', {
           method: 'POST',
           headers: {
@@ -86,7 +97,14 @@ export default function DownloadPdfButton({
         });
         
         if (!response.ok) {
-          throw new Error('Failed to generate PDF');
+          // Try to get more detailed error information
+          try {
+            const errorData = await response.json();
+            console.error("Server error response:", errorData);
+            throw new Error(`Failed to generate PDF: ${errorData.message || 'Unknown error'}`);
+          } catch (jsonError) {
+            throw new Error(`Failed to generate PDF: ${response.status} ${response.statusText}`);
+          }
         }
         
         // Get the PDF as a blob

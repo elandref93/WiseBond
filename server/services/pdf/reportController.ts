@@ -103,6 +103,8 @@ export async function generateBondRepaymentReport(req: Request, res: Response) {
  */
 export async function generateAdditionalPaymentReport(req: Request, res: Response) {
   try {
+    console.log("Received additional payment report request:", req.body);
+    
     const { 
       loanAmount, 
       interestRate, 
@@ -112,6 +114,12 @@ export async function generateAdditionalPaymentReport(req: Request, res: Respons
     } = req.body;
     
     if (!loanAmount || !interestRate || !loanTerm || !additionalPayment) {
+      console.error("Missing required parameters:", { 
+        hasLoanAmount: !!loanAmount, 
+        hasInterestRate: !!interestRate, 
+        hasLoanTerm: !!loanTerm, 
+        hasAdditionalPayment: !!additionalPayment
+      });
       return res.status(400).json({ 
         message: 'Missing required parameters. Please provide loanAmount, interestRate, loanTerm, and additionalPayment.' 
       });
@@ -119,6 +127,7 @@ export async function generateAdditionalPaymentReport(req: Request, res: Respons
 
     // Use provided calculation result as we don't have a direct calculation function for this in the controller
     if (!calculationResult) {
+      console.error("Missing calculation result in request");
       return res.status(400).json({ 
         message: 'Missing calculation result. Please provide the calculation result object.' 
       });

@@ -901,21 +901,29 @@ export async function generateAdditionalPaymentPdf(
   inputData: any,
   options: PdfGenerationOptions = {}
 ): Promise<Buffer> {
-  // Create the HTML template
-  let templateHtml = createDynamicAdditionalPaymentTemplate();
-  
-  // Generate HTML content for the PDF
-  const htmlContent = renderAdditionalPaymentTemplate(templateHtml, calculationResult, inputData);
-  
-  // Set title for the report
-  const title = options.title || 'Additional Payment Calculation';
-  const pdfOptions = {
-    ...options,
-    title
-  };
-  
-  // Generate the PDF
-  return generatePdfFromHtml(htmlContent, pdfOptions);
+  try {
+    console.log("Generating additional payment PDF with calculation result:", JSON.stringify(calculationResult));
+    console.log("Input data:", JSON.stringify(inputData));
+    
+    // Create the HTML template
+    let templateHtml = createDynamicAdditionalPaymentTemplate();
+    
+    // Generate HTML content for the PDF
+    const htmlContent = renderAdditionalPaymentTemplate(templateHtml, calculationResult, inputData);
+    
+    // Set title for the report
+    const title = options.title || 'Additional Payment Calculation';
+    const pdfOptions = {
+      ...options,
+      title
+    };
+    
+    // Generate the PDF
+    return await generatePdfFromHtml(htmlContent, pdfOptions);
+  } catch (error) {
+    console.error("Error in generateAdditionalPaymentPdf:", error);
+    throw error;
+  }
 }
 
 /**
