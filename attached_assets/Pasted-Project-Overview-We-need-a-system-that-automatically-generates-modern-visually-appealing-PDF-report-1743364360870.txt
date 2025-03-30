@@ -1,0 +1,91 @@
+Project Overview
+We need a system that automatically generates modern, visually appealing PDF reports using Puppeteer. These reports will be sent to our clients and must include:
+
+Dynamic Calculations based on data from our website’s backend or APIs.
+
+Charts & Graphs (e.g., using a JavaScript charting library like Chart.js or D3.js).
+
+Data Tables with clear headings and row/column structures.
+
+Responsive Design so the final PDF appears modern and easy to read.
+
+Branding Elements (e.g., logos, fonts, color scheme) reflecting our corporate style.
+
+Technical Requirements
+
+Puppeteer Integration
+
+Use Puppeteer to automate the process of rendering HTML/CSS/JS and converting it into a PDF.
+
+Ensure support for headless Chrome features that handle advanced rendering (including SVGs for charts).
+
+Provide a script or function that accepts JSON or API data as an input and outputs the generated PDF.
+
+Layout & Styling
+
+Incorporate a modern, minimalistic design (ample white space, consistent typography, subtle color accents).
+
+Ensure tables and charts are neatly spaced, with clear headings and legends.
+
+Implement custom fonts, color palettes, and our company logo as provided.
+
+Include a cover page (optional) with the report title, date, and client name.
+
+Charts & Tables
+
+Use a JS library (Chart.js, D3.js, or similar) to render charts dynamically in the HTML. Puppeteer will capture them in the PDF.
+
+Create multiple chart types (line, bar, pie, etc.) depending on the data set.
+
+Generate tables with aggregated or calculated data (e.g., totals, averages, percentages).
+
+Data & Calculations
+
+Pull data from our site’s REST API (or any provided data source).
+
+Perform required calculations (sums, averages, trends, comparisons).
+
+Display the results in the PDF in both textual and graphical formats.
+
+Document Structure
+
+Cover Page (branding, client details, date, title)
+
+Executive Summary (one-page highlights of the key metrics or findings)
+
+Detailed Sections:
+
+Section 1: Data tables + relevant calculations.
+
+Section 2: Charts/graphs illustrating the data.
+
+Section 3: Explanations, insights, or commentary text.
+
+Conclusion/Recommendations (where applicable).
+
+Testing & Quality Assurance
+
+Ensure the PDF layout remains consistent across different operating systems (Windows, Mac, Linux).
+
+Verify that charts and tables render properly at various data sizes (e.g., small data sets vs. large data sets).
+
+Confirm performance efficiency so PDF generation is not unreasonably slow.
+
+Output Expectations
+
+Provide the complete source code (JavaScript/TypeScript, Node.js setup, HTML/CSS/JS templates) needed to generate the PDF.
+
+Document any installation and usage instructions in a concise README.
+
+Demonstrate an example input (JSON or API call) and show the resulting PDF output.
+
+Success Criteria
+
+A stable, maintainable Puppeteer-based solution that generates professional-looking PDFs without manual intervention.
+
+The PDF must be clear, easy to read, and reflect our branding guidelines.
+
+Charts, tables, and calculations must update accurately based on new data feeds.
+
+Quick and secure generation process for each client request.
+

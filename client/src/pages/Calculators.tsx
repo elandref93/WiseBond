@@ -24,6 +24,7 @@ export default function Calculators() {
   
   const [activeTab, setActiveTab] = useState(tabParam || "bond");
   const [calculationResults, setCalculationResults] = useState<CalculationResult | null>(null);
+  const [formValues, setFormValues] = useState<any>(null);
   const { user } = useAuth();
 
   // Fetch user's saved calculations if logged in
@@ -32,8 +33,11 @@ export default function Calculators() {
     enabled: !!user, // Only run query if user is logged in
   });
 
-  const handleCalculationComplete = (results: CalculationResult) => {
+  const handleCalculationComplete = (results: CalculationResult, values?: any) => {
     setCalculationResults(results);
+    if (values) {
+      setFormValues(values);
+    }
   };
 
   return (
@@ -264,7 +268,7 @@ export default function Calculators() {
                     </div>
                     <div className="md:col-span-2">
                       {calculationResults && calculationResults.type === 'bond' ? (
-                        <CalculationResults results={calculationResults} />
+                        <CalculationResults results={calculationResults} formValues={formValues} />
                       ) : (
                         <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
                           <div className="text-center">
@@ -390,7 +394,7 @@ export default function Calculators() {
                     </div>
                     <div className="md:col-span-2">
                       {calculationResults && calculationResults.type === 'amortisation' ? (
-                        <CalculationResults results={calculationResults} />
+                        <CalculationResults results={calculationResults} formValues={formValues} />
                       ) : (
                         <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
                           <div className="text-center">

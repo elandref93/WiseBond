@@ -11,12 +11,19 @@ import {
 import AmortizationResults from "./AmortizationResults";
 import ShareCalculation from "./ShareCalculation";
 import EmailCalculationButton from "./EmailCalculationButton";
+import DownloadPdfButton from "./DownloadPdfButton";
+
+// Type predicate to check if the calculation type is supported for PDF download
+function isPdfSupported(result: CalculationResult): boolean {
+  return result.type === 'bond' || result.type === 'amortisation';
+}
 
 interface CalculationResultsProps {
   results: CalculationResult;
+  formValues?: any;
 }
 
-export default function CalculationResults({ results }: CalculationResultsProps) {
+export default function CalculationResults({ results, formValues }: CalculationResultsProps) {
   if (!results || !results.displayResults || results.displayResults.length === 0) {
     return null;
   }
@@ -33,6 +40,9 @@ export default function CalculationResults({ results }: CalculationResultsProps)
             <div className="flex gap-2">
               <EmailCalculationButton result={results} size="sm" variant="outline" />
               <ShareCalculation result={results} size="sm" />
+              {isPdfSupported(results) && (
+                <DownloadPdfButton result={results} formValues={formValues} size="sm" variant="outline" />
+              )}
             </div>
           </div>
           <AmortizationResults results={results as any} />
@@ -52,6 +62,9 @@ export default function CalculationResults({ results }: CalculationResultsProps)
           <div className="flex gap-2">
             <EmailCalculationButton result={results} size="sm" variant="outline" />
             <ShareCalculation result={results} size="sm" />
+            {isPdfSupported(results) && (
+              <DownloadPdfButton result={results} formValues={formValues} size="sm" variant="outline" />
+            )}
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -41,7 +41,7 @@ const formSchema = z.object({
 type BondRepaymentFormValues = z.infer<typeof formSchema>;
 
 interface BondRepaymentCalculatorProps {
-  onCalculate: (results: CalculationResult) => void;
+  onCalculate: (results: CalculationResult, formValues?: any) => void;
 }
 
 export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCalculatorProps) {
@@ -98,8 +98,8 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
           loanTerm
         });
         
-        // Pass results back to parent component
-        onCalculate(results);
+        // Pass results and form values back to parent component
+        onCalculate(results, formValues);
 
         // Save calculation if user is logged in (but only every 5 seconds to avoid too many requests)
         if (user && 
