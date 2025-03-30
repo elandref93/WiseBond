@@ -699,36 +699,46 @@ function renderBondRepaymentTemplate(
   }
   html = html.replace('{{inputDetails}}', inputDetailsHtml);
   
-  // Set chart data
+  // Set chart data and prepare values for calculations
   if (calculationResult) {
-    const loanAmount = parseFloat(String(calculationResult.loanAmount)) || 0;
-    const totalInterest = parseFloat(String(calculationResult.totalInterest)) || 0;
+    // Helper function to parse currency values
+    const parseCurrencyValue = (value: string | number | undefined): number => {
+      if (!value) return 0;
+      const valueStr = String(value).replace(/R\s*/g, '').replace(/,/g, '').trim();
+      return parseFloat(valueStr) || 0;
+    };
     
+    // Calculate loan amount from input values - property value minus deposit
+    let loanAmount = 0;
+    if (inputData && inputData.propertyValue) {
+      const propertyValue = parseCurrencyValue(inputData.propertyValue);
+      const deposit = parseCurrencyValue(inputData.deposit || 0);
+      loanAmount = propertyValue - deposit;
+    } else if (calculationResult.loanAmount) {
+      // Fallback to calculation result if input data isn't available
+      loanAmount = parseCurrencyValue(calculationResult.loanAmount);
+    }
+    
+    // Parse other values with currency format handling
+    const totalInterest = parseCurrencyValue(calculationResult.totalInterest);
+    const totalRepayment = parseCurrencyValue(calculationResult.totalRepayment);
+    const monthlyPayment = parseCurrencyValue(calculationResult.monthlyPayment);
+    
+    // Add principal and interest values to the template for pie chart
     html = html.replace('{{principal}}', loanAmount.toString());
     html = html.replace('{{interest}}', totalInterest.toString());
     
-    // Generate yearly breakdown data - using values from the calculationResult
-    const loanTerm = inputData?.loanTerm ? parseInt(inputData.loanTerm) : 20;
-    const interestRate = inputData?.interestRate ? parseFloat(inputData.interestRate) / 100 : 0.10;
+    // Generate yearly breakdown data - using only values from the input data, with fallbacks to calculation results
+    const loanTerm = inputData?.loanTerm 
+      ? parseInt(String(inputData.loanTerm)) 
+      : parseInt(String(calculationResult.loanTerm) || '20');
+      
+    const interestRate = inputData?.interestRate 
+      ? parseFloat(String(inputData.interestRate)) / 100 
+      : parseFloat(String(calculationResult.interestRate || '0').replace('%', '')) / 100;
+      
     const monthlyRate = interestRate / 12;
     const totalMonths = loanTerm * 12;
-    
-    // Parse the monthly payment properly, handling currency formatting
-    let monthlyPaymentStr = String(calculationResult.monthlyPayment || '0');
-    // Remove the 'R' symbol, spaces, and commas
-    monthlyPaymentStr = monthlyPaymentStr.replace(/R\s*/g, '').replace(/,/g, '').trim();
-    const monthlyPayment = parseFloat(monthlyPaymentStr);
-    
-    // Make sure we're using the same values as the main calculation
-    // Parse total repayment properly
-    let totalRepaymentStr = String(calculationResult.totalRepayment || '0');
-    totalRepaymentStr = totalRepaymentStr.replace(/R\s*/g, '').replace(/,/g, '').trim();
-    const totalRepayment = parseFloat(totalRepaymentStr);
-    
-    // Parse total interest properly
-    let totalInterestStr = String(calculationResult.totalInterest || '0');
-    totalInterestStr = totalInterestStr.replace(/R\s*/g, '').replace(/,/g, '').trim();
-    const totalInterestFromCalc = parseFloat(totalInterestStr);
     
     // Use the exact same loan amount and total interest to ensure consistency
     let balance = loanAmount;
@@ -821,8 +831,8 @@ function renderBondRepaymentTemplate(
     const calculatedInterest = cumulativeInterestPaid;
     
     // If there's a significant difference, scale our calculations to match
-    if (Math.abs(calculatedInterest - totalInterestFromCalc) > 0.01 * totalInterestFromCalc) {
-      const interestScaleFactor = totalInterestFromCalc / calculatedInterest;
+    if (Math.abs(calculatedInterest - totalInterest) > 0.01 * totalInterest) {
+      const interestScaleFactor = totalInterest / calculatedInterest;
       
       // Regenerate the yearly data with the correct scaling
       balance = originalBalance;
