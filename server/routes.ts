@@ -7,7 +7,7 @@ import { insertUserSchema, loginSchema, insertCalculationResultSchema, insertCon
 import { ZodError } from "zod";
 import { fromZodError } from 'zod-validation-error';
 import { sendCalculationEmail, sendVerificationEmail } from "./email";
-import { generateBondRepaymentReport } from "./services/pdf/reportController";
+import { generateBondRepaymentReport, generateAdditionalPaymentReport } from "./services/pdf/reportController";
 
 // Extend the session type to include userId
 declare module 'express-session' {
@@ -369,6 +369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Generate PDF reports
   app.post("/api/reports/bond-repayment", generateBondRepaymentReport);
+  app.post("/api/reports/additional-payment", generateAdditionalPaymentReport);
 
   const httpServer = createServer(app);
   return httpServer;

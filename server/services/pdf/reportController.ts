@@ -5,7 +5,7 @@
  */
 
 import { Request, Response } from 'express';
-import { generateBondRepaymentPdf, savePdfToTempFile } from './pdfGenerator';
+import { generateBondRepaymentPdf, generateAdditionalPaymentPdf, savePdfToTempFile } from './pdfGenerator';
 import { calculateBondRepayment, CalculationResult } from '../../../client/src/lib/calculators';
 import * as fs from 'fs';
 
@@ -91,6 +91,58 @@ export async function generateBondRepaymentReport(req: Request, res: Response) {
     console.error('Error generating PDF report:', error);
     res.status(500).json({ 
       message: 'Failed to generate PDF report',
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+}
+
+/**
+ * Generate a PDF report for additional payment calculations
+ * @param req Express request
+ * @param res Express response
+ */
+export async function generateAdditionalPaymentReport(req: Request, res: Response) {
+  try {
+    const { 
+      loanAmount, 
+      interestRate, 
+      loanTerm, 
+      additionalPayment,
+      calculationResult
+    } = req.body;
+    
+    if (!loanAmount || !interestRate || !loanTerm || !additionalPayment) {
+      return res.status(400).json({ 
+        message: 'Missing required parameters. Please provide loanAmount, interestRate, loanTerm, and additionalPayment.' 
+      });
+    }
+
+    // Use provided calculation result as we don't have a direct calculation function for this in the controller
+    if (!calculationResult) {
+      return res.status(400).json({ 
+        message: 'Missing calculation result. Please provide the calculation result object.' 
+      });
+    }
+    
+    // Original input data for the report
+    const inputData = {
+      loanAmount,
+      interestRate,
+      loanTerm,
+      additionalPayment
+    };
+    
+    // Generate PDF
+    const pdfBuffer = await generateAdditionalPaymentPdf(calculationResult, inputData);
+    
+    // Send PDF directly in response
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=wisebond-additional-payment-report.pdf');
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Error generating additional payment PDF report:', error);
+    res.status(500).json({ 
+      message: 'Failed to generate additional payment PDF report',
       error: error instanceof Error ? error.message : String(error)
     });
   }

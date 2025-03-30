@@ -369,7 +369,7 @@ export default function Calculators() {
                     </div>
                     <div className="md:col-span-2">
                       {calculationResults && calculationResults.type === 'additional' ? (
-                        <CalculationResults results={calculationResults} />
+                        <CalculationResults results={calculationResults} formValues={formValues} />
                       ) : (
                         <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
                           <div className="text-center">

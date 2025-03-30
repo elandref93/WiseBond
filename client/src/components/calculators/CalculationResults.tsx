@@ -15,7 +15,7 @@ import DownloadPdfButton from "./DownloadPdfButton";
 
 // Type predicate to check if the calculation type is supported for PDF download
 function isPdfSupported(result: CalculationResult): boolean {
-  return result.type === 'bond' || result.type === 'amortisation';
+  return result.type === 'bond' || result.type === 'amortisation' || result.type === 'additional';
 }
 
 interface CalculationResultsProps {
