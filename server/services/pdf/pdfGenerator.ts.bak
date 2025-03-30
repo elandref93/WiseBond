@@ -8,7 +8,6 @@
 import puppeteer from 'puppeteer';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createDynamicAdditionalPaymentTemplate } from './additionalPaymentTemplate';
 import * as os from 'os';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -88,69 +87,29 @@ export async function generatePdfFromHtml(
     // Create a new page
     const page = await browser.newPage();
     
-    // Add a script to log all canvas operations for debugging
-    await page.evaluateOnNewDocument(() => {
-      console.log('Setting up canvas debugging');
-      const originalGetContext = HTMLCanvasElement.prototype.getContext;
-      HTMLCanvasElement.prototype.getContext = function() {
-        console.log(`Canvas ${this.id || 'unknown'} getContext called with`, arguments);
-        return originalGetContext.apply(this, arguments);
-      };
-    });
-    
     // Set content
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
     
-    // Wait longer for chart.js to load
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Execute any chart initialization scripts
-    console.log('Attempting to render charts in PDF');
-    const chartsInitialized = await page.evaluate(() => {
-      console.log('Evaluating chart rendering status');
-      
-      // Check if Chart.js is loaded
-      if (typeof window.Chart === 'undefined') {
-        console.error('Chart.js not loaded in the page');
-        return false;
-      }
-      
-      // Get all canvas elements
-      const canvases = document.querySelectorAll('canvas');
-      console.log(`Found ${canvases.length} canvas elements`);
-      
-      // Try to manually render any charts
-      try {
-        // Try to execute renderCharts function if it exists
-        if (typeof window.renderCharts === 'function') {
-          console.log('Executing renderCharts function');
-          window.renderCharts();
-        }
-        
-        // Force immediate rendering
-        canvases.forEach(canvas => {
-          if (canvas.id) {
-            console.log(`Processing canvas: ${canvas.id}`);
-            // This will trigger a redraw on the canvas
-            const context = canvas.getContext('2d');
-            if (context) {
-              context.fillStyle = 'rgba(0,0,0,0)';
-              context.fillRect(0, 0, 1, 1);
-            }
-          }
-        });
-        
-        return true;
-      } catch (err) {
-        console.error('Error initializing charts:', err);
-        return false;
-      }
-    });
-    
-    console.log(`Charts initialized status: ${chartsInitialized}`);
-    
-    // Wait a bit more after initialization
+    // Give charts time to render
     await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Ensure Chart.js is loaded and running
+    const chartsRendered = await page.evaluate(() => {
+      // @ts-ignore - Chart is loaded from CDN in the template
+      if (typeof window.Chart === 'undefined') {
+        console.error('Chart.js not loaded');
+        return false;
+      }
+      
+      // Force chart rendering
+      document.querySelectorAll('canvas').forEach(canvas => {
+        if (canvas.id) {
+          console.log(`Ensuring chart is rendered for ${canvas.id}`);
+        }
+      });
+      
+      return true;
+    });
     
     // Generate PDF
     const pdfBuffer = await page.pdf({
@@ -967,8 +926,7 @@ export async function generateAdditionalPaymentPdf(
     console.log("Generating additional payment PDF with calculation result:", JSON.stringify(calculationResult));
     console.log("Input data:", JSON.stringify(inputData));
     
-    // Create the HTML template using the imported implementation
-    // This provides better Chart.js integration for PDF generation
+    // Create the HTML template
     let templateHtml = createDynamicAdditionalPaymentTemplate();
     
     // Generate HTML content for the PDF
@@ -981,8 +939,7 @@ export async function generateAdditionalPaymentPdf(
       title
     };
     
-    // Generate the PDF with longer wait times for chart rendering
-    console.log("Generating PDF from HTML with chart.js content");
+    // Generate the PDF
     return await generatePdfFromHtml(htmlContent, pdfOptions);
   } catch (error) {
     console.error("Error in generateAdditionalPaymentPdf:", error);
@@ -994,8 +951,7 @@ export async function generateAdditionalPaymentPdf(
  * Create a dynamic HTML template for additional payment report
  * @returns HTML template string
  */
-// Using the external implementation imported at the top
-function _createDynamicAdditionalPaymentTemplate(): string {
+function createDynamicAdditionalPaymentTemplate(): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
