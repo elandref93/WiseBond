@@ -26,7 +26,7 @@ async function sendTestEmail() {
   console.log('🛠️  Mailgun Test Email Configuration');
   console.log('-----------------------------------');
   
-  console.log('Falling back to manual credential entry since Azure Key Vault is not available in this environment.');
+  console.log('Checking for Mailgun credentials in environment variables...');
   
   // Try to get credentials from environment variables first (set by Key Vault)
   let apiKey = process.env.MAILGUN_API_KEY;

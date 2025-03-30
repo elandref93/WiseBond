@@ -54,7 +54,26 @@ app.use((req, res, next) => {
     console.log('Available keys in Azure Key Vault:', availableKeys);
   } catch (error) {
     console.error('Error initializing Azure Key Vault:', error);
-    console.log('Continuing with environment variables from .env file...');
+    console.log('Continuing with environment variables from Replit secrets...');
+    
+    // Log available environment variables for debugging (without revealing values)
+    const envVars = [
+      'MAILGUN_API_KEY', 
+      'MAILGUN_DOMAIN', 
+      'MAILGUN_FROM_EMAIL',
+      'GOOGLE_MAPS_API_KEY'
+    ];
+    
+    console.log('Available environment variables:');
+    envVars.forEach(varName => {
+      console.log(`- ${varName}: ${process.env[varName] ? 'Set' : 'Not set'}`);
+    });
+    
+    // Ensure Google Maps API Key is copied to VITE_ version for frontend access
+    if (process.env.GOOGLE_MAPS_API_KEY && !process.env.VITE_GOOGLE_MAPS_API_KEY) {
+      process.env.VITE_GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+      console.log('Copied GOOGLE_MAPS_API_KEY to VITE_GOOGLE_MAPS_API_KEY for frontend access');
+    }
   }
   
   const server = await registerRoutes(app);
