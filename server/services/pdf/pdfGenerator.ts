@@ -328,9 +328,50 @@ function createDynamicBondRepaymentTemplate(): string {
     }
     
     /* Chart styles */
-    #chart-breakdown {
+    #chart-breakdown, #chart-overview {
       width: 100%;
       height: 300px;
+    }
+    
+    /* Table container styles */
+    .table-container {
+      margin-top: 20px;
+      overflow-x: auto;
+    }
+    
+    /* Yearly breakdown table */
+    .yearly-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    
+    .yearly-table th {
+      background-color: hsl(26, 79%, 51%);
+      color: white;
+      font-weight: 600;
+      padding: 10px;
+      text-align: left;
+    }
+    
+    .yearly-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .yearly-table tr:nth-child(even) {
+      background-color: #f5f5f5;
+    }
+    
+    .yearly-table tr:hover {
+      background-color: #f0f0f0;
+    }
+    
+    /* Section spacing */
+    .yearly-breakdown-section, .loan-overview-section {
+      margin-top: 30px;
+      padding-top: 10px;
+      border-top: 1px solid #eee;
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -367,6 +408,33 @@ function createDynamicBondRepaymentTemplate(): string {
       </div>
     </div>
     
+    <div class="loan-overview-section">
+      <h3>Loan Overview</h3>
+      <div class="chart-container">
+        <canvas id="chart-overview"></canvas>
+      </div>
+    </div>
+    
+    <div class="yearly-breakdown-section">
+      <h3>Yearly Breakdown</h3>
+      <div class="table-container">
+        <table class="yearly-table">
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>Opening Balance</th>
+              <th>Interest Paid</th>
+              <th>Principal Paid</th>
+              <th>Closing Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{yearlyData}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
     <div class="input-section">
       <h3>Calculation Parameters</h3>
       <div class="input-grid">
@@ -386,14 +454,15 @@ function createDynamicBondRepaymentTemplate(): string {
   
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const ctx = document.getElementById('chart-breakdown').getContext('2d');
+      // Payment Breakdown Pie Chart
+      const ctxBreakdown = document.getElementById('chart-breakdown').getContext('2d');
       
       // Get the data from the template
       const principalAmount = {{principal}};
       const interestAmount = {{interest}};
       
-      // Create the chart
-      new Chart(ctx, {
+      // Create the pie chart
+      new Chart(ctxBreakdown, {
         type: 'pie',
         data: {
           labels: ['Principal', 'Interest'],
@@ -427,6 +496,115 @@ function createDynamicBondRepaymentTemplate(): string {
                 label: function(context) {
                   return context.label + ': R ' + context.raw.toLocaleString('en-ZA');
                 }
+              }
+            }
+          }
+        }
+      });
+      
+      // Loan Overview Line Chart
+      const ctxOverview = document.getElementById('chart-overview').getContext('2d');
+      
+      // Get the yearly data from the template
+      const yearlyLabels = {{yearLabels}};
+      const principalPaid = {{principalPaidData}};
+      const interestPaid = {{interestPaidData}};
+      const balanceData = {{balanceData}};
+      
+      // Create the line chart
+      new Chart(ctxOverview, {
+        type: 'line',
+        data: {
+          labels: yearlyLabels,
+          datasets: [
+            {
+              label: 'Outstanding Balance',
+              data: balanceData,
+              borderColor: 'hsl(210, 79%, 51%)',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.4,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Principal Paid',
+              data: principalPaid,
+              borderColor: 'hsl(26, 79%, 51%)',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              fill: false,
+              tension: 0.4,
+              yAxisID: 'y1'
+            },
+            {
+              label: 'Interest Paid',
+              data: interestPaid,
+              borderColor: 'hsl(142, 76%, 36%)',
+              borderWidth: 2,
+              borderDash: [2, 2],
+              fill: false,
+              tension: 0.4,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                font: {
+                  family: 'Segoe UI'
+                }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': R ' + context.raw.toLocaleString('en-ZA');
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Year'
+              }
+            },
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              title: {
+                display: true,
+                text: 'Outstanding Balance'
+              },
+              ticks: {
+                callback: function(value) {
+                  return 'R ' + value.toLocaleString('en-ZA');
+                }
+              }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              title: {
+                display: true,
+                text: 'Amount Paid'
+              },
+              ticks: {
+                callback: function(value) {
+                  return 'R ' + value.toLocaleString('en-ZA');
+                }
+              },
+              grid: {
+                drawOnChartArea: false
               }
             }
           }
@@ -528,6 +706,104 @@ function renderBondRepaymentTemplate(
     
     html = html.replace('{{principal}}', loanAmount.toString());
     html = html.replace('{{interest}}', totalInterest.toString());
+    
+    // Generate yearly breakdown data
+    const loanTerm = inputData?.loanTerm ? parseInt(inputData.loanTerm) : 20;
+    const interestRate = inputData?.interestRate ? parseFloat(inputData.interestRate) / 100 : 0.10;
+    const monthlyRate = interestRate / 12;
+    const totalMonths = loanTerm * 12;
+    const monthlyPayment = parseFloat(String(calculationResult.monthlyPayment)) || 0;
+    
+    let balance = loanAmount;
+    let yearlyLabels = [];
+    let yearlyBalances = [];
+    let yearlyPrincipalPaid = [];
+    let yearlyInterestPaid = [];
+    let yearlyTableRows = '';
+    
+    let totalPrincipalPaid = 0;
+    let totalInterestPaid = 0;
+    
+    // Calculate yearly amortization schedule
+    for (let year = 0; year <= loanTerm; year++) {
+      yearlyLabels.push(year);
+      
+      // Opening balance for this year
+      const openingBalance = balance;
+      yearlyBalances.push(openingBalance);
+      
+      // For year 0, we only record the initial balance
+      if (year === 0) {
+        yearlyTableRows += `
+          <tr>
+            <td>${year}</td>
+            <td>R ${openingBalance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+            <td>R 0.00</td>
+            <td>R 0.00</td>
+            <td>R ${openingBalance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+          </tr>
+        `;
+        yearlyPrincipalPaid.push(0);
+        yearlyInterestPaid.push(0);
+        continue;
+      }
+      
+      // Calculate payments for this year (12 months)
+      let yearPrincipalPaid = 0;
+      let yearInterestPaid = 0;
+      
+      for (let month = 1; month <= 12; month++) {
+        // Skip if we've paid off the loan
+        if (balance <= 0) break;
+        
+        // Calculate interest for this month
+        const interestForMonth = balance * monthlyRate;
+        
+        // Calculate principal for this month
+        let principalForMonth = monthlyPayment - interestForMonth;
+        
+        // If this payment would pay off the loan, adjust it
+        if (principalForMonth > balance) {
+          principalForMonth = balance;
+        }
+        
+        // Update balances
+        yearInterestPaid += interestForMonth;
+        yearPrincipalPaid += principalForMonth;
+        balance -= principalForMonth;
+        
+        // If balance is very small (floating point errors), set to zero
+        if (balance < 0.01) balance = 0;
+      }
+      
+      // Update totals
+      totalPrincipalPaid += yearPrincipalPaid;
+      totalInterestPaid += yearInterestPaid;
+      
+      // Add to yearly arrays for charts
+      yearlyPrincipalPaid.push(yearPrincipalPaid);
+      yearlyInterestPaid.push(yearInterestPaid);
+      
+      // Add row to table
+      yearlyTableRows += `
+        <tr>
+          <td>${year}</td>
+          <td>R ${openingBalance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+          <td>R ${yearInterestPaid.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+          <td>R ${yearPrincipalPaid.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+          <td>R ${balance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+        </tr>
+      `;
+    }
+    
+    // Add yearly data to template
+    html = html.replace('{{yearlyData}}', yearlyTableRows);
+    
+    // Add chart data
+    html = html.replace('{{yearLabels}}', JSON.stringify(yearlyLabels));
+    html = html.replace('{{balanceData}}', JSON.stringify(yearlyBalances));
+    html = html.replace('{{principalPaidData}}', JSON.stringify(yearlyPrincipalPaid));
+    html = html.replace('{{interestPaidData}}', JSON.stringify(yearlyInterestPaid));
   }
   
   return html;
