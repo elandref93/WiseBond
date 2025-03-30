@@ -1446,165 +1446,182 @@ function renderAdditionalPaymentTemplate(
   calculationResult: CalculationResult,
   inputData: any
 ): string {
-  let htmlContent = template;
-  
-  // Format current date
-  const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleDateString('en-ZA', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-  
-  htmlContent = htmlContent.replace('{{generatedDate}}', formattedDate);
-  
-  // Get result cards
-  let resultCardsHtml = '';
-  for (const result of calculationResult.displayResults) {
-    resultCardsHtml += `
-      <div class="result-card">
-        <div class="result-label">${result.label}</div>
-        <div class="result-value">${result.value}</div>
+  try {
+    console.log("Rendering additional payment template with calculation result:", 
+      JSON.stringify(calculationResult, null, 2));
+    console.log("Input data:", JSON.stringify(inputData, null, 2));
+    
+    let htmlContent = template;
+    
+    // Format current date
+    const currentDate = new Date();
+    const formattedDate = currentDate.toLocaleDateString('en-ZA', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    htmlContent = htmlContent.replace('{{generatedDate}}', formattedDate);
+    
+    // Get result cards
+    let resultCardsHtml = '';
+    for (const result of calculationResult.displayResults) {
+      resultCardsHtml += `
+        <div class="result-card">
+          <div class="result-label">${result.label}</div>
+          <div class="result-value">${result.value}</div>
+        </div>`;
+    }
+    
+    htmlContent = htmlContent.replace('{{resultCards}}', resultCardsHtml);
+    
+    // Get values from calculationResult if not in inputData
+    const loanAmount = inputData.loanAmount || calculationResult.loanAmount || 900000;
+    const interestRate = inputData.interestRate || calculationResult.interestRate || 11.25;
+    const loanTerm = inputData.loanTerm || (calculationResult.loanTermYears ? calculationResult.loanTermYears.toString() : "20");
+    const additionalPayment = inputData.additionalPayment || calculationResult.additionalPayment || 1000;
+    
+    console.log("Using values:", { loanAmount, interestRate, loanTerm, additionalPayment });
+    
+    // Format calculation parameters
+    const numLoanAmount = typeof loanAmount === 'string' 
+      ? parseFloat(loanAmount.replace(/[^0-9.]/g, '')) 
+      : loanAmount;
+      
+    const numInterestRate = typeof interestRate === 'string'
+      ? parseFloat(interestRate)
+      : interestRate;
+      
+    const numLoanTerm = typeof loanTerm === 'string'
+      ? parseInt(loanTerm)
+      : loanTerm;
+      
+    const numAdditionalPayment = typeof additionalPayment === 'string'
+      ? parseFloat(additionalPayment.replace(/[^0-9.]/g, ''))
+      : additionalPayment;
+    
+    // Format input details
+    const inputDetails = `
+      <div class="input-item">
+        <span class="input-label">Loan Amount:</span>
+        <span class="input-value">R${numLoanAmount.toLocaleString('en-ZA')}</span>
+      </div>
+      <div class="input-item">
+        <span class="input-label">Interest Rate:</span>
+        <span class="input-value">${numInterestRate}%</span>
+      </div>
+      <div class="input-item">
+        <span class="input-label">Loan Term:</span>
+        <span class="input-value">${numLoanTerm} years</span>
+      </div>
+      <div class="input-item">
+        <span class="input-label">Additional Payment:</span>
+        <span class="input-value">R${numAdditionalPayment.toLocaleString('en-ZA')}</span>
       </div>`;
+    
+    htmlContent = htmlContent.replace('{{inputDetails}}', inputDetails);
+    
+    // Extract values from the calculation result
+    const standardMonthlyPayment = calculationResult.standardMonthlyPayment || 0;
+    const newMonthlyPayment = calculationResult.newMonthlyPayment || 0;
+    const standardLoanTermMonths = numLoanTerm * 12;
+    const newLoanTermMonths = calculationResult.newTermMonths || 0;
+    const totalStandardInterest = calculationResult.totalStandardInterest || (standardMonthlyPayment * standardLoanTermMonths) - numLoanAmount;
+    const totalNewInterest = calculationResult.totalNewInterest || (newMonthlyPayment * newLoanTermMonths) - numLoanAmount;
+    const timeSavedMonths = calculationResult.timeSavedMonths || 0;
+    const interestSaved = calculationResult.interestSaved || 0;
+    
+    // Format time saved for display
+    let timeSavedText = '';
+    if (timeSavedMonths >= 12) {
+      const years = Math.floor(timeSavedMonths / 12);
+      const months = timeSavedMonths % 12;
+      timeSavedText = `${years} ${years === 1 ? 'year' : 'years'}`;
+      if (months > 0) {
+        timeSavedText += ` and ${months} ${months === 1 ? 'month' : 'months'}`;
+      }
+    } else {
+      timeSavedText = `${timeSavedMonths} ${timeSavedMonths === 1 ? 'month' : 'months'}`;
+    }
+    
+    // Format interest saved for display
+    const interestSavedFormatted = `R${Math.round(interestSaved).toLocaleString('en-ZA')}`;
+    
+    // Add savings information
+    htmlContent = htmlContent.replace('{{additionalPayment}}', `R${numAdditionalPayment.toLocaleString('en-ZA')}`);
+    htmlContent = htmlContent.replace('{{timeSaved}}', timeSavedText);
+    htmlContent = htmlContent.replace('{{interestSaved}}', interestSavedFormatted);
+    
+    // Insert chart data
+    htmlContent = htmlContent.replace('{{standardPayment}}', standardMonthlyPayment.toString());
+    htmlContent = htmlContent.replace('{{newPayment}}', newMonthlyPayment.toString());
+    htmlContent = htmlContent.replace('{{standardTerm}}', standardLoanTermMonths.toString());
+    htmlContent = htmlContent.replace('{{newTerm}}', newLoanTermMonths.toString());
+    htmlContent = htmlContent.replace('{{standardInterest}}', totalStandardInterest.toString());
+    htmlContent = htmlContent.replace('{{newInterest}}', totalNewInterest.toString());
+    
+    // Generate balance comparison data
+    const standardData = generateAmortizationData(numLoanAmount, numInterestRate, numLoanTerm);
+    
+    // Calculate custom amortization for the case with additional payment
+    const standardMonthlyRate = numInterestRate / 100 / 12;
+    const standardMonthlyPaymentCalc = (numLoanAmount * standardMonthlyRate * Math.pow(1 + standardMonthlyRate, standardLoanTermMonths)) / 
+                                      (Math.pow(1 + standardMonthlyRate, standardLoanTermMonths) - 1);
+    
+    // Calculate additional payment amortization
+    let remainingBalance = numLoanAmount;
+    const additionalPaymentData: Array<{year: number, balance: number}> = [];
+    let additionalPaymentMonths = 0;
+    
+    while (remainingBalance > 0 && additionalPaymentMonths <= standardLoanTermMonths) {
+      // For yearly data points
+      if (additionalPaymentMonths % 12 === 0) {
+        additionalPaymentData.push({
+          year: additionalPaymentMonths / 12,
+          balance: Math.max(0, remainingBalance)
+        });
+      }
+      
+      const monthlyInterest = remainingBalance * standardMonthlyRate;
+      let principalPayment = standardMonthlyPaymentCalc - monthlyInterest + numAdditionalPayment;
+      
+      // Ensure we don't overpay
+      if (principalPayment > remainingBalance) {
+        principalPayment = remainingBalance;
+      }
+      
+      remainingBalance -= principalPayment;
+      additionalPaymentMonths++;
+      
+      // Add the final point
+      if (remainingBalance <= 0 && additionalPaymentMonths % 12 !== 0) {
+        additionalPaymentData.push({
+          year: Math.ceil(additionalPaymentMonths / 12),
+          balance: 0
+        });
+      }
+    }
+    
+    // Format data for charts
+    const years = standardData.map(item => item.year);
+    const standardBalances = standardData.map(item => item.balance);
+    
+    // Ensure we have data points for all years
+    const additionalBalances = years.map(year => {
+      const match = additionalPaymentData.find(item => item.year === year);
+      return match ? match.balance : 0;
+    });
+    
+    // Insert balance chart data
+    htmlContent = htmlContent.replace('{{balanceYears}}', JSON.stringify(years));
+    htmlContent = htmlContent.replace('{{standardBalance}}', JSON.stringify(standardBalances));
+    htmlContent = htmlContent.replace('{{additionalBalance}}', JSON.stringify(additionalBalances));
+    
+    return htmlContent;
+  } catch (error) {
+    console.error("Error in renderAdditionalPaymentTemplate:", error);
+    throw error;
   }
-  
-  htmlContent = htmlContent.replace('{{resultCards}}', resultCardsHtml);
-  
-  // Format calculation parameters
-  const numLoanAmount = typeof inputData.loanAmount === 'string' 
-    ? parseFloat(inputData.loanAmount.replace(/[^0-9.]/g, '')) 
-    : inputData.loanAmount;
-    
-  const numInterestRate = typeof inputData.interestRate === 'string'
-    ? parseFloat(inputData.interestRate)
-    : inputData.interestRate;
-    
-  const numLoanTerm = typeof inputData.loanTerm === 'string'
-    ? parseInt(inputData.loanTerm)
-    : inputData.loanTerm;
-    
-  const numAdditionalPayment = typeof inputData.additionalPayment === 'string'
-    ? parseFloat(inputData.additionalPayment.replace(/[^0-9.]/g, ''))
-    : inputData.additionalPayment;
-  
-  // Format input details
-  const inputDetails = `
-    <div class="input-item">
-      <span class="input-label">Loan Amount:</span>
-      <span class="input-value">R${numLoanAmount.toLocaleString('en-ZA')}</span>
-    </div>
-    <div class="input-item">
-      <span class="input-label">Interest Rate:</span>
-      <span class="input-value">${numInterestRate}%</span>
-    </div>
-    <div class="input-item">
-      <span class="input-label">Loan Term:</span>
-      <span class="input-value">${numLoanTerm} years</span>
-    </div>
-    <div class="input-item">
-      <span class="input-label">Additional Payment:</span>
-      <span class="input-value">R${numAdditionalPayment.toLocaleString('en-ZA')}</span>
-    </div>`;
-  
-  htmlContent = htmlContent.replace('{{inputDetails}}', inputDetails);
-  
-  // Extract values from the calculation result
-  const standardMonthlyPayment = calculationResult.standardMonthlyPayment || 0;
-  const newMonthlyPayment = calculationResult.newMonthlyPayment || 0;
-  const standardLoanTermMonths = numLoanTerm * 12;
-  const newLoanTermMonths = calculationResult.newTermMonths || 0;
-  const totalStandardInterest = calculationResult.totalStandardInterest || 0;
-  const totalNewInterest = calculationResult.totalNewInterest || 0;
-  const timeSavedMonths = calculationResult.timeSavedMonths || 0;
-  const interestSaved = calculationResult.interestSaved || 0;
-  
-  // Format time saved for display
-  let timeSavedText = '';
-  if (timeSavedMonths >= 12) {
-    const years = Math.floor(timeSavedMonths / 12);
-    const months = timeSavedMonths % 12;
-    timeSavedText = `${years} ${years === 1 ? 'year' : 'years'}`;
-    if (months > 0) {
-      timeSavedText += ` and ${months} ${months === 1 ? 'month' : 'months'}`;
-    }
-  } else {
-    timeSavedText = `${timeSavedMonths} ${timeSavedMonths === 1 ? 'month' : 'months'}`;
-  }
-  
-  // Format interest saved for display
-  const interestSavedFormatted = `R${Math.round(interestSaved).toLocaleString('en-ZA')}`;
-  
-  // Add savings information
-  htmlContent = htmlContent.replace('{{additionalPayment}}', `R${numAdditionalPayment.toLocaleString('en-ZA')}`);
-  htmlContent = htmlContent.replace('{{timeSaved}}', timeSavedText);
-  htmlContent = htmlContent.replace('{{interestSaved}}', interestSavedFormatted);
-  
-  // Insert chart data
-  htmlContent = htmlContent.replace('{{standardPayment}}', standardMonthlyPayment.toString());
-  htmlContent = htmlContent.replace('{{newPayment}}', newMonthlyPayment.toString());
-  htmlContent = htmlContent.replace('{{standardTerm}}', standardLoanTermMonths.toString());
-  htmlContent = htmlContent.replace('{{newTerm}}', newLoanTermMonths.toString());
-  htmlContent = htmlContent.replace('{{standardInterest}}', totalStandardInterest.toString());
-  htmlContent = htmlContent.replace('{{newInterest}}', totalNewInterest.toString());
-  
-  // Generate balance comparison data
-  const standardData = generateAmortizationData(numLoanAmount, numInterestRate, numLoanTerm);
-  
-  // Calculate custom amortization for the case with additional payment
-  const standardMonthlyRate = numInterestRate / 100 / 12;
-  const standardMonthlyPaymentCalc = (numLoanAmount * standardMonthlyRate * Math.pow(1 + standardMonthlyRate, standardLoanTermMonths)) / 
-                                    (Math.pow(1 + standardMonthlyRate, standardLoanTermMonths) - 1);
-  
-  // Calculate additional payment amortization
-  let remainingBalance = numLoanAmount;
-  const additionalPaymentData: Array<{year: number, balance: number}> = [];
-  let additionalPaymentMonths = 0;
-  
-  while (remainingBalance > 0 && additionalPaymentMonths <= standardLoanTermMonths) {
-    // For yearly data points
-    if (additionalPaymentMonths % 12 === 0) {
-      additionalPaymentData.push({
-        year: additionalPaymentMonths / 12,
-        balance: Math.max(0, remainingBalance)
-      });
-    }
-    
-    const monthlyInterest = remainingBalance * standardMonthlyRate;
-    let principalPayment = standardMonthlyPaymentCalc - monthlyInterest + numAdditionalPayment;
-    
-    // Ensure we don't overpay
-    if (principalPayment > remainingBalance) {
-      principalPayment = remainingBalance;
-    }
-    
-    remainingBalance -= principalPayment;
-    additionalPaymentMonths++;
-    
-    // Add the final point
-    if (remainingBalance <= 0 && additionalPaymentMonths % 12 !== 0) {
-      additionalPaymentData.push({
-        year: Math.ceil(additionalPaymentMonths / 12),
-        balance: 0
-      });
-    }
-  }
-  
-  // Format data for charts
-  const years = standardData.map(item => item.year);
-  const standardBalances = standardData.map(item => item.balance);
-  
-  // Ensure we have data points for all years
-  const additionalBalances = years.map(year => {
-    const match = additionalPaymentData.find(item => item.year === year);
-    return match ? match.balance : 0;
-  });
-  
-  // Insert balance chart data
-  htmlContent = htmlContent.replace('{{balanceYears}}', JSON.stringify(years));
-  htmlContent = htmlContent.replace('{{standardBalance}}', JSON.stringify(standardBalances));
-  htmlContent = htmlContent.replace('{{additionalBalance}}', JSON.stringify(additionalBalances));
-  
-  return htmlContent;
 }
 
 export function savePdfToTempFile(pdfBuffer: Buffer, filename = 'wisebond-report.pdf'): string {

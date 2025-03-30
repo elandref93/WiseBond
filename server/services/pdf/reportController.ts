@@ -106,13 +106,26 @@ export async function generateAdditionalPaymentReport(req: Request, res: Respons
     console.log("Received additional payment report request:", req.body);
     
     const { 
-      loanAmount, 
+      loanAmount: requestLoanAmount, 
       interestRate, 
       loanTerm, 
-      additionalPayment,
+      additionalPayment: requestAdditionalPayment,
       calculationResult
     } = req.body;
     
+    // Use provided calculation result as we don't have a direct calculation function for this in the controller
+    if (!calculationResult) {
+      console.error("Missing calculation result in request");
+      return res.status(400).json({ 
+        message: 'Missing calculation result. Please provide the calculation result object.' 
+      });
+    }
+    
+    // Extract values from calculation result if not provided directly
+    const loanAmount = requestLoanAmount || calculationResult.loanAmount;
+    const additionalPayment = requestAdditionalPayment || calculationResult.additionalPayment;
+    
+    // Verify we have all required parameters
     if (!loanAmount || !interestRate || !loanTerm || !additionalPayment) {
       console.error("Missing required parameters:", { 
         hasLoanAmount: !!loanAmount, 
@@ -121,15 +134,7 @@ export async function generateAdditionalPaymentReport(req: Request, res: Respons
         hasAdditionalPayment: !!additionalPayment
       });
       return res.status(400).json({ 
-        message: 'Missing required parameters. Please provide loanAmount, interestRate, loanTerm, and additionalPayment.' 
-      });
-    }
-
-    // Use provided calculation result as we don't have a direct calculation function for this in the controller
-    if (!calculationResult) {
-      console.error("Missing calculation result in request");
-      return res.status(400).json({ 
-        message: 'Missing calculation result. Please provide the calculation result object.' 
+        message: 'Missing required parameters. Please provide loanAmount, interestRate, loanTerm, and additionalPayment either directly or via calculationResult.' 
       });
     }
     
@@ -140,6 +145,8 @@ export async function generateAdditionalPaymentReport(req: Request, res: Respons
       loanTerm,
       additionalPayment
     };
+    
+    console.log("Using input data for PDF generation:", inputData);
     
     // Generate PDF
     const pdfBuffer = await generateAdditionalPaymentPdf(calculationResult, inputData);
