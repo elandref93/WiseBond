@@ -1,86 +1,50 @@
-// This script can be used to test Mailgun email functionality
-// 
-// Usage:
-//   node test-email.js                               - Test with default recipient
-//   TEST_EMAIL_TO=email@example.com node test-email.js   - Test with specific recipient
-//
-// Note: For Mailgun sandbox domains, the recipient must be authorized in your Mailgun account.
-// See MAILGUN-SETUP.md for detailed instructions.
-//
-// This script can also load credentials from Azure Key Vault if configured
+// Manual test script for Mailgun that allows direct input of credentials
+// This is useful for testing when you don't have the Azure Key Vault set up
 
-import 'dotenv/config';
 import FormData from 'form-data';
 import Mailgun from 'mailgun.js';
+import readline from 'readline';
 
-// Try to import the Azure Key Vault utilities
-let keyVaultModule;
-try {
-  keyVaultModule = await import('./server/keyVault.js');
-} catch (err) {
-  console.log('Azure Key Vault utilities not available, using only environment variables');
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+async function getUserInput(prompt) {
+  return new Promise((resolve) => {
+    rl.question(prompt, (answer) => {
+      resolve(answer);
+    });
+  });
 }
 
-// Function to send a test email
 async function sendTestEmail() {
-  // Try to load from Azure Key Vault first if available
-  if (keyVaultModule) {
-    console.log('🔐 Attempting to load credentials from Azure Key Vault...');
-    try {
-      // Try to initialize from Key Vault
-      await keyVaultModule.initializeSecretsFromKeyVault();
-      
-      // List available keys for debugging
-      const availableKeys = await keyVaultModule.listAvailableKeys();
-      console.log('Available keys in Azure Key Vault:', availableKeys);
-      
-      console.log('✅ Successfully loaded credentials from Azure Key Vault');
-    } catch (error) {
-      console.error('❌ Error loading from Azure Key Vault:', error.message);
-      console.log('⚠️ Falling back to environment variables in .env file');
-    }
-  }
+  console.log('🛠️  Mailgun Test Email Configuration');
+  console.log('-----------------------------------');
   
-  // Check if environment variables are set (either from .env or Key Vault)
-  if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
-    console.error('❌ Error: MAILGUN_API_KEY and MAILGUN_DOMAIN environment variables must be set');
-    console.log('');
-    console.log('Please create a .env file with the following variables:');
-    console.log('MAILGUN_API_KEY=your_mailgun_api_key');
-    console.log('MAILGUN_DOMAIN=your_mailgun_domain');
-    console.log('MAILGUN_FROM_EMAIL=noreply@yourdomain.com (optional)');
-    console.log('MAILGUN_API_ENDPOINT=https://api.eu.mailgun.net (optional, for EU region)');
-    console.log('TEST_EMAIL_TO=test@example.com (optional, defaults to from email)');
-    return false;
-  }
+  const apiKey = await getUserInput('Enter Mailgun API Key: ');
+  const domain = await getUserInput('Enter Mailgun Domain: ');
+  const fromEmail = await getUserInput('Enter From Email (default: postmaster@domain): ') || `postmaster@${domain}`;
+  const toEmail = await getUserInput('Enter To Email (who should receive the test): ');
+  const endpoint = await getUserInput('Enter API Endpoint (default: https://api.mailgun.net): ') || 'https://api.mailgun.net';
   
-  console.log('🔑 Mailgun API key detected');
-  console.log('🌐 Starting email test...');
-
-  // Get the API endpoint (default to US endpoint)
-  const apiEndpoint = process.env.MAILGUN_API_ENDPOINT || 'https://api.mailgun.net';
-  console.log(`🔄 Using Mailgun API endpoint: ${apiEndpoint}`);
+  console.log('\n🌐 Starting email test...');
+  console.log(`🔄 Using Mailgun API endpoint: ${endpoint}`);
 
   // Initialize Mailgun
   const mailgun = new Mailgun(FormData);
   const mg = mailgun.client({ 
     username: 'api', 
-    key: process.env.MAILGUN_API_KEY,
-    url: apiEndpoint
+    key: apiKey,
+    url: endpoint
   });
-  const mailgunDomain = process.env.MAILGUN_DOMAIN;
-  console.log(`📨 Using Mailgun domain: ${mailgunDomain}`);
   
-  // Set up the test email
-  const fromEmail = process.env.MAILGUN_FROM_EMAIL || 'noreply@wisebond.co.za';
+  console.log(`📨 Using Mailgun domain: ${domain}`);
   console.log(`📤 Using sender email: ${fromEmail}`);
-  
-  // For sandbox domains, use an authorized recipient if provided, otherwise use the default recipient
-  const toEmail = process.env.TEST_EMAIL_TO || 'elandrefourie18@gmail.com';
   console.log(`📬 Sending test email to: ${toEmail}`);
   
   // Check if it's likely a sandbox domain and provide a hint
-  if (mailgunDomain.includes('sandbox') && !toEmail.includes(mailgunDomain)) {
+  if (domain.includes('sandbox') && !toEmail.includes(domain)) {
     console.log('\n⚠️  WARNING: Using a sandbox domain to send to an external address.');
     console.log('   Make sure this recipient is authorized in your Mailgun account!');
     console.log('   Sandbox domains can only send to pre-authorized recipients.');
@@ -109,7 +73,7 @@ async function sendTestEmail() {
   
   try {
     console.log('📧 Sending test email...');
-    const result = await mg.messages.create(mailgunDomain, testEmail);
+    const result = await mg.messages.create(domain, testEmail);
     console.log('✅ Email sent successfully!');
     console.log('ID:', result.id);
     console.log('Message:', result.message);
@@ -145,18 +109,20 @@ async function sendTestEmail() {
     } else if (error.status === 404) {
       console.log('Not Found Error (404):');
       console.log('1. The domain you\'re trying to use might not exist in your Mailgun account.');
-      console.log(`2. Double-check the spelling of your domain: "${mailgunDomain}"`);
+      console.log(`2. Double-check the spelling of your domain: "${domain}"`);
     } else {
       console.log(`Error (${error.status || 'Unknown'}):`);
       console.log('1. Check the detailed error message above.');
       console.log('2. Verify your Mailgun account status.');
-      console.log('3. If using EU region, set MAILGUN_API_ENDPOINT=https://api.eu.mailgun.net');
+      console.log('3. If using EU region, set endpoint to https://api.eu.mailgun.net');
     }
     
-    console.log('\nFor more help, see MAILGUN-SETUP.md or the Mailgun documentation:');
+    console.log('\nFor more help, see the Mailgun documentation:');
     console.log('https://documentation.mailgun.com/en/latest/');
     
     return false;
+  } finally {
+    rl.close();
   }
 }
 

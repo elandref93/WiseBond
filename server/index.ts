@@ -14,6 +14,13 @@ if (result.error) {
   console.log('MAILGUN_DOMAIN present:', !!process.env.MAILGUN_DOMAIN);
   console.log('MAILGUN_FROM_EMAIL present:', !!process.env.MAILGUN_FROM_EMAIL);
   console.log('MAILGUN_DOMAIN value:', process.env.MAILGUN_DOMAIN);
+  console.log('GOOGLE_MAPS_API_KEY present:', !!process.env.GOOGLE_MAPS_API_KEY);
+  
+  // Ensure Google Maps API key is available for the frontend
+  if (process.env.GOOGLE_MAPS_API_KEY && !process.env.VITE_GOOGLE_MAPS_API_KEY) {
+    process.env.VITE_GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+    console.log('Set VITE_GOOGLE_MAPS_API_KEY from GOOGLE_MAPS_API_KEY');
+  }
 }
 
 import express, { type Request, Response, NextFunction } from "express";

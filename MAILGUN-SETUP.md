@@ -27,10 +27,10 @@ MAILGUN_FROM_EMAIL=sender@your-domain.com
 For secure storage of credentials in production, the application can fetch secrets from Azure Key Vault:
 
 1. Create an Azure Key Vault instance
-2. Add the following secrets:
-   - `MAILGUN-API-KEY`
-   - `MAILGUN-DOMAIN`
-   - `MAILGUN-FROM-EMAIL`
+2. Add the following secrets (using lowercase naming convention):
+   - `mailgun-api-key`
+   - `mailgun-domain`
+   - `mailgun-from-email`
 3. Configure Azure credentials in your environment
 
 ## Testing Email Functionality

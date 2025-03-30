@@ -62,23 +62,29 @@ export async function initializeSecretsFromKeyVault(): Promise<void> {
   try {
     console.log('Initializing secrets from Azure Key Vault...');
     
-    // List of secrets to retrieve from Key Vault
+    // List of secrets to retrieve from Key Vault (lowercase per Azure Key Vault naming)
     const secretsToRetrieve = [
-      'GOOGLE-MAPS-API-KEY',
-      'MAILGUN-API-KEY',
-      'MAILGUN-DOMAIN',
-      'MAILGUN-FROM-EMAIL',
-      'SENDGRID-API-KEY'
+      'google-maps-api-key',
+      'mailgun-api-key',
+      'mailgun-domain',
+      'mailgun-from-email',
+      'sendgrid-api-key'
     ];
     
     for (const secretName of secretsToRetrieve) {
       const secretValue = await getSecret(secretName);
       
       if (secretValue) {
-        // Convert key format from KEY-VAULT-NAME to KEY_VAULT_NAME for environment variables
-        const envVarName = secretName.replace(/-/g, '_');
+        // Convert from lowercase-hyphen to UPPERCASE_UNDERSCORE format
+        const envVarName = secretName.replace(/-/g, '_').toUpperCase();
         process.env[envVarName] = secretValue;
-        console.log(`Loaded secret: ${secretName}`);
+        
+        // Special case for Google Maps API Key - also set the VITE_ version for frontend
+        if (secretName === 'google-maps-api-key') {
+          process.env.VITE_GOOGLE_MAPS_API_KEY = secretValue;
+        }
+        
+        console.log(`Loaded secret: ${secretName} as ${envVarName}`);
       } else {
         console.warn(`Secret not found in Key Vault: ${secretName}`);
       }
