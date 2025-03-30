@@ -10,6 +10,7 @@ import {
   Legend,
 } from "recharts";
 import { formatCurrency } from "@/lib/calculators";
+import { generateAmortizationData } from "@/lib/amortizationUtils";
 
 interface AmortizationChartProps {
   loanAmount: number;
@@ -24,15 +25,6 @@ interface ChartDataPoint {
   balance: number;
 }
 
-const calculateMonthlyPayment = (principal: number, interestRate: number, termYears: number) => {
-  const monthlyRate = interestRate / 100 / 12;
-  const totalPayments = termYears * 12;
-  return (
-    (principal * monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) /
-    (Math.pow(1 + monthlyRate, totalPayments) - 1)
-  );
-};
-
 export default function AmortizationChart({
   loanAmount,
   interestRate,
@@ -41,55 +33,17 @@ export default function AmortizationChart({
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
 
   useEffect(() => {
-    // Generate chart data
+    // Generate chart data using shared utility function
     const generateChartData = () => {
-      const data: ChartDataPoint[] = [];
-      let remainingBalance = loanAmount;
-      let cumulativeInterest = 0;
-      let cumulativePrincipal = 0;
-
-      const monthlyPayment = calculateMonthlyPayment(loanAmount, interestRate, loanTerm);
-
-      // Calculate yearly data
-      for (let year = 0; year <= loanTerm; year++) {
-        if (year === 0) {
-          // Starting point
-          data.push({
-            name: "Start",
-            principal: 0,
-            interest: 0,
-            balance: loanAmount,
-          });
-          continue;
-        }
-
-        let yearlyPrincipal = 0;
-        let yearlyInterest = 0;
-
-        // Calculate monthly payments for the year
-        for (let month = 1; month <= 12; month++) {
-          if ((year - 1) * 12 + month <= loanTerm * 12) {
-            const monthlyInterest = remainingBalance * (interestRate / 100 / 12);
-            const monthlyPrincipal = monthlyPayment - monthlyInterest;
-
-            yearlyInterest += monthlyInterest;
-            yearlyPrincipal += monthlyPrincipal;
-            remainingBalance -= monthlyPrincipal;
-          }
-        }
-
-        cumulativeInterest += yearlyInterest;
-        cumulativePrincipal += yearlyPrincipal;
-
-        data.push({
-          name: `Year ${year}`,
-          principal: cumulativePrincipal,
-          interest: cumulativeInterest,
-          balance: Math.max(0, remainingBalance),
-        });
-      }
-
-      return data;
+      const amortizationData = generateAmortizationData(loanAmount, interestRate, loanTerm);
+      
+      // Format data for the chart
+      return amortizationData.map(yearData => ({
+        name: yearData.year === 0 ? "Start" : `Year ${yearData.year}`,
+        principal: yearData.cumulativePrincipal || 0,
+        interest: yearData.cumulativeInterest || 0,
+        balance: yearData.balance,
+      }));
     };
 
     setChartData(generateChartData());

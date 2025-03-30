@@ -701,6 +701,9 @@ function renderBondRepaymentTemplate(
   
   // Set chart data and prepare values for calculations
   if (calculationResult) {
+    // Import the shared amortization utility functions directly
+    const { generateAmortizationData } = require('../../../client/src/lib/amortizationUtils');
+    
     // Helper function to parse currency values
     const parseCurrencyValue = (value: string | number | undefined): number => {
       if (!value) return 0;
@@ -738,85 +741,36 @@ function renderBondRepaymentTemplate(
       : parseFloat(String(calculationResult.interestRate || '0').replace('%', ''));
     
     // =====================================================================
-    // IMPORTANT: Use the exact same calculation logic as AmortizationChart.tsx
+    // IMPORTANT: Use the SHARED UTILITY - same as the frontend components
     // =====================================================================
     
-    // Calculate the monthly payment (same formula as in client/src/components/calculators/charts/AmortizationChart.tsx)
-    const monthlyRate = interestRate / 100 / 12;
-    const totalPayments = loanTerm * 12;
-    const calculatedMonthlyPayment = (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) /
-        (Math.pow(1 + monthlyRate, totalPayments) - 1);
+    // Generate amortization data using the shared utility function
+    const amortizationData = generateAmortizationData(loanAmount, interestRate, loanTerm);
     
-    // Generate chart data using the same logic as AmortizationChart.tsx
-    let remainingBalance = loanAmount;
-    let yearlyLabels = [];
-    let yearlyBalances = [];
-    let yearlyPrincipalPaid = [];
-    let yearlyInterestPaid = [];
+    // Extract data for the chart and table
+    const yearlyLabels = amortizationData.map(item => item.year);
+    const yearlyBalances = amortizationData.map(item => item.balance);
+    const yearlyPrincipalPaid = amortizationData.map(item => item.principal);
+    const yearlyInterestPaid = amortizationData.map(item => item.interest);
+    
+    // Generate HTML for the yearly breakdown table
     let yearlyTableRows = '';
     
-    let cumulativePrincipalPaid = 0;
-    let cumulativeInterestPaid = 0;
-    
-    // Calculate yearly amortization schedule
-    for (let year = 0; year <= loanTerm; year++) {
-      yearlyLabels.push(year);
+    amortizationData.forEach(yearData => {
+      const openingBalance = yearData.year === 0 
+        ? loanAmount 
+        : (yearData.balance + yearData.principal); // Opening balance is closing balance + principal paid
       
-      if (year === 0) {
-        // Starting point
-        yearlyBalances.push(loanAmount);
-        yearlyPrincipalPaid.push(0);
-        yearlyInterestPaid.push(0);
-        
-        yearlyTableRows += `
-          <tr>
-            <td>${year}</td>
-            <td>R ${loanAmount.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-            <td>R 0.00</td>
-            <td>R 0.00</td>
-            <td>R ${loanAmount.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-          </tr>
-        `;
-        continue;
-      }
-      
-      // Calculate payments for this year exactly as in AmortizationChart.tsx
-      let yearlyPrincipal = 0;
-      let yearlyInterest = 0;
-      
-      // Calculate monthly payments for the year - using the exact same logic as the client chart
-      for (let month = 1; month <= 12; month++) {
-        if ((year - 1) * 12 + month <= loanTerm * 12) {
-          const monthlyInterest = remainingBalance * (interestRate / 100 / 12);
-          const monthlyPrincipal = calculatedMonthlyPayment - monthlyInterest;
-          
-          yearlyInterest += monthlyInterest;
-          yearlyPrincipal += monthlyPrincipal;
-          remainingBalance -= monthlyPrincipal;
-          
-          // Prevent negative balance from floating point errors
-          if (remainingBalance < 0.01) remainingBalance = 0;
-        }
-      }
-      
-      cumulativePrincipalPaid += yearlyPrincipal;
-      cumulativeInterestPaid += yearlyInterest;
-      
-      yearlyPrincipalPaid.push(yearlyPrincipal);
-      yearlyInterestPaid.push(yearlyInterest);
-      yearlyBalances.push(Math.max(0, remainingBalance));
-      
-      // Add row to table
       yearlyTableRows += `
         <tr>
-          <td>${year}</td>
-          <td>R ${(loanAmount - cumulativePrincipalPaid + yearlyPrincipal).toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-          <td>R ${yearlyInterest.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-          <td>R ${yearlyPrincipal.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-          <td>R ${Math.max(0, remainingBalance).toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+          <td>${yearData.year}</td>
+          <td>R ${openingBalance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+          <td>R ${yearData.interest.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+          <td>R ${yearData.principal.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+          <td>R ${yearData.balance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
         </tr>
       `;
-    }
+    });
     
     // Add yearly data to template
     html = html.replace('{{yearlyData}}', yearlyTableRows);
