@@ -890,9 +890,12 @@ function renderBondRepaymentTemplate(
     // =====================================================================
     
     // Generate amortization data using the shared utility function
-    const amortizationData = generateAmortizationData(loanAmount, interestRate, loanTerm);
+    const fullAmortizationData = generateAmortizationData(loanAmount, interestRate, loanTerm);
     
-    // Extract data for the chart and table
+    // Filter out year 0 for PDF display only
+    const amortizationData = fullAmortizationData.filter((item: {year: number}) => item.year > 0);
+    
+    // Extract data for the chart and table - from the filtered data (without year 0)
     const yearlyLabels = amortizationData.map((item: {year: number}) => item.year);
     const yearlyBalances = amortizationData.map((item: {balance: number}) => item.balance);
     
@@ -1658,7 +1661,10 @@ function renderAdditionalPaymentTemplate(
     htmlContent = htmlContent.replace('{{newInterest}}', totalNewInterest.toString());
     
     // Generate balance comparison data
-    const standardData = generateAmortizationData(numLoanAmount, numInterestRate, numLoanTerm);
+    const fullStandardData = generateAmortizationData(numLoanAmount, numInterestRate, numLoanTerm);
+    
+    // Filter out year 0 for PDF display only
+    const standardData = fullStandardData.filter((item: {year: number}) => item.year > 0);
     
     // Calculate custom amortization for the case with additional payment
     const standardMonthlyRate = numInterestRate / 100 / 12;
@@ -1671,15 +1677,12 @@ function renderAdditionalPaymentTemplate(
     let additionalPaymentMonths = 0;
     
     while (remainingBalance > 0 && additionalPaymentMonths <= standardLoanTermMonths) {
-      // For yearly data points, start from year 1 (not year 0)
+      // For yearly data points - include year 0 for complete data
       if (additionalPaymentMonths % 12 === 0) {
-        // Skip year 0, start from year 1
-        if (additionalPaymentMonths > 0) {
-          additionalPaymentData.push({
-            year: additionalPaymentMonths / 12,
-            balance: Math.max(0, remainingBalance)
-          });
-        }
+        additionalPaymentData.push({
+          year: additionalPaymentMonths / 12,
+          balance: Math.max(0, remainingBalance)
+        });
       }
       
       const monthlyInterest = remainingBalance * standardMonthlyRate;
@@ -1702,13 +1705,16 @@ function renderAdditionalPaymentTemplate(
       }
     }
     
-    // Format data for charts
+    // Format data for charts - filter out year 0 from additional payment data too
     const years = standardData.map(item => item.year);
     const standardBalances = standardData.map(item => item.balance);
     
+    // Filter out year 0 from additional payment data for PDF display
+    const filteredAdditionalPaymentData = additionalPaymentData.filter(item => item.year > 0);
+    
     // Ensure we have data points for all years
     const additionalBalances = years.map(year => {
-      const match = additionalPaymentData.find(item => item.year === year);
+      const match = filteredAdditionalPaymentData.find(item => item.year === year);
       return match ? match.balance : 0;
     });
     
