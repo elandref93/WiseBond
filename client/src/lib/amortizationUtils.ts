@@ -47,19 +47,8 @@ export function generateAmortizationData(
   const monthlyPayment = calculateMonthlyPayment(loanAmount, interestRate, loanTerm);
 
   // Calculate yearly data
-  for (let year = 0; year <= loanTerm; year++) {
-    if (year === 0) {
-      // Starting point
-      data.push({
-        year,
-        principal: 0,
-        interest: 0,
-        balance: loanAmount,
-        cumulativePrincipal: 0,
-        cumulativeInterest: 0
-      });
-      continue;
-    }
+  // Start from year 1 (no year 0)
+  for (let year = 1; year <= loanTerm; year++) {
 
     let yearlyPrincipal = 0;
     let yearlyInterest = 0;

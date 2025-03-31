@@ -1670,12 +1670,15 @@ function renderAdditionalPaymentTemplate(
     let additionalPaymentMonths = 0;
     
     while (remainingBalance > 0 && additionalPaymentMonths <= standardLoanTermMonths) {
-      // For yearly data points
+      // For yearly data points, start from year 1 (not year 0)
       if (additionalPaymentMonths % 12 === 0) {
-        additionalPaymentData.push({
-          year: additionalPaymentMonths / 12,
-          balance: Math.max(0, remainingBalance)
-        });
+        // Skip year 0, start from year 1
+        if (additionalPaymentMonths > 0) {
+          additionalPaymentData.push({
+            year: additionalPaymentMonths / 12,
+            balance: Math.max(0, remainingBalance)
+          });
+        }
       }
       
       const monthlyInterest = remainingBalance * standardMonthlyRate;
