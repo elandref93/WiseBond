@@ -101,8 +101,8 @@ export async function generatePdfFromHtml(
     // Set content
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
     
-    // Wait longer for chart.js to load
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Wait longer for chart.js to load - increased to 5 seconds
+    await new Promise(resolve => setTimeout(resolve, 5000));
     
     // Execute any chart initialization scripts
     console.log('Attempting to render charts in PDF');
@@ -115,6 +115,12 @@ export async function generatePdfFromHtml(
         return false;
       }
       
+      // Check if ChartDataLabels is loaded (for our datalabels plugin)
+      if (typeof window.ChartDataLabels === 'undefined') {
+        console.error('ChartDataLabels plugin not loaded in the page');
+        console.log('Trying to continue anyway...');
+      }
+      
       // Get all canvas elements
       const canvases = document.querySelectorAll('canvas');
       console.log(`Found ${canvases.length} canvas elements`);
@@ -125,6 +131,10 @@ export async function generatePdfFromHtml(
         if (typeof window.renderCharts === 'function') {
           console.log('Executing renderCharts function');
           window.renderCharts();
+        } else {
+          // Manually trigger DOMContentLoaded again to ensure chart scripts run
+          console.log('Manually triggering DOMContentLoaded event');
+          document.dispatchEvent(new Event('DOMContentLoaded'));
         }
         
         // Force immediate rendering
@@ -522,8 +532,11 @@ function createDynamicBondRepaymentTemplate(): string {
   
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Register the Chart.js datalabels plugin
-      Chart.register(ChartDataLabels);
+      // First load the plugin if it exists in window scope
+      // ChartDataLabels will be available as a global script is loaded
+      if (typeof window.ChartDataLabels !== 'undefined') {
+        Chart.register(window.ChartDataLabels);
+      }
       
       // Payment Breakdown Pie Chart
       const ctxBreakdown = document.getElementById('chart-breakdown').getContext('2d');
