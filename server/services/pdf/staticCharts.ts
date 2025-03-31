@@ -92,14 +92,15 @@ export function generateLoanOverviewSvg(
   const maxBalance = Math.max(...balance);
   const maxPaid = Math.max(...principalPaid, ...interestPaid);
   
-  // Chart dimensions - increased width and left padding for y-axis labels
-  const width = 750;
-  const height = 300;
-  const leftPadding = 70; // Increased padding for left labels
-  const rightPadding = 70; // Increased padding for right labels
-  const topBottomPadding = 40;
+  // Chart dimensions - increased width and padding for labels and legend
+  const width = 800;
+  const height = 350;
+  const leftPadding = 80; // Increased padding for left labels
+  const rightPadding = 80; // Increased padding for right labels
+  const topPadding = 60;   // Increased top padding for legend
+  const bottomPadding = 40;
   const chartWidth = width - leftPadding - rightPadding;
-  const chartHeight = height - topBottomPadding * 2;
+  const chartHeight = height - topPadding - bottomPadding;
   
   // Generate chart points for each dataset
   const balancePoints = generatePoints(years, balance, maxBalance, chartWidth, chartHeight, leftPadding);
@@ -107,14 +108,14 @@ export function generateLoanOverviewSvg(
   const interestPoints = generatePoints(years, interestPaid, maxPaid, chartWidth, chartHeight, leftPadding);
   
   return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-    <!-- X and Y axes -->
-    <line x1="${leftPadding}" y1="${height - topBottomPadding}" x2="${width - rightPadding}" y2="${height - topBottomPadding}" stroke="#333" stroke-width="1" />
-    <line x1="${leftPadding}" y1="${topBottomPadding}" x2="${leftPadding}" y2="${height - topBottomPadding}" stroke="#333" stroke-width="1" />
+    <!-- X and Y axes - ensure they don't overlap with zero values -->
+    <line x1="${leftPadding}" y1="${height - bottomPadding}" x2="${width - rightPadding}" y2="${height - bottomPadding}" stroke="#333" stroke-width="1" />
+    <line x1="${leftPadding}" y1="${topPadding}" x2="${leftPadding}" y2="${height - bottomPadding}" stroke="#333" stroke-width="1" />
     
     <!-- X-axis labels -->
     ${years.map((year, i) => {
       const x = leftPadding + (i * (chartWidth / (years.length - 1)));
-      return `<text x="${x}" y="${height - topBottomPadding + 20}" text-anchor="middle" font-family="Segoe UI" font-size="10">${year}</text>`;
+      return `<text x="${x}" y="${height - bottomPadding + 20}" text-anchor="middle" font-family="Segoe UI" font-size="10">${year}</text>`;
     }).join('')}
     
     <!-- Y-axis labels for balance (left side) with more space -->
@@ -132,19 +133,19 @@ export function generateLoanOverviewSvg(
     <!-- Interest Paid line -->
     <path d="${interestPoints}" fill="none" stroke="hsl(142, 76%, 36%)" stroke-width="2" stroke-dasharray="2,2" />
     
-    <!-- Legend -->
-    <g transform="translate(${leftPadding + 20}, ${topBottomPadding + 20})">
+    <!-- Legend - moved to the top of the chart, outside the plotting area -->
+    <g transform="translate(${leftPadding + 40}, 30)">
       <!-- Balance legend -->
       <line x1="0" y1="0" x2="20" y2="0" stroke="hsl(210, 79%, 51%)" stroke-width="2" />
       <text x="30" y="5" font-family="Segoe UI" font-size="12">Outstanding Balance</text>
       
       <!-- Principal Paid legend -->
-      <line x1="0" y1="20" x2="20" y2="20" stroke="hsl(26, 79%, 51%)" stroke-width="2" stroke-dasharray="5,5" />
-      <text x="30" y="25" font-family="Segoe UI" font-size="12">Principal Paid</text>
+      <line x1="200" y1="0" x2="220" y2="0" stroke="hsl(26, 79%, 51%)" stroke-width="2" stroke-dasharray="5,5" />
+      <text x="230" y="5" font-family="Segoe UI" font-size="12">Principal Paid</text>
       
       <!-- Interest Paid legend -->
-      <line x1="0" y1="40" x2="20" y2="40" stroke="hsl(142, 76%, 36%)" stroke-width="2" stroke-dasharray="2,2" />
-      <text x="30" y="45" font-family="Segoe UI" font-size="12">Interest Paid</text>
+      <line x1="400" y1="0" x2="420" y2="0" stroke="hsl(142, 76%, 36%)" stroke-width="2" stroke-dasharray="2,2" />
+      <text x="430" y="5" font-family="Segoe UI" font-size="12">Interest Paid</text>
     </g>
   </svg>`;
 }
@@ -161,14 +162,15 @@ export function generateComparisonBarChartSvg(
   standardValues: number[],
   additionalValues: number[]
 ): string {
-  // Chart dimensions - increased width and padding for y-axis labels
-  const width = 750;
-  const height = 300;
-  const leftPadding = 70; // Increased padding for left labels
+  // Chart dimensions - increased width and padding for labels and legend
+  const width = 800;
+  const height = 350;
+  const leftPadding = 80; // Increased padding for left labels
   const rightPadding = 40;
-  const topBottomPadding = 40;
+  const topPadding = 60;   // Increased top padding for legend
+  const bottomPadding = 40;
   const chartWidth = width - leftPadding - rightPadding;
-  const chartHeight = height - topBottomPadding * 2;
+  const chartHeight = height - topPadding - bottomPadding;
   
   // Find max value for scaling
   const maxValue = Math.max(...standardValues, ...additionalValues);
@@ -179,14 +181,14 @@ export function generateComparisonBarChartSvg(
   const spacing = groupWidth * 0.2; // 20% spacing
   
   return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-    <!-- X and Y axes -->
-    <line x1="${leftPadding}" y1="${height - topBottomPadding}" x2="${width - rightPadding}" y2="${height - topBottomPadding}" stroke="#333" stroke-width="1" />
-    <line x1="${leftPadding}" y1="${topBottomPadding}" x2="${leftPadding}" y2="${height - topBottomPadding}" stroke="#333" stroke-width="1" />
+    <!-- X and Y axes - ensure they don't overlap with zero values -->
+    <line x1="${leftPadding}" y1="${height - bottomPadding}" x2="${width - rightPadding}" y2="${height - bottomPadding}" stroke="#333" stroke-width="1" />
+    <line x1="${leftPadding}" y1="${topPadding}" x2="${leftPadding}" y2="${height - bottomPadding}" stroke="#333" stroke-width="1" />
     
     <!-- X-axis labels -->
     ${labels.map((label, i) => {
       const x = leftPadding + (i * groupWidth) + groupWidth/2;
-      return `<text x="${x}" y="${height - topBottomPadding + 20}" text-anchor="middle" font-family="Segoe UI" font-size="10">${label}</text>`;
+      return `<text x="${x}" y="${height - bottomPadding + 20}" text-anchor="middle" font-family="Segoe UI" font-size="10">${label}</text>`;
     }).join('')}
     
     <!-- Y-axis labels with more space for large numbers -->
@@ -196,7 +198,7 @@ export function generateComparisonBarChartSvg(
     ${standardValues.map((value, i) => {
       const barHeight = (value / maxValue) * chartHeight;
       const x = leftPadding + (i * groupWidth) + spacing;
-      const y = height - topBottomPadding - barHeight;
+      const y = height - bottomPadding - barHeight;
       return `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" fill="hsl(210, 79%, 51%)" />`;
     }).join('')}
     
@@ -204,19 +206,19 @@ export function generateComparisonBarChartSvg(
     ${additionalValues.map((value, i) => {
       const barHeight = (value / maxValue) * chartHeight;
       const x = leftPadding + (i * groupWidth) + spacing + barWidth;
-      const y = height - topBottomPadding - barHeight;
+      const y = height - bottomPadding - barHeight;
       return `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" fill="hsl(26, 79%, 51%)" />`;
     }).join('')}
     
-    <!-- Legend -->
-    <g transform="translate(${leftPadding + 20}, ${topBottomPadding + 20})">
+    <!-- Legend - moved to the top of the chart, outside the plotting area -->
+    <g transform="translate(${leftPadding + 40}, 30)">
       <!-- Standard payment legend -->
       <rect x="0" y="0" width="15" height="15" fill="hsl(210, 79%, 51%)" />
       <text x="25" y="12" font-family="Segoe UI" font-size="12">Standard Bond</text>
       
       <!-- Additional payment legend -->
-      <rect x="150" y="0" width="15" height="15" fill="hsl(26, 79%, 51%)" />
-      <text x="175" y="12" font-family="Segoe UI" font-size="12">With Additional Payment</text>
+      <rect x="200" y="0" width="15" height="15" fill="hsl(26, 79%, 51%)" />
+      <text x="225" y="12" font-family="Segoe UI" font-size="12">With Additional Payment</text>
     </g>
   </svg>`;
 }
@@ -233,14 +235,15 @@ export function generateBalanceComparisonSvg(
   standardBalance: number[],
   additionalBalance: number[]
 ): string {
-  // Chart dimensions - increased width and padding for y-axis labels
-  const width = 750;
-  const height = 300;
-  const leftPadding = 70; // Increased padding for left labels
+  // Chart dimensions - increased width and padding for labels and legend
+  const width = 800;
+  const height = 350;
+  const leftPadding = 80; // Increased padding for left labels
   const rightPadding = 40;
-  const topBottomPadding = 40;
+  const topPadding = 60;   // Increased top padding for legend
+  const bottomPadding = 40;
   const chartWidth = width - leftPadding - rightPadding;
-  const chartHeight = height - topBottomPadding * 2;
+  const chartHeight = height - topPadding - bottomPadding;
   
   // Find the highest value for scaling
   const maxBalance = Math.max(...standardBalance, ...additionalBalance);
@@ -250,14 +253,14 @@ export function generateBalanceComparisonSvg(
   const additionalPoints = generatePoints(years, additionalBalance, maxBalance, chartWidth, chartHeight, leftPadding);
   
   return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-    <!-- X and Y axes -->
-    <line x1="${leftPadding}" y1="${height - topBottomPadding}" x2="${width - rightPadding}" y2="${height - topBottomPadding}" stroke="#333" stroke-width="1" />
-    <line x1="${leftPadding}" y1="${topBottomPadding}" x2="${leftPadding}" y2="${height - topBottomPadding}" stroke="#333" stroke-width="1" />
+    <!-- X and Y axes - ensure they don't overlap with zero values -->
+    <line x1="${leftPadding}" y1="${height - bottomPadding}" x2="${width - rightPadding}" y2="${height - bottomPadding}" stroke="#333" stroke-width="1" />
+    <line x1="${leftPadding}" y1="${topPadding}" x2="${leftPadding}" y2="${height - bottomPadding}" stroke="#333" stroke-width="1" />
     
     <!-- X-axis labels -->
     ${years.map((year, i) => {
       const x = leftPadding + (i * (chartWidth / (years.length - 1)));
-      return `<text x="${x}" y="${height - topBottomPadding + 20}" text-anchor="middle" font-family="Segoe UI" font-size="10">${year}</text>`;
+      return `<text x="${x}" y="${height - bottomPadding + 20}" text-anchor="middle" font-family="Segoe UI" font-size="10">${year}</text>`;
     }).join('')}
     
     <!-- Y-axis labels with more space for large numbers -->
@@ -269,15 +272,15 @@ export function generateBalanceComparisonSvg(
     <!-- Additional payment balance line -->
     <path d="${additionalPoints}" fill="rgba(234, 88, 12, 0.1)" stroke="hsl(26, 79%, 51%)" stroke-width="2" />
     
-    <!-- Legend -->
-    <g transform="translate(${leftPadding + 20}, ${topBottomPadding + 20})">
+    <!-- Legend - moved to the top of the chart, outside the plotting area -->
+    <g transform="translate(${leftPadding + 40}, 30)">
       <!-- Standard balance legend -->
       <line x1="0" y1="0" x2="20" y2="0" stroke="hsl(210, 79%, 51%)" stroke-width="2" />
       <text x="30" y="5" font-family="Segoe UI" font-size="12">Standard Bond Balance</text>
       
       <!-- Additional payment balance legend -->
-      <line x1="0" y1="20" x2="20" y2="20" stroke="hsl(26, 79%, 51%)" stroke-width="2" />
-      <text x="30" y="25" font-family="Segoe UI" font-size="12">With Additional Payment</text>
+      <line x1="300" y1="0" x2="320" y2="0" stroke="hsl(26, 79%, 51%)" stroke-width="2" />
+      <text x="330" y="5" font-family="Segoe UI" font-size="12">With Additional Payment</text>
     </g>
   </svg>`;
 }
@@ -316,15 +319,19 @@ function generatePoints(
   maxY: number, 
   chartWidth: number, 
   chartHeight: number, 
-  padding: number
+  leftPadding: number
 ): string {
   // Start with the path's start point
   let path = '';
   
+  // For the updated layout, we need to use the topPadding value for y-coordinate calculations
+  const topPadding = 60; // Same as declared in chart generating functions
+  
   // Build the main line path
   xValues.forEach((x, i) => {
-    const xPos = padding + (i * (chartWidth / (xValues.length - 1)));
-    const yPos = (chartHeight + padding) - ((yValues[i] / maxY) * chartHeight);
+    const xPos = leftPadding + (i * (chartWidth / (xValues.length - 1)));
+    // Calculate y position with correct top padding reference
+    const yPos = (chartHeight + topPadding) - ((yValues[i] / maxY) * chartHeight);
     
     if (i === 0) {
       path = `M ${xPos} ${yPos}`;
@@ -335,9 +342,10 @@ function generatePoints(
   
   // For filling area under the curve, add points to the bottom right and left
   // Use the actual chartWidth to determine the right edge
-  const lastX = padding + chartWidth;
-  const lastY = chartHeight + padding;
-  const firstX = padding;
+  const lastX = leftPadding + chartWidth;
+  const bottomPadding = 40; // Same as declared in chart generating functions
+  const lastY = chartHeight + topPadding;
+  const firstX = leftPadding;
   
   path += ` L ${lastX} ${lastY} L ${firstX} ${lastY} Z`;
   
@@ -367,9 +375,13 @@ function generateYAxisLabels(
   // Increased offset to provide more space for labels
   const xOffset = align === 'left' ? -15 : 15;
   
+  // Use the same topPadding as in chart generating functions
+  const topPadding = 60;
+  
   for (let i = 0; i <= count; i++) {
     const value = i * step;
-    const y = chartHeight + 40 - (i * (chartHeight / count));
+    // Adjust y position to account for top padding
+    const y = topPadding + chartHeight - (i * (chartHeight / count));
     
     // Format large numbers in a more compact way (using K, M for thousands, millions)
     let formattedValue;
@@ -380,11 +392,17 @@ function generateYAxisLabels(
       // For values in thousands, display as "R X.XX K"
       formattedValue = `R ${(value / 1000).toFixed(2)} K`;
     } else {
-      // For smaller values, display as regular currency
+      // For values less than 1000, display as regular currency
       formattedValue = `R ${Math.round(value).toLocaleString('en-ZA')}`;
     }
     
-    labels += `<text x="${x + xOffset}" y="${y}" text-anchor="${textAnchor}" font-family="Segoe UI" font-size="10">${formattedValue}</text>`;
+    // Make "0" value clearly visible, not overlapped by axis
+    if (value === 0) {
+      // Add a small offset for zero value to avoid being cut off by x-axis
+      labels += `<text x="${x + xOffset}" y="${y - 5}" text-anchor="${textAnchor}" font-family="Segoe UI" font-size="10">${formattedValue}</text>`;
+    } else {
+      labels += `<text x="${x + xOffset}" y="${y}" text-anchor="${textAnchor}" font-family="Segoe UI" font-size="10">${formattedValue}</text>`;
+    }
   }
   
   return labels;
