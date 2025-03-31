@@ -174,21 +174,19 @@ export function createDynamicAdditionalPaymentTemplate(): string {
       height: 300px;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
-  <script>
-    // Define globals and register plugin
-    window.Chart = Chart;
-    window.ChartDataLabels = ChartDataLabels;
-    Chart.register(ChartDataLabels);
-    
-    // Create renderCharts function
-    window.renderCharts = function() {
-      console.log("renderCharts function called in additional payment");
-      // Charts will be initialized in the DOMContentLoaded event
-      // This function can be called manually if needed
-    };
-  </script>
+  <!-- No external JavaScript dependencies needed for static SVG charts -->
+  <style>
+    .svg-container {
+      width: 100%;
+      height: 300px;
+      margin: 0 auto;
+    }
+    .svg-container svg {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+  <!-- No Chart.js initialization needed for static SVG charts -->
 </head>
 <body>
   <div class="container">
@@ -217,15 +215,15 @@ export function createDynamicAdditionalPaymentTemplate(): string {
     
     <div class="chart-section">
       <h3>Payment Comparison</h3>
-      <div class="chart-container">
-        <canvas id="comparison-chart"></canvas>
+      <div class="svg-container">
+        {{comparisonChart}}
       </div>
     </div>
     
     <div class="chart-section">
       <h3>Loan Balance Comparison</h3>
-      <div class="chart-container">
-        <canvas id="balance-chart"></canvas>
+      <div class="svg-container">
+        {{balanceComparisonChart}}
       </div>
     </div>
     
@@ -246,133 +244,7 @@ export function createDynamicAdditionalPaymentTemplate(): string {
     </div>
   </div>
   
-  <script>
-    // Get chart data from the template
-    const standardPayment = {{standardPayment}};
-    const newPayment = {{newPayment}};
-    const standardTerm = {{standardTerm}};
-    const newTerm = {{newTerm}};
-    const standardInterest = {{standardInterest}};
-    const newInterest = {{newInterest}};
-    
-    const years = {{balanceYears}};
-    const standardBalance = {{standardBalance}};
-    const additionalBalance = {{additionalBalance}};
-    
-    console.log('Chart data:', {
-      standardPayment, newPayment, standardTerm, newTerm, standardInterest, newInterest,
-      years, standardBalance, additionalBalance
-    });
-    
-    // Function to render charts
-    function renderCharts() {
-      console.log('Rendering charts for PDF');
-      
-      // Payment Comparison Chart
-      const comparisonCanvas = document.getElementById('comparison-chart');
-      if (comparisonCanvas) {
-        new Chart(comparisonCanvas, {
-          type: 'bar',
-          data: {
-            labels: ['Monthly Payment', 'Loan Term (Months)', 'Total Interest Paid'],
-            datasets: [
-              {
-                label: 'Standard Bond',
-                data: [standardPayment, standardTerm, standardInterest],
-                backgroundColor: 'hsl(210, 79%, 51%)',
-                borderColor: 'hsl(210, 79%, 51%)',
-                borderWidth: 1
-              },
-              {
-                label: 'With Additional Payment',
-                data: [newPayment, newTerm, newInterest],
-                backgroundColor: 'hsl(26, 79%, 51%)',
-                borderColor: 'hsl(26, 79%, 51%)',
-                borderWidth: 1
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: true
-              }
-            },
-            plugins: {
-              legend: {
-                position: 'top'
-              }
-            }
-          }
-        });
-        console.log('Comparison chart rendered');
-      } else {
-        console.error('Comparison chart canvas not found');
-      }
-      
-      // Balance Comparison Chart
-      const balanceCanvas = document.getElementById('balance-chart');
-      if (balanceCanvas) {
-        new Chart(balanceCanvas, {
-          type: 'line',
-          data: {
-            labels: years,
-            datasets: [
-              {
-                label: 'Standard Bond Balance',
-                data: standardBalance,
-                borderColor: 'hsl(210, 79%, 51%)',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4
-              },
-              {
-                label: 'With Additional Payment',
-                data: additionalBalance,
-                borderColor: 'hsl(26, 79%, 51%)',
-                backgroundColor: 'rgba(234, 88, 12, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                title: {
-                  display: true,
-                  text: 'Loan Balance (R)'
-                }
-              },
-              x: {
-                title: {
-                  display: true,
-                  text: 'Year'
-                }
-              }
-            },
-            plugins: {
-              legend: {
-                position: 'top'
-              }
-            }
-          }
-        });
-        console.log('Balance chart rendered');
-      } else {
-        console.error('Balance chart canvas not found');
-      }
-    }
-    
-    // Execute charts rendering immediately for PDF generation
-    renderCharts();
-  </script>
+  <!-- No JavaScript needed for static SVG charts -->
 </body>
 </html>`;
 }

@@ -6,6 +6,12 @@
  */
 
 import puppeteer from 'puppeteer';
+import { 
+  generatePaymentBreakdownSvg,
+  generateLoanOverviewSvg,
+  generateComparisonBarChartSvg,
+  generateBalanceComparisonSvg
+} from './staticCharts';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createDynamicAdditionalPaymentTemplate } from './additionalPaymentTemplate';
@@ -88,108 +94,11 @@ export async function generatePdfFromHtml(
     // Create a new page
     const page = await browser.newPage();
     
-    // Add a script to log all canvas operations for debugging
-    await page.evaluateOnNewDocument(() => {
-      console.log('Setting up canvas debugging');
-      const originalGetContext = HTMLCanvasElement.prototype.getContext;
-      HTMLCanvasElement.prototype.getContext = function() {
-        console.log(`Canvas ${this.id || 'unknown'} getContext called with`, arguments);
-        return originalGetContext.apply(this, arguments);
-      };
-    });
-    
     // Set content
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
     
-    // Wait much longer for chart.js to load - increased to 10 seconds
-    console.log('Waiting 10 seconds for chart scripts to load properly...');
-    await new Promise(resolve => setTimeout(resolve, 10000));
-    
-    // Execute any chart initialization scripts with more detailed logging
-    console.log('Attempting to render charts in PDF');
-    const chartsInitialized = await page.evaluate(() => {
-      console.log('Evaluating chart rendering status');
-      
-      // Add detailed debugging
-      console.log('Available scripts:', Array.from(document.querySelectorAll('script')).map(s => s.src || 'inline script'));
-      console.log('Canvas elements:', Array.from(document.querySelectorAll('canvas')).map(c => ({id: c.id, width: c.width, height: c.height})));
-      
-      // Check if Chart.js is loaded
-      if (typeof window.Chart === 'undefined') {
-        console.error('Chart.js not loaded in the page');
-        // Try to load Chart.js directly
-        console.log('Attempting to load Chart.js directly');
-        const chartScript = document.createElement('script');
-        chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js';
-        document.head.appendChild(chartScript);
-        
-        // Wait a bit for the script to load
-        return false;
-      } else {
-        console.log('Chart.js is loaded properly');
-      }
-      
-      // Check if ChartDataLabels is loaded (for our datalabels plugin)
-      if (typeof window.ChartDataLabels === 'undefined') {
-        console.error('ChartDataLabels plugin not loaded in the page');
-        console.log('Attempting to load ChartDataLabels directly');
-        const datalabelsScript = document.createElement('script');
-        datalabelsScript.src = 'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js';
-        document.head.appendChild(datalabelsScript);
-      } else {
-        console.log('ChartDataLabels plugin is loaded properly');
-      }
-      
-      // Get all canvas elements
-      const canvases = document.querySelectorAll('canvas');
-      console.log(`Found ${canvases.length} canvas elements`);
-      
-      // Try to manually render any charts
-      try {
-        // Explicitly register the plugin
-        if (window.Chart && window.ChartDataLabels) {
-          console.log('Registering ChartDataLabels plugin explicitly');
-          window.Chart.register(window.ChartDataLabels);
-        }
-        
-        // Try to execute renderCharts function if it exists
-        if (typeof window.renderCharts === 'function') {
-          console.log('Executing renderCharts function');
-          window.renderCharts();
-        } else {
-          // Manually trigger DOMContentLoaded again to ensure chart scripts run
-          console.log('Manually triggering DOMContentLoaded event');
-          document.dispatchEvent(new Event('DOMContentLoaded'));
-        }
-        
-        // Force immediate rendering
-        canvases.forEach(canvas => {
-          if (canvas.id) {
-            console.log(`Processing canvas: ${canvas.id}`);
-            // Check if canvas is visible
-            const rect = canvas.getBoundingClientRect();
-            console.log(`Canvas ${canvas.id} dimensions:`, rect.width, rect.height);
-            
-            // This will trigger a redraw on the canvas
-            const context = canvas.getContext('2d');
-            if (context) {
-              context.fillStyle = 'rgba(0,0,0,0)';
-              context.fillRect(0, 0, 1, 1);
-            }
-          }
-        });
-        
-        return true;
-      } catch (err) {
-        console.error('Error initializing charts:', err);
-        return false;
-      }
-    });
-    
-    console.log(`Charts initialized status: ${chartsInitialized}`);
-    
-    // Wait a bit more after initialization
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // No chart initialization needed with static SVGs
+    console.log('Using static SVG charts, no initialization required');
     
     // Generate PDF
     const pdfBuffer = await page.pdf({
@@ -476,21 +385,18 @@ function createDynamicBondRepaymentTemplate(): string {
       border-top: 1px solid #eee;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
-  <script>
-    // Define globals and register plugin
-    window.Chart = Chart;
-    window.ChartDataLabels = ChartDataLabels;
-    Chart.register(ChartDataLabels);
-    
-    // Create renderCharts function
-    window.renderCharts = function() {
-      console.log("renderCharts function called");
-      // Charts will be initialized in the DOMContentLoaded event
-      // This function can be called manually if needed
-    };
-  </script>
+  <!-- No external JavaScript dependencies needed for static SVG charts -->
+  <style>
+    .svg-container {
+      width: 100%;
+      height: 300px;
+      margin: 0 auto;
+    }
+    .svg-container svg {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -519,15 +425,15 @@ function createDynamicBondRepaymentTemplate(): string {
     
     <div class="chart-section">
       <h3>Payment Breakdown</h3>
-      <div class="chart-container">
-        <canvas id="chart-breakdown"></canvas>
+      <div class="svg-container">
+        {{paymentBreakdownChart}}
       </div>
     </div>
     
     <div class="loan-overview-section">
       <h3>Loan Overview</h3>
-      <div class="chart-container">
-        <canvas id="chart-overview"></canvas>
+      <div class="svg-container">
+        {{loanOverviewChart}}
       </div>
     </div>
     
@@ -567,191 +473,6 @@ function createDynamicBondRepaymentTemplate(): string {
       <p>For more information or assistance, please visit our website or contact our customer service.</p>
     </div>
   </div>
-  
-  <script>
-    // Immediately initialize charts, don't wait for DOMContentLoaded
-    (function() {
-      // First load the plugin if it exists in window scope
-      if (typeof window.ChartDataLabels !== 'undefined') {
-        Chart.register(window.ChartDataLabels);
-      }
-      
-      console.log('Immediate chart init started');
-      
-      // Payment Breakdown Pie Chart
-      const ctxBreakdown = document.getElementById('chart-breakdown').getContext('2d');
-      
-      // Get the data from the template
-      const principalAmount = {{principal}};
-      const interestAmount = {{interest}};
-      
-      // Create the pie chart
-      new Chart(ctxBreakdown, {
-        type: 'pie',
-        data: {
-          labels: ['Principal', 'Interest'],
-          datasets: [{
-            data: [principalAmount, interestAmount],
-            backgroundColor: [
-              'hsl(210, 79%, 51%)',
-              'hsl(26, 79%, 51%)'
-            ],
-            borderColor: [
-              '#ffffff',
-              '#ffffff'
-            ],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right',
-              labels: {
-                font: {
-                  family: 'Segoe UI'
-                }
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const totalValue = principalAmount + interestAmount;
-                  const value = context.dataset.data[context.dataIndex];
-                  const percent = ((value / totalValue) * 100).toFixed(1);
-                  const formattedValue = 'R ' + value.toLocaleString('en-ZA', { maximumFractionDigits: 2 });
-                  return context.chart.data.labels[context.dataIndex] + ": " + formattedValue + " (" + percent + "%)";
-                }
-              }
-            },
-            datalabels: {
-              formatter: function(value, ctx) {
-                const totalValue = principalAmount + interestAmount;
-                const percent = ((value / totalValue) * 100).toFixed(1);
-                return percent + "%\nR " + Math.round(value).toLocaleString('en-ZA');
-              },
-              color: '#fff',
-              font: {
-                weight: 'bold',
-                size: 12
-              }
-            }
-          }
-        }
-      });
-      
-      // Loan Overview Line Chart
-      const ctxOverview = document.getElementById('chart-overview').getContext('2d');
-      
-      // Get the yearly data from the template
-      const yearlyLabels = {{yearLabels}};
-      const principalPaid = {{principalPaidData}};
-      const interestPaid = {{interestPaidData}};
-      const balanceData = {{balanceData}};
-      
-      // Create the line chart
-      new Chart(ctxOverview, {
-        type: 'line',
-        data: {
-          labels: yearlyLabels,
-          datasets: [
-            {
-              label: 'Outstanding Balance',
-              data: balanceData,
-              borderColor: 'hsl(210, 79%, 51%)',
-              backgroundColor: 'rgba(59, 130, 246, 0.1)',
-              borderWidth: 2,
-              fill: true,
-              tension: 0.4,
-              yAxisID: 'y'
-            },
-            {
-              label: 'Principal Paid',
-              data: principalPaid,
-              borderColor: 'hsl(26, 79%, 51%)',
-              borderWidth: 2,
-              borderDash: [5, 5],
-              fill: false,
-              tension: 0.4,
-              yAxisID: 'y1'
-            },
-            {
-              label: 'Interest Paid',
-              data: interestPaid,
-              borderColor: 'hsl(142, 76%, 36%)',
-              borderWidth: 2,
-              borderDash: [2, 2],
-              fill: false,
-              tension: 0.4,
-              yAxisID: 'y1'
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'top',
-              labels: {
-                font: {
-                  family: 'Segoe UI'
-                }
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return context.dataset.label + ': R ' + context.raw.toLocaleString('en-ZA');
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              title: {
-                display: true,
-                text: 'Year'
-              }
-            },
-            y: {
-              type: 'linear',
-              display: true,
-              position: 'left',
-              title: {
-                display: true,
-                text: 'Outstanding Balance'
-              },
-              ticks: {
-                callback: function(value) {
-                  return 'R ' + value.toLocaleString('en-ZA');
-                }
-              }
-            },
-            y1: {
-              type: 'linear',
-              display: true,
-              position: 'right',
-              title: {
-                display: true,
-                text: 'Amount Paid'
-              },
-              ticks: {
-                callback: function(value) {
-                  return 'R ' + value.toLocaleString('en-ZA');
-                }
-              },
-              grid: {
-                drawOnChartArea: false
-              }
-            }
-          }
-        }
-      });
-    });
-  </script>
 </body>
 </html>`;
 }
@@ -949,9 +670,9 @@ function renderBondRepaymentTemplate(
     const totalRepayment = parseCurrencyValue(calculationResult.totalRepayment);
     const monthlyPayment = parseCurrencyValue(calculationResult.monthlyPayment);
     
-    // Add principal and interest values to the template for pie chart
-    html = html.replace('{{principal}}', loanAmount.toString());
-    html = html.replace('{{interest}}', totalInterest.toString());
+    // Generate the static SVG charts
+    const paymentBreakdownChart = generatePaymentBreakdownSvg(loanAmount, totalInterest);
+    html = html.replace('{{paymentBreakdownChart}}', paymentBreakdownChart);
     
     // Generate yearly breakdown data - using only values from the input data, with fallbacks to calculation results
     const loanTerm = inputData?.loanTerm 
@@ -1016,11 +737,14 @@ function renderBondRepaymentTemplate(
     // Add yearly data to template
     html = html.replace('{{yearlyData}}', yearlyTableRows);
     
-    // Add chart data
-    html = html.replace('{{yearLabels}}', JSON.stringify(yearlyLabels));
-    html = html.replace('{{balanceData}}', JSON.stringify(yearlyBalances));
-    html = html.replace('{{principalPaidData}}', JSON.stringify(yearlyPrincipalPaid));
-    html = html.replace('{{interestPaidData}}', JSON.stringify(yearlyInterestPaid));
+    // Generate the loan overview chart using the static chart utility
+    const loanOverviewChart = generateLoanOverviewSvg(
+      yearlyLabels,
+      yearlyBalances,
+      yearlyPrincipalPaid,
+      yearlyInterestPaid
+    );
+    html = html.replace('{{loanOverviewChart}}', loanOverviewChart);
   }
   
   return html;
@@ -1737,13 +1461,20 @@ function renderAdditionalPaymentTemplate(
     htmlContent = htmlContent.replace('{{timeSaved}}', timeSavedText);
     htmlContent = htmlContent.replace('{{interestSaved}}', interestSavedFormatted);
     
-    // Insert chart data
-    htmlContent = htmlContent.replace('{{standardPayment}}', standardMonthlyPayment.toString());
-    htmlContent = htmlContent.replace('{{newPayment}}', newMonthlyPayment.toString());
-    htmlContent = htmlContent.replace('{{standardTerm}}', standardLoanTermMonths.toString());
-    htmlContent = htmlContent.replace('{{newTerm}}', newLoanTermMonths.toString());
-    htmlContent = htmlContent.replace('{{standardInterest}}', totalStandardInterest.toString());
-    htmlContent = htmlContent.replace('{{newInterest}}', totalNewInterest.toString());
+    // Generate static SVG charts
+    const labels = ['Monthly Payment', 'Loan Term (Months)', 'Total Interest Paid'];
+    const standardValues = [standardMonthlyPayment, standardLoanTermMonths, totalStandardInterest];
+    const additionalValues = [newMonthlyPayment, newLoanTermMonths, totalNewInterest];
+    
+    // Generate the comparison bar chart
+    const comparisonChart = generateComparisonBarChartSvg(
+      labels,
+      standardValues,
+      additionalValues
+    );
+    
+    // Insert the SVG chart into the template
+    htmlContent = htmlContent.replace('{{comparisonChart}}', comparisonChart);
     
     // Generate balance comparison data
     const fullStandardData = generateAmortizationData(numLoanAmount, numInterestRate, numLoanTerm);
@@ -1803,10 +1534,15 @@ function renderAdditionalPaymentTemplate(
       return match ? match.balance : 0;
     });
     
-    // Insert balance chart data
-    htmlContent = htmlContent.replace('{{balanceYears}}', JSON.stringify(years));
-    htmlContent = htmlContent.replace('{{standardBalance}}', JSON.stringify(standardBalances));
-    htmlContent = htmlContent.replace('{{additionalBalance}}', JSON.stringify(additionalBalances));
+    // Generate the balance comparison chart using the static SVG utility
+    const balanceComparisonChart = generateBalanceComparisonSvg(
+      years,
+      standardBalances,
+      additionalBalances
+    );
+    
+    // Insert the SVG chart into the template
+    htmlContent = htmlContent.replace('{{balanceComparisonChart}}', balanceComparisonChart);
     
     return htmlContent;
   } catch (error) {
