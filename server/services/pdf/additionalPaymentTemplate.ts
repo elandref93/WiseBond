@@ -107,12 +107,12 @@ export function createDynamicAdditionalPaymentTemplate(): string {
     
     /* Chart section */
     .chart-section {
-      margin-top: 30px;
+      margin-top: 15px;
     }
     
     .chart-container {
-      height: 300px;
-      margin-top: 20px;
+      height: 200px;
+      margin-top: 10px;
     }
     
     /* Input details section */
@@ -171,14 +171,14 @@ export function createDynamicAdditionalPaymentTemplate(): string {
     /* Canvas containers */
     #comparison-chart, #balance-chart {
       width: 100%;
-      height: 300px;
+      height: 200px;
     }
   </style>
   <!-- No external JavaScript dependencies needed for static SVG charts -->
   <style>
     .svg-container {
       width: 100%;
-      height: 300px;
+      height: 200px;
       margin: 0 auto;
     }
     .svg-container svg {
@@ -190,25 +190,25 @@ export function createDynamicAdditionalPaymentTemplate(): string {
 </head>
 <body>
   <div class="container">
-    <div class="header">
+    <div class="header" style="padding: 5px 0; margin-bottom: 8px;">
       <div class="branding">
-        <div class="company-name">WiseBond</div>
-        <div class="text-muted">Bond Origination Specialists</div>
+        <div class="company-name" style="font-size: 16px;">WiseBond</div>
+        <div class="text-muted" style="font-size: 10px;">Bond Origination Specialists</div>
       </div>
       <div class="report-meta">
-        <div class="report-title">Additional Payment Analysis</div>
-        <div class="text-muted">Generated on {{generatedDate}}</div>
+        <div class="report-title" style="font-size: 14px;">Additional Payment Analysis</div>
+        <div class="text-muted" style="font-size: 10px;">Generated on {{generatedDate}}</div>
       </div>
     </div>
     
-    <div class="summary-section">
-      <h2 class="summary-title">Additional Payment Summary</h2>
-      <p>This report shows how making an additional monthly payment of {{additionalPayment}} can save you {{timeSaved}} off your loan term and {{interestSaved}} in interest payments.</p>
+    <div class="summary-section" style="padding: 6px; margin-bottom: 8px;">
+      <h2 class="summary-title" style="font-size: 14px; margin-top: 0; margin-bottom: 3px;">Additional Payment Summary</h2>
+      <p style="font-size: 12px; margin: 0;">This report shows how making an additional monthly payment of {{additionalPayment}} can save you {{timeSaved}} off your loan term and {{interestSaved}} in interest payments.</p>
     </div>
     
-    <div class="results-section">
-      <h3>Analysis Results</h3>
-      <div class="results-grid">
+    <div class="results-section" style="margin-top: 8px;">
+      <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 6px;">Analysis Results</h3>
+      <div class="results-grid" style="gap: 8px; margin-top: 0;">
         {{resultCards}}
       </div>
     </div>

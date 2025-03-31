@@ -392,7 +392,7 @@ function createDynamicBondRepaymentTemplate(): string {
   <style>
     .svg-container {
       width: 100%;
-      height: 250px;
+      height: 200px;
       margin: 0 auto;
     }
     .svg-container svg {
@@ -402,39 +402,39 @@ function createDynamicBondRepaymentTemplate(): string {
   </style>
 </head>
 <body>
-  <div style="max-width: 800px; margin: 0 auto; padding: 10px;">
-    <div style="padding: 5px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+  <div style="max-width: 800px; margin: 0 auto; padding: 8px;">
+    <div style="padding: 3px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
       <div style="line-height: 1.1;">
-        <div style="font-size: 18px; font-weight: bold; color: hsl(26, 79%, 51%);">WiseBond</div>
-        <div style="color: #6c757d; font-size: 11px;">Bond Origination Specialists</div>
+        <div style="font-size: 16px; font-weight: bold; color: hsl(26, 79%, 51%);">WiseBond</div>
+        <div style="color: #6c757d; font-size: 10px;">Bond Origination Specialists</div>
       </div>
       <div style="text-align: right; line-height: 1.1;">
-        <div style="font-weight: 600; color: #333; font-size: 15px;">Bond Repayment Report</div>
-        <div style="color: #6c757d; font-size: 11px;">Generated on {{generatedDate}}</div>
+        <div style="font-weight: 600; color: #333; font-size: 14px;">Bond Repayment Report</div>
+        <div style="color: #6c757d; font-size: 10px;">Generated on {{generatedDate}}</div>
       </div>
     </div>
     
-    <div class="summary-section" style="background-color: #f9f9f9; padding: 10px; border-radius: 5px; margin-top: 10px; border-left: 4px solid hsl(26, 79%, 51%);">
-      <h2 style="margin-top: 0; margin-bottom: 5px; font-size: 16px; color: #333;">Bond Repayment Summary</h2>
-      <p style="margin: 0; font-size: 13px;">This report provides a detailed analysis of your bond repayment calculation, including monthly installments, total interest paid, and payment breakdown over the loan term.</p>
+    <div class="summary-section" style="background-color: #f9f9f9; padding: 6px; border-radius: 5px; margin-top: 6px; border-left: 4px solid hsl(26, 79%, 51%);">
+      <h2 style="margin-top: 0; margin-bottom: 3px; font-size: 14px; color: #333;">Bond Repayment Summary</h2>
+      <p style="margin: 0; font-size: 12px;">This report provides a detailed analysis of your bond repayment calculation, including monthly installments, total interest paid, and payment breakdown over the loan term.</p>
     </div>
     
-    <div style="margin-top: 15px;">
-      <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">Calculation Results</h3>
-      <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+    <div style="margin-top: 8px;">
+      <h3 style="margin-top: 0; margin-bottom: 6px; font-size: 14px;">Calculation Results</h3>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
         {{resultCards}}
       </div>
     </div>
     
-    <div style="margin-top: 15px;">
-      <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">Payment Breakdown</h3>
+    <div style="margin-top: 8px;">
+      <h3 style="margin-top: 0; margin-bottom: 6px; font-size: 14px;">Payment Breakdown</h3>
       <div style="display: flex; justify-content: center; width: 100%;">
         {{paymentBreakdownChart}}
       </div>
     </div>
     
-    <div style="margin-top: 20px;">
-      <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">Loan Overview</h3>
+    <div style="margin-top: 10px;">
+      <h3 style="margin-top: 0; margin-bottom: 6px; font-size: 14px;">Loan Overview</h3>
       <div style="display: flex; justify-content: center; width: 100%;">
         {{loanOverviewChart}}
       </div>
