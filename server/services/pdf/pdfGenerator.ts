@@ -427,19 +427,16 @@ function createDynamicBondRepaymentTemplate(): string {
     </div>
     
     <div style="margin-top: 15px;">
-      <div style="display: flex; flex-wrap: wrap; justify-content: space-between;">
-        <div style="width: 45%;">
-          <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 15px;">Payment Breakdown</h3>
-          <div style="display: flex; justify-content: center; width: 100%;">
-            {{paymentBreakdownChart}}
-          </div>
-        </div>
-        <div style="width: 52%;">
-          <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 15px;">Loan Overview</h3>
-          <div style="display: flex; justify-content: center; width: 100%;">
-            {{loanOverviewChart}}
-          </div>
-        </div>
+      <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">Payment Breakdown</h3>
+      <div style="display: flex; justify-content: center; width: 100%;">
+        {{paymentBreakdownChart}}
+      </div>
+    </div>
+    
+    <div style="margin-top: 20px;">
+      <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">Loan Overview</h3>
+      <div style="display: flex; justify-content: center; width: 100%;">
+        {{loanOverviewChart}}
       </div>
     </div>
     
