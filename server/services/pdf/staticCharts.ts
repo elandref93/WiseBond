@@ -17,24 +17,12 @@ export function generatePaymentBreakdownSvg(principal: number, interest: number)
   const principalPercent = (principal / total * 100).toFixed(1);
   const interestPercent = (interest / total * 100).toFixed(1);
   
-  // Format currency values using the same format as our y-axis labels
+  // Format currency values - display full values without abbreviations for the pie chart
   let principalFormatted, interestFormatted;
   
-  if (principal >= 1000000) {
-    principalFormatted = `${(principal / 1000000).toFixed(2)} M`;
-  } else if (principal >= 1000) {
-    principalFormatted = `${(principal / 1000).toFixed(2)} K`;
-  } else {
-    principalFormatted = Math.round(principal).toLocaleString('en-ZA');
-  }
-  
-  if (interest >= 1000000) {
-    interestFormatted = `${(interest / 1000000).toFixed(2)} M`;
-  } else if (interest >= 1000) {
-    interestFormatted = `${(interest / 1000).toFixed(2)} K`;
-  } else {
-    interestFormatted = Math.round(interest).toLocaleString('en-ZA');
-  }
+  // For pie chart, always show full values without abbreviations
+  principalFormatted = Math.round(principal).toLocaleString('en-ZA');
+  interestFormatted = Math.round(interest).toLocaleString('en-ZA');
   
   // Calculate pie chart angles
   const principalAngle = principal / total * 360;
@@ -60,15 +48,15 @@ export function generatePaymentBreakdownSvg(principal: number, interest: number)
     </g>
     
     <!-- Legend -->
-    <g transform="translate(300, 120)">
+    <g transform="translate(270, 120)">
       <!-- Principal legend -->
       <rect x="0" y="0" width="20" height="20" fill="hsl(210, 79%, 51%)" />
-      <text x="30" y="15" font-family="Segoe UI" font-size="14">Principal</text>
+      <text x="30" y="15" font-family="Segoe UI" font-size="12">Principal</text>
       <text x="30" y="35" font-family="Segoe UI" font-size="12">R ${principalFormatted}</text>
       
       <!-- Interest legend -->
       <rect x="0" y="50" width="20" height="20" fill="hsl(26, 79%, 51%)" />
-      <text x="30" y="65" font-family="Segoe UI" font-size="14">Interest</text>
+      <text x="30" y="65" font-family="Segoe UI" font-size="12">Interest</text>
       <text x="30" y="85" font-family="Segoe UI" font-size="12">R ${interestFormatted}</text>
     </g>
   </svg>`;
