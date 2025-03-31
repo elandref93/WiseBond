@@ -438,6 +438,11 @@ function createDynamicBondRepaymentTemplate(): string {
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <script>
+    // Define variable to avoid TypeScript errors
+    let ChartDataLabels;
+  </script>
 </head>
 <body>
   <div class="container">
@@ -517,6 +522,9 @@ function createDynamicBondRepaymentTemplate(): string {
   
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // Register the Chart.js datalabels plugin
+      Chart.register(ChartDataLabels);
+      
       // Payment Breakdown Pie Chart
       const ctxBreakdown = document.getElementById('chart-breakdown').getContext('2d');
       
@@ -557,8 +565,24 @@ function createDynamicBondRepaymentTemplate(): string {
             tooltip: {
               callbacks: {
                 label: function(context) {
-                  return context.label + ': R ' + context.raw.toLocaleString('en-ZA');
+                  const totalValue = principalAmount + interestAmount;
+                  const value = context.dataset.data[context.dataIndex];
+                  const percent = ((value / totalValue) * 100).toFixed(1);
+                  const formattedValue = 'R ' + value.toLocaleString('en-ZA', { maximumFractionDigits: 2 });
+                  return context.chart.data.labels[context.dataIndex] + ": " + formattedValue + " (" + percent + "%)";
                 }
+              }
+            },
+            datalabels: {
+              formatter: function(value, ctx) {
+                const totalValue = principalAmount + interestAmount;
+                const percent = ((value / totalValue) * 100).toFixed(1);
+                return percent + "%\nR " + Math.round(value).toLocaleString('en-ZA');
+              },
+              color: '#fff',
+              font: {
+                weight: 'bold',
+                size: 12
               }
             }
           }
@@ -1281,6 +1305,11 @@ function _createDynamicAdditionalPaymentTemplate(): string {
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <script>
+    // Define variable to avoid TypeScript errors
+    let ChartDataLabels;
+  </script>
 </head>
 <body>
   <div class="container">
@@ -1353,6 +1382,9 @@ function _createDynamicAdditionalPaymentTemplate(): string {
     function initCharts() {
       try {
         console.log('Initializing charts for PDF...');
+        
+        // Register the Chart.js datalabels plugin
+        Chart.register(ChartDataLabels);
         
         // Payment Comparison Chart - Bar chart
         const ctxComparison = document.getElementById('comparison-chart');
