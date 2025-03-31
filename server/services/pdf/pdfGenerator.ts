@@ -714,7 +714,9 @@ function renderBondRepaymentTemplate(
     
     // Filter out Year 0 from the yearly breakdown table as per user requirement
     // Year 0 should be included in charts but excluded from yearly breakdown tables in PDF reports
-    amortizationData.filter(yearData => yearData.year > 0).forEach((yearData: {
+    const filteredData = amortizationData.filter(yearData => yearData.year > 0);
+    
+    filteredData.forEach((yearData: {
       year: number;
       principal: number;
       interest: number;
