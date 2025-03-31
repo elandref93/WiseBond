@@ -712,7 +712,9 @@ function renderBondRepaymentTemplate(
     // Generate HTML for the yearly breakdown table
     let yearlyTableRows = '';
     
-    amortizationData.forEach((yearData: {
+    // Filter out Year 0 from the yearly breakdown table as per user requirement
+    // Year 0 should be included in charts but excluded from yearly breakdown tables in PDF reports
+    amortizationData.filter(yearData => yearData.year > 0).forEach((yearData: {
       year: number;
       principal: number;
       interest: number;
@@ -721,10 +723,7 @@ function renderBondRepaymentTemplate(
       // Calculate opening balance
       let openingBalance;
       
-      if (yearData.year === 0) {
-        // Year 0 is just the initial loan amount with no payments made yet
-        openingBalance = loanAmount;
-      } else if (yearData.year === 1) {
+      if (yearData.year === 1) {
         // First year opening balance is the loan amount
         openingBalance = loanAmount;
       } else {
