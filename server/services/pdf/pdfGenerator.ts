@@ -169,7 +169,7 @@ function createDynamicBondRepaymentTemplate(): string {
     /* Global styles */
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      line-height: 1.6;
+      line-height: 1.5;
       color: #333;
       margin: 0;
       padding: 0;
@@ -179,12 +179,12 @@ function createDynamicBondRepaymentTemplate(): string {
     .container {
       max-width: 800px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 15px;
     }
     
     /* Header styles */
     .header {
-      padding: 20px 0;
+      padding: 10px 0;
       border-bottom: 1px solid #eee;
       display: flex;
       justify-content: space-between;
@@ -192,16 +192,17 @@ function createDynamicBondRepaymentTemplate(): string {
     }
     
     .logo {
-      max-height: 60px;
+      max-height: 50px;
     }
     
     .report-title {
       color: #333;
       margin-top: 0;
+      margin-bottom: 4px;
     }
     
     .company-name {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: bold;
       color: hsl(26, 79%, 51%);
     }
@@ -209,27 +210,29 @@ function createDynamicBondRepaymentTemplate(): string {
     /* Summary section */
     .summary-section {
       background-color: #f9f9f9;
-      padding: 20px;
+      padding: 12px;
       border-radius: 5px;
-      margin-top: 20px;
+      margin-top: 12px;
       border-left: 4px solid hsl(26, 79%, 51%);
     }
     
     .summary-title {
       margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 18px;
       color: #333;
     }
     
     /* Results section */
     .results-section {
-      margin-top: 30px;
+      margin-top: 20px;
     }
     
     .results-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
-      margin-top: 20px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-top: 15px;
     }
     
     .result-card {
@@ -380,8 +383,8 @@ function createDynamicBondRepaymentTemplate(): string {
     
     /* Section spacing */
     .yearly-breakdown-section, .loan-overview-section {
-      margin-top: 30px;
-      padding-top: 10px;
+      margin-top: 20px;
+      padding-top: 5px;
       border-top: 1px solid #eee;
     }
   </style>
@@ -389,7 +392,7 @@ function createDynamicBondRepaymentTemplate(): string {
   <style>
     .svg-container {
       width: 100%;
-      height: 300px;
+      height: 250px;
       margin: 0 auto;
     }
     .svg-container svg {
@@ -399,55 +402,57 @@ function createDynamicBondRepaymentTemplate(): string {
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="branding">
-        <div class="company-name">WiseBond</div>
-        <div class="text-muted">Bond Origination Specialists</div>
+  <div style="max-width: 800px; margin: 0 auto; padding: 10px;">
+    <div style="padding: 5px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+      <div style="line-height: 1.1;">
+        <div style="font-size: 18px; font-weight: bold; color: hsl(26, 79%, 51%);">WiseBond</div>
+        <div style="color: #6c757d; font-size: 11px;">Bond Origination Specialists</div>
       </div>
-      <div class="report-meta">
-        <div class="report-title">Bond Repayment Report</div>
-        <div class="text-muted">Generated on {{generatedDate}}</div>
-      </div>
-    </div>
-    
-    <div class="summary-section">
-      <h2 class="summary-title">Bond Repayment Summary</h2>
-      <p>This report provides a detailed analysis of your bond repayment calculation, including monthly installments, total interest paid, and payment breakdown over the loan term.</p>
-    </div>
-    
-    <div class="results-section">
-      <h3>Calculation Results</h3>
-      <div class="results-grid">
-        {{resultCards}}
+      <div style="text-align: right; line-height: 1.1;">
+        <div style="font-weight: 600; color: #333; font-size: 15px;">Bond Repayment Report</div>
+        <div style="color: #6c757d; font-size: 11px;">Generated on {{generatedDate}}</div>
       </div>
     </div>
     
-    <div class="chart-section">
-      <h3>Payment Breakdown</h3>
-      <div class="svg-container">
-        {{paymentBreakdownChart}}
+    <div class="summary-section" style="background-color: #f9f9f9; padding: 10px; border-radius: 5px; margin-top: 10px; border-left: 4px solid hsl(26, 79%, 51%);">
+      <h2 style="margin-top: 0; margin-bottom: 5px; font-size: 16px; color: #333;">Bond Repayment Summary</h2>
+      <p style="margin: 0; font-size: 13px;">This report provides a detailed analysis of your bond repayment calculation, including monthly installments, total interest paid, and payment breakdown over the loan term.</p>
+    </div>
+    
+    <div class="results-and-chart-section" style="display: flex; flex-wrap: wrap; margin-top: 15px;">
+      <div class="results-section" style="flex: 1; min-width: 250px; margin-right: 15px;">
+        <h3 style="margin-top: 0; margin-bottom: 10px;">Calculation Results</h3>
+        <div class="results-grid">
+          {{resultCards}}
+        </div>
+      </div>
+      
+      <div class="chart-section" style="flex: 1; min-width: 250px;">
+        <h3 style="margin-top: 0; margin-bottom: 10px;">Payment Breakdown</h3>
+        <div class="svg-container">
+          {{paymentBreakdownChart}}
+        </div>
       </div>
     </div>
     
-    <div class="loan-overview-section">
-      <h3>Loan Overview</h3>
+    <div class="loan-overview-section" style="margin-top: 15px;">
+      <h3 style="margin-top: 0; margin-bottom: 10px;">Loan Overview</h3>
       <div class="svg-container">
         {{loanOverviewChart}}
       </div>
     </div>
     
-    <div class="yearly-breakdown-section">
-      <h3>Yearly Breakdown</h3>
-      <div class="table-container">
-        <table class="yearly-table">
+    <div style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 5px;">
+      <h3 style="margin-top: 0; margin-bottom: 5px; font-size: 14px;">Yearly Breakdown</h3>
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
           <thead>
             <tr>
-              <th>Year</th>
-              <th>Opening Balance</th>
-              <th>Interest Paid</th>
-              <th>Principal Paid</th>
-              <th>Closing Balance</th>
+              <th style="padding: 5px; text-align: left; background-color: #f9f9f9; font-weight: 600; border-bottom: 1px solid #ddd;">Year</th>
+              <th style="padding: 5px; text-align: left; background-color: #f9f9f9; font-weight: 600; border-bottom: 1px solid #ddd;">Opening Balance</th>
+              <th style="padding: 5px; text-align: left; background-color: #f9f9f9; font-weight: 600; border-bottom: 1px solid #ddd;">Interest Paid</th>
+              <th style="padding: 5px; text-align: left; background-color: #f9f9f9; font-weight: 600; border-bottom: 1px solid #ddd;">Principal Paid</th>
+              <th style="padding: 5px; text-align: left; background-color: #f9f9f9; font-weight: 600; border-bottom: 1px solid #ddd;">Closing Balance</th>
             </tr>
           </thead>
           <tbody>
@@ -457,20 +462,20 @@ function createDynamicBondRepaymentTemplate(): string {
       </div>
     </div>
     
-    <div class="input-section">
-      <h3>Calculation Parameters</h3>
-      <div class="input-grid">
+    <div style="margin-top: 15px; background-color: #f9f9f9; padding: 10px; border-radius: 5px;">
+      <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 15px;">Calculation Parameters</h3>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
         {{inputDetails}}
       </div>
     </div>
     
-    <div class="disclaimer">
+    <div style="margin-top: 15px; font-size: 11px; color: #666; font-style: italic; text-align: center;">
       This is an estimate based on the information provided. Actual amounts may vary depending on final approval from financial institutions and other factors.
     </div>
     
-    <div class="footer">
-      <p>WiseBond.co.za | Bond Origination Services | info@wisebond.co.za</p>
-      <p>For more information or assistance, please visit our website or contact our customer service.</p>
+    <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; text-align: center; font-size: 11px; color: #666;">
+      <p style="margin: 2px 0;">WiseBond.co.za | Bond Origination Services | info@wisebond.co.za</p>
+      <p style="margin: 2px 0;">For more information or assistance, please visit our website or contact our customer service.</p>
     </div>
   </div>
 </body>
@@ -506,9 +511,9 @@ function renderBondRepaymentTemplate(
   if (calculationResult.displayResults) {
     calculationResult.displayResults.forEach(result => {
       resultCardsHtml += `
-        <div class="result-card">
-          <div class="result-label">${result.label}</div>
-          <div class="result-value">${result.value}</div>
+        <div style="background-color: #fff; border: 1px solid #ddd; border-radius: 5px; padding: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+          <div style="font-size: 12px; color: #666; margin-bottom: 2px;">${result.label}</div>
+          <div style="font-size: 16px; font-weight: bold; color: hsl(26, 79%, 51%); margin: 0;">${result.value}</div>
         </div>
       `;
     });
@@ -521,9 +526,9 @@ function renderBondRepaymentTemplate(
     // Add property value
     if (inputData.propertyValue) {
       inputDetailsHtml += `
-        <div class="input-item">
-          <span class="input-label">Property Value:</span>
-          <span class="input-value">R ${parseFloat(inputData.propertyValue).toLocaleString('en-ZA')}</span>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 5px;">
+          <span style="color: #666;">Property Value:</span>
+          <span style="font-weight: 500;">R ${parseFloat(inputData.propertyValue).toLocaleString('en-ZA')}</span>
         </div>
       `;
     }
@@ -531,9 +536,9 @@ function renderBondRepaymentTemplate(
     // Add interest rate
     if (inputData.interestRate) {
       inputDetailsHtml += `
-        <div class="input-item">
-          <span class="input-label">Interest Rate:</span>
-          <span class="input-value">${inputData.interestRate}%</span>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 5px;">
+          <span style="color: #666;">Interest Rate:</span>
+          <span style="font-weight: 500;">${inputData.interestRate}%</span>
         </div>
       `;
     }
@@ -541,9 +546,9 @@ function renderBondRepaymentTemplate(
     // Add loan term
     if (inputData.loanTerm) {
       inputDetailsHtml += `
-        <div class="input-item">
-          <span class="input-label">Loan Term:</span>
-          <span class="input-value">${inputData.loanTerm} years</span>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 5px;">
+          <span style="color: #666;">Loan Term:</span>
+          <span style="font-weight: 500;">${inputData.loanTerm} years</span>
         </div>
       `;
     }
@@ -551,9 +556,9 @@ function renderBondRepaymentTemplate(
     // Add deposit
     if (inputData.deposit) {
       inputDetailsHtml += `
-        <div class="input-item">
-          <span class="input-label">Deposit Amount:</span>
-          <span class="input-value">R ${parseFloat(inputData.deposit).toLocaleString('en-ZA')}</span>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 5px;">
+          <span style="color: #666;">Deposit Amount:</span>
+          <span style="font-weight: 500;">R ${parseFloat(inputData.deposit).toLocaleString('en-ZA')}</span>
         </div>
       `;
     }
@@ -734,12 +739,12 @@ function renderBondRepaymentTemplate(
       }
       
       yearlyTableRows += `
-        <tr>
-          <td>${yearData.year}</td>
-          <td>R ${openingBalance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-          <td>R ${yearData.interest.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-          <td>R ${yearData.principal.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
-          <td>R ${yearData.balance.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}</td>
+        <tr style="${yearData.year % 2 === 0 ? 'background-color: #f5f5f5;' : ''}">
+          <td style="padding: 4px 5px; border-bottom: 1px solid #ddd;">${yearData.year}</td>
+          <td style="padding: 4px 5px; border-bottom: 1px solid #ddd;">R ${openingBalance.toLocaleString('en-ZA', { maximumFractionDigits: 0 })}</td>
+          <td style="padding: 4px 5px; border-bottom: 1px solid #ddd;">R ${yearData.interest.toLocaleString('en-ZA', { maximumFractionDigits: 0 })}</td>
+          <td style="padding: 4px 5px; border-bottom: 1px solid #ddd;">R ${yearData.principal.toLocaleString('en-ZA', { maximumFractionDigits: 0 })}</td>
+          <td style="padding: 4px 5px; border-bottom: 1px solid #ddd;">R ${yearData.balance.toLocaleString('en-ZA', { maximumFractionDigits: 0 })}</td>
         </tr>
       `;
     });
@@ -1099,67 +1104,67 @@ function _createDynamicAdditionalPaymentTemplate(): string {
   </script>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="branding">
-        <div class="company-name">WiseBond</div>
-        <div class="text-muted">Bond Origination Specialists</div>
+  <div style="max-width: 800px; margin: 0 auto; padding: 10px;">
+    <div style="padding: 5px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+      <div style="line-height: 1.1;">
+        <div style="font-size: 18px; font-weight: bold; color: hsl(26, 79%, 51%);">WiseBond</div>
+        <div style="color: #6c757d; font-size: 11px;">Bond Origination Specialists</div>
       </div>
-      <div class="report-meta">
-        <div class="report-title">Additional Payment Report</div>
-        <div class="text-muted">Generated on {{generatedDate}}</div>
+      <div style="text-align: right; line-height: 1.1;">
+        <div style="font-weight: 600; color: #333; font-size: 15px;">Additional Payment Report</div>
+        <div style="color: #6c757d; font-size: 11px;">Generated on {{generatedDate}}</div>
       </div>
     </div>
     
-    <div class="summary-section">
-      <h2 class="summary-title">Additional Payment Summary</h2>
-      <p>This report provides a detailed analysis of how making additional monthly payments on your bond can save you time and money over the loan term.</p>
+    <div style="background-color: #f9f9f9; padding: 10px; border-radius: 5px; margin-top: 10px; border-left: 4px solid hsl(26, 79%, 51%);">
+      <h2 style="margin-top: 0; margin-bottom: 5px; font-size: 16px; color: #333;">Additional Payment Summary</h2>
+      <p style="margin: 0; font-size: 13px;">This report provides a detailed analysis of how making additional monthly payments on your bond can save you time and money over the loan term.</p>
     </div>
     
-    <div class="results-section">
-      <h3>Calculation Results</h3>
-      <div class="results-grid">
+    <div style="margin-top: 15px;">
+      <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 15px;">Calculation Results</h3>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
         {{resultCards}}
       </div>
     </div>
     
-    <div class="savings-highlight">
-      <h3 class="savings-title">Your Savings Summary</h3>
-      <p>By making an additional payment of {{additionalPayment}} each month, you will:</p>
-      <ul>
+    <div style="background-color: #e8f4f8; padding: 10px; border-radius: 5px; margin-top: 15px; border-left: 4px solid #28a745;">
+      <h3 style="color: #28a745; margin-top: 0; margin-bottom: 5px; font-size: 16px;">Your Savings Summary</h3>
+      <p style="margin: 5px 0; font-size: 13px;">By making an additional payment of {{additionalPayment}} each month, you will:</p>
+      <ul style="margin: 5px 0; padding-left: 20px; font-size: 13px;">
         <li><strong>Save {{timeSaved}} of payments</strong> on your bond term</li>
         <li><strong>Save {{interestSaved}} in interest payments</strong> over the life of the loan</li>
       </ul>
     </div>
     
-    <div class="chart-section">
-      <h3>Payment Comparison</h3>
-      <div class="chart-container">
+    <div style="margin-top: 15px;">
+      <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 15px;">Payment Comparison</h3>
+      <div style="height: 250px; margin-top: 10px;">
         <canvas id="comparison-chart"></canvas>
       </div>
     </div>
     
-    <div class="balance-chart-section">
-      <h3>Loan Balance Comparison</h3>
-      <div class="chart-container">
+    <div style="margin-top: 15px; padding-top: 5px; border-top: 1px solid #eee;">
+      <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 15px;">Loan Balance Comparison</h3>
+      <div style="height: 250px; margin-top: 10px;">
         <canvas id="balance-chart"></canvas>
       </div>
     </div>
     
-    <div class="input-section">
-      <h3>Calculation Parameters</h3>
-      <div class="input-grid">
+    <div style="margin-top: 15px; background-color: #f9f9f9; padding: 10px; border-radius: 5px;">
+      <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 15px;">Calculation Parameters</h3>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
         {{inputDetails}}
       </div>
     </div>
     
-    <div class="disclaimer">
+    <div style="margin-top: 15px; font-size: 11px; color: #666; font-style: italic; text-align: center;">
       This is an estimate based on the information provided. Actual amounts may vary depending on final approval from financial institutions and other factors.
     </div>
     
-    <div class="footer">
-      <p>WiseBond.co.za | Bond Origination Services | info@wisebond.co.za</p>
-      <p>For more information or assistance, please visit our website or contact our customer service.</p>
+    <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; text-align: center; font-size: 11px; color: #666;">
+      <p style="margin: 2px 0;">WiseBond.co.za | Bond Origination Services | info@wisebond.co.za</p>
+      <p style="margin: 2px 0;">For more information or assistance, please visit our website or contact our customer service.</p>
     </div>
   </div>
   
@@ -1369,9 +1374,9 @@ function renderAdditionalPaymentTemplate(
     let resultCardsHtml = '';
     for (const result of calculationResult.displayResults) {
       resultCardsHtml += `
-        <div class="result-card">
-          <div class="result-label">${result.label}</div>
-          <div class="result-value">${result.value}</div>
+        <div style="background-color: #fff; border: 1px solid #ddd; border-radius: 5px; padding: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+          <div style="font-size: 12px; color: #666; margin-bottom: 2px;">${result.label}</div>
+          <div style="font-size: 16px; font-weight: bold; color: hsl(26, 79%, 51%); margin: 0;">${result.value}</div>
         </div>`;
     }
     
@@ -1404,21 +1409,21 @@ function renderAdditionalPaymentTemplate(
     
     // Format input details
     const inputDetails = `
-      <div class="input-item">
-        <span class="input-label">Loan Amount:</span>
-        <span class="input-value">R${numLoanAmount.toLocaleString('en-ZA')}</span>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 5px;">
+        <span style="color: #666;">Loan Amount:</span>
+        <span style="font-weight: 500;">R${numLoanAmount.toLocaleString('en-ZA')}</span>
       </div>
-      <div class="input-item">
-        <span class="input-label">Interest Rate:</span>
-        <span class="input-value">${numInterestRate}%</span>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 5px;">
+        <span style="color: #666;">Interest Rate:</span>
+        <span style="font-weight: 500;">${numInterestRate}%</span>
       </div>
-      <div class="input-item">
-        <span class="input-label">Loan Term:</span>
-        <span class="input-value">${numLoanTerm} years</span>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 5px;">
+        <span style="color: #666;">Loan Term:</span>
+        <span style="font-weight: 500;">${numLoanTerm} years</span>
       </div>
-      <div class="input-item">
-        <span class="input-label">Additional Payment:</span>
-        <span class="input-value">R${numAdditionalPayment.toLocaleString('en-ZA')}</span>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 5px;">
+        <span style="color: #666;">Additional Payment:</span>
+        <span style="font-weight: 500;">R${numAdditionalPayment.toLocaleString('en-ZA')}</span>
       </div>`;
     
     htmlContent = htmlContent.replace('{{inputDetails}}', inputDetails);
