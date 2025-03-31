@@ -690,10 +690,10 @@ function renderBondRepaymentTemplate(
     // Generate amortization data using the shared utility function
     const fullAmortizationData = generateAmortizationData(loanAmount, interestRate, loanTerm);
     
-    // Filter out year 0 for PDF display only
-    const amortizationData = fullAmortizationData.filter((item: {year: number}) => item.year > 0);
+    // Include year 0 in the chart data as requested
+    const amortizationData = fullAmortizationData;
     
-    // Extract data for the chart and table - from the filtered data (without year 0)
+    // Extract data for the chart and table - including year 0
     const yearlyLabels = amortizationData.map((item: {year: number}) => item.year);
     const yearlyBalances = amortizationData.map((item: {balance: number}) => item.balance);
     
@@ -718,10 +718,19 @@ function renderBondRepaymentTemplate(
       interest: number;
       balance: number;
     }) => {
-      // Calculate opening balance (since we no longer have year 0)
-      const openingBalance = yearData.year === 1 
-        ? loanAmount // First year opening balance is the loan amount
-        : (yearData.balance + yearData.principal); // Opening balance is closing balance + principal paid
+      // Calculate opening balance
+      let openingBalance;
+      
+      if (yearData.year === 0) {
+        // Year 0 is just the initial loan amount with no payments made yet
+        openingBalance = loanAmount;
+      } else if (yearData.year === 1) {
+        // First year opening balance is the loan amount
+        openingBalance = loanAmount;
+      } else {
+        // For other years, opening balance is closing balance + principal paid from previous year
+        openingBalance = yearData.balance + yearData.principal;
+      }
       
       yearlyTableRows += `
         <tr>
@@ -1479,8 +1488,8 @@ function renderAdditionalPaymentTemplate(
     // Generate balance comparison data
     const fullStandardData = generateAmortizationData(numLoanAmount, numInterestRate, numLoanTerm);
     
-    // Filter out year 0 for PDF display only
-    const standardData = fullStandardData.filter((item: {year: number}) => item.year > 0);
+    // Include year 0 in the chart data
+    const standardData = fullStandardData;
     
     // Calculate custom amortization for the case with additional payment
     const standardMonthlyRate = numInterestRate / 100 / 12;
@@ -1521,16 +1530,15 @@ function renderAdditionalPaymentTemplate(
       }
     }
     
-    // Format data for charts - filter out year 0 from additional payment data too
+    // Format data for charts - include year 0
     const years = standardData.map(item => item.year);
     const standardBalances = standardData.map(item => item.balance);
     
-    // Filter out year 0 from additional payment data for PDF display
-    const filteredAdditionalPaymentData = additionalPaymentData.filter(item => item.year > 0);
+    // Include all data points including year 0
     
     // Ensure we have data points for all years
     const additionalBalances = years.map(year => {
-      const match = filteredAdditionalPaymentData.find(item => item.year === year);
+      const match = additionalPaymentData.find(item => item.year === year);
       return match ? match.balance : 0;
     });
     
