@@ -101,24 +101,43 @@ export async function generatePdfFromHtml(
     // Set content
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
     
-    // Wait longer for chart.js to load - increased to 5 seconds
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    // Wait much longer for chart.js to load - increased to 10 seconds
+    console.log('Waiting 10 seconds for chart scripts to load properly...');
+    await new Promise(resolve => setTimeout(resolve, 10000));
     
-    // Execute any chart initialization scripts
+    // Execute any chart initialization scripts with more detailed logging
     console.log('Attempting to render charts in PDF');
     const chartsInitialized = await page.evaluate(() => {
       console.log('Evaluating chart rendering status');
       
+      // Add detailed debugging
+      console.log('Available scripts:', Array.from(document.querySelectorAll('script')).map(s => s.src || 'inline script'));
+      console.log('Canvas elements:', Array.from(document.querySelectorAll('canvas')).map(c => ({id: c.id, width: c.width, height: c.height})));
+      
       // Check if Chart.js is loaded
       if (typeof window.Chart === 'undefined') {
         console.error('Chart.js not loaded in the page');
+        // Try to load Chart.js directly
+        console.log('Attempting to load Chart.js directly');
+        const chartScript = document.createElement('script');
+        chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js';
+        document.head.appendChild(chartScript);
+        
+        // Wait a bit for the script to load
         return false;
+      } else {
+        console.log('Chart.js is loaded properly');
       }
       
       // Check if ChartDataLabels is loaded (for our datalabels plugin)
       if (typeof window.ChartDataLabels === 'undefined') {
         console.error('ChartDataLabels plugin not loaded in the page');
-        console.log('Trying to continue anyway...');
+        console.log('Attempting to load ChartDataLabels directly');
+        const datalabelsScript = document.createElement('script');
+        datalabelsScript.src = 'https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js';
+        document.head.appendChild(datalabelsScript);
+      } else {
+        console.log('ChartDataLabels plugin is loaded properly');
       }
       
       // Get all canvas elements
@@ -127,6 +146,12 @@ export async function generatePdfFromHtml(
       
       // Try to manually render any charts
       try {
+        // Explicitly register the plugin
+        if (window.Chart && window.ChartDataLabels) {
+          console.log('Registering ChartDataLabels plugin explicitly');
+          window.Chart.register(window.ChartDataLabels);
+        }
+        
         // Try to execute renderCharts function if it exists
         if (typeof window.renderCharts === 'function') {
           console.log('Executing renderCharts function');
@@ -141,6 +166,10 @@ export async function generatePdfFromHtml(
         canvases.forEach(canvas => {
           if (canvas.id) {
             console.log(`Processing canvas: ${canvas.id}`);
+            // Check if canvas is visible
+            const rect = canvas.getBoundingClientRect();
+            console.log(`Canvas ${canvas.id} dimensions:`, rect.width, rect.height);
+            
             // This will trigger a redraw on the canvas
             const context = canvas.getContext('2d');
             if (context) {
@@ -447,11 +476,20 @@ function createDynamicBondRepaymentTemplate(): string {
       border-top: 1px solid #eee;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <script>
-    // Define variable to avoid TypeScript errors
-    let ChartDataLabels;
+    // Define globals and register plugin
+    window.Chart = Chart;
+    window.ChartDataLabels = ChartDataLabels;
+    Chart.register(ChartDataLabels);
+    
+    // Create renderCharts function
+    window.renderCharts = function() {
+      console.log("renderCharts function called");
+      // Charts will be initialized in the DOMContentLoaded event
+      // This function can be called manually if needed
+    };
   </script>
 </head>
 <body>
@@ -531,12 +569,14 @@ function createDynamicBondRepaymentTemplate(): string {
   </div>
   
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    // Immediately initialize charts, don't wait for DOMContentLoaded
+    (function() {
       // First load the plugin if it exists in window scope
-      // ChartDataLabels will be available as a global script is loaded
       if (typeof window.ChartDataLabels !== 'undefined') {
         Chart.register(window.ChartDataLabels);
       }
+      
+      console.log('Immediate chart init started');
       
       // Payment Breakdown Pie Chart
       const ctxBreakdown = document.getElementById('chart-breakdown').getContext('2d');

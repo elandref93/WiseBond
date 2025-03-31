@@ -174,7 +174,21 @@ export function createDynamicAdditionalPaymentTemplate(): string {
       height: 300px;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <script>
+    // Define globals and register plugin
+    window.Chart = Chart;
+    window.ChartDataLabels = ChartDataLabels;
+    Chart.register(ChartDataLabels);
+    
+    // Create renderCharts function
+    window.renderCharts = function() {
+      console.log("renderCharts function called in additional payment");
+      // Charts will be initialized in the DOMContentLoaded event
+      // This function can be called manually if needed
+    };
+  </script>
 </head>
 <body>
   <div class="container">
