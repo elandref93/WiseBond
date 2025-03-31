@@ -917,8 +917,9 @@ function renderBondRepaymentTemplate(
       interest: number;
       balance: number;
     }) => {
-      const openingBalance = yearData.year === 0 
-        ? loanAmount 
+      // Calculate opening balance (since we no longer have year 0)
+      const openingBalance = yearData.year === 1 
+        ? loanAmount // First year opening balance is the loan amount
         : (yearData.balance + yearData.principal); // Opening balance is closing balance + principal paid
       
       yearlyTableRows += `
