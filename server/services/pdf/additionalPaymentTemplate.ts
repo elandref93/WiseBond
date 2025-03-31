@@ -214,16 +214,19 @@ export function createDynamicAdditionalPaymentTemplate(): string {
     </div>
     
     <div class="chart-section">
-      <h3>Payment Comparison</h3>
-      <div class="svg-container">
-        {{comparisonChart}}
-      </div>
-    </div>
-    
-    <div class="chart-section">
-      <h3>Loan Balance Comparison</h3>
-      <div class="svg-container">
-        {{balanceComparisonChart}}
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between;">
+        <div style="width: 45%;">
+          <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 15px;">Payment Comparison</h3>
+          <div style="display: flex; justify-content: center; width: 100%;">
+            {{comparisonChart}}
+          </div>
+        </div>
+        <div style="width: 52%;">
+          <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 15px;">Loan Balance Comparison</h3>
+          <div style="display: flex; justify-content: center; width: 100%;">
+            {{balanceComparisonChart}}
+          </div>
+        </div>
       </div>
     </div>
     

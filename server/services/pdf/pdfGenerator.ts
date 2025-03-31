@@ -419,40 +419,41 @@ function createDynamicBondRepaymentTemplate(): string {
       <p style="margin: 0; font-size: 13px;">This report provides a detailed analysis of your bond repayment calculation, including monthly installments, total interest paid, and payment breakdown over the loan term.</p>
     </div>
     
-    <div class="results-and-chart-section" style="display: flex; flex-wrap: wrap; margin-top: 15px;">
-      <div class="results-section" style="flex: 1; min-width: 250px; margin-right: 15px;">
-        <h3 style="margin-top: 0; margin-bottom: 10px;">Calculation Results</h3>
-        <div class="results-grid">
-          {{resultCards}}
-        </div>
-      </div>
-      
-      <div class="chart-section" style="flex: 1; min-width: 250px;">
-        <h3 style="margin-top: 0; margin-bottom: 10px;">Payment Breakdown</h3>
-        <div class="svg-container">
-          {{paymentBreakdownChart}}
-        </div>
+    <div style="margin-top: 15px;">
+      <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">Calculation Results</h3>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+        {{resultCards}}
       </div>
     </div>
     
-    <div class="loan-overview-section" style="margin-top: 15px;">
-      <h3 style="margin-top: 0; margin-bottom: 10px;">Loan Overview</h3>
-      <div class="svg-container">
-        {{loanOverviewChart}}
+    <div style="margin-top: 15px;">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between;">
+        <div style="width: 45%;">
+          <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 15px;">Payment Breakdown</h3>
+          <div style="display: flex; justify-content: center; width: 100%;">
+            {{paymentBreakdownChart}}
+          </div>
+        </div>
+        <div style="width: 52%;">
+          <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 15px;">Loan Overview</h3>
+          <div style="display: flex; justify-content: center; width: 100%;">
+            {{loanOverviewChart}}
+          </div>
+        </div>
       </div>
     </div>
     
     <div style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 5px;">
       <h3 style="margin-top: 0; margin-bottom: 5px; font-size: 14px;">Yearly Breakdown</h3>
       <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
           <thead>
             <tr>
-              <th style="padding: 5px; text-align: left; background-color: #f9f9f9; font-weight: 600; border-bottom: 1px solid #ddd;">Year</th>
-              <th style="padding: 5px; text-align: left; background-color: #f9f9f9; font-weight: 600; border-bottom: 1px solid #ddd;">Opening Balance</th>
-              <th style="padding: 5px; text-align: left; background-color: #f9f9f9; font-weight: 600; border-bottom: 1px solid #ddd;">Interest Paid</th>
-              <th style="padding: 5px; text-align: left; background-color: #f9f9f9; font-weight: 600; border-bottom: 1px solid #ddd;">Principal Paid</th>
-              <th style="padding: 5px; text-align: left; background-color: #f9f9f9; font-weight: 600; border-bottom: 1px solid #ddd;">Closing Balance</th>
+              <th style="padding: 4px; text-align: center; background-color: #f5f5f5; font-weight: 600; border-bottom: 1px solid #ddd; width: 10%;">Year</th>
+              <th style="padding: 4px; text-align: left; background-color: #f5f5f5; font-weight: 600; border-bottom: 1px solid #ddd; width: 22.5%;">Opening Balance</th>
+              <th style="padding: 4px; text-align: left; background-color: #f5f5f5; font-weight: 600; border-bottom: 1px solid #ddd; width: 22.5%;">Interest Paid</th>
+              <th style="padding: 4px; text-align: left; background-color: #f5f5f5; font-weight: 600; border-bottom: 1px solid #ddd; width: 22.5%;">Principal Paid</th>
+              <th style="padding: 4px; text-align: left; background-color: #f5f5f5; font-weight: 600; border-bottom: 1px solid #ddd; width: 22.5%;">Closing Balance</th>
             </tr>
           </thead>
           <tbody>
@@ -511,9 +512,9 @@ function renderBondRepaymentTemplate(
   if (calculationResult.displayResults) {
     calculationResult.displayResults.forEach(result => {
       resultCardsHtml += `
-        <div style="background-color: #fff; border: 1px solid #ddd; border-radius: 5px; padding: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-          <div style="font-size: 12px; color: #666; margin-bottom: 2px;">${result.label}</div>
-          <div style="font-size: 16px; font-weight: bold; color: hsl(26, 79%, 51%); margin: 0;">${result.value}</div>
+        <div style="background-color: #fff; border: 1px solid #eee; border-radius: 5px; padding: 12px; flex: 1; min-width: 150px;">
+          <div style="font-size: 13px; color: #666; margin-bottom: 5px;">${result.label}</div>
+          <div style="font-size: 18px; font-weight: bold; color: hsl(26, 79%, 51%); margin: 0;">R${result.value.replace(/^R\s*/, '')}</div>
         </div>
       `;
     });
@@ -739,12 +740,12 @@ function renderBondRepaymentTemplate(
       }
       
       yearlyTableRows += `
-        <tr style="${yearData.year % 2 === 0 ? 'background-color: #f5f5f5;' : ''}">
-          <td style="padding: 4px 5px; border-bottom: 1px solid #ddd;">${yearData.year}</td>
-          <td style="padding: 4px 5px; border-bottom: 1px solid #ddd;">R ${openingBalance.toLocaleString('en-ZA', { maximumFractionDigits: 0 })}</td>
-          <td style="padding: 4px 5px; border-bottom: 1px solid #ddd;">R ${yearData.interest.toLocaleString('en-ZA', { maximumFractionDigits: 0 })}</td>
-          <td style="padding: 4px 5px; border-bottom: 1px solid #ddd;">R ${yearData.principal.toLocaleString('en-ZA', { maximumFractionDigits: 0 })}</td>
-          <td style="padding: 4px 5px; border-bottom: 1px solid #ddd;">R ${yearData.balance.toLocaleString('en-ZA', { maximumFractionDigits: 0 })}</td>
+        <tr style="${yearData.year % 2 === 0 ? 'background-color: #f9f9f9;' : ''}">
+          <td style="padding: 3px 4px; font-size: 11px; border-bottom: 1px solid #eee; text-align: center;">${yearData.year}</td>
+          <td style="padding: 3px 4px; font-size: 11px; border-bottom: 1px solid #eee;">R${openingBalance.toLocaleString('en-ZA', { maximumFractionDigits: 0 })}</td>
+          <td style="padding: 3px 4px; font-size: 11px; border-bottom: 1px solid #eee;">R${yearData.interest.toLocaleString('en-ZA', { maximumFractionDigits: 0 })}</td>
+          <td style="padding: 3px 4px; font-size: 11px; border-bottom: 1px solid #eee;">R${yearData.principal.toLocaleString('en-ZA', { maximumFractionDigits: 0 })}</td>
+          <td style="padding: 3px 4px; font-size: 11px; border-bottom: 1px solid #eee;">R${yearData.balance.toLocaleString('en-ZA', { maximumFractionDigits: 0 })}</td>
         </tr>
       `;
     });
@@ -1374,9 +1375,9 @@ function renderAdditionalPaymentTemplate(
     let resultCardsHtml = '';
     for (const result of calculationResult.displayResults) {
       resultCardsHtml += `
-        <div style="background-color: #fff; border: 1px solid #ddd; border-radius: 5px; padding: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-          <div style="font-size: 12px; color: #666; margin-bottom: 2px;">${result.label}</div>
-          <div style="font-size: 16px; font-weight: bold; color: hsl(26, 79%, 51%); margin: 0;">${result.value}</div>
+        <div style="background-color: #fff; border: 1px solid #eee; border-radius: 5px; padding: 12px; flex: 1; min-width: 150px;">
+          <div style="font-size: 13px; color: #666; margin-bottom: 5px;">${result.label}</div>
+          <div style="font-size: 18px; font-weight: bold; color: hsl(26, 79%, 51%); margin: 0;">R${result.value.replace(/^R\s*/, '')}</div>
         </div>`;
     }
     
