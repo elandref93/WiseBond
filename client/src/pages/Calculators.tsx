@@ -540,82 +540,204 @@ export default function Calculators() {
             Understanding Our Calculators
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-3">
-                Bond Repayment Calculator
-              </h3>
-              <p className="text-gray-500 mb-4">
-                Calculate your monthly bond repayments based on the property value,
-                interest rate, loan term, and deposit amount. This helps you plan
-                your budget and understand the total cost of your loan.
-              </p>
-              <Separator className="my-4" />
-              <h4 className="font-medium text-gray-900 mt-4 mb-2">What you'll need:</h4>
-              <ul className="list-disc pl-5 text-gray-500 space-y-1">
-                <li>Property value</li>
-                <li>Interest rate (current prime rate is approximately 11.25%)</li>
-                <li>Loan term (typically 20-30 years)</li>
-                <li>Deposit amount (if any)</li>
-              </ul>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {activeTab === "bond" && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">
+                  Bond Repayment Calculator
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  Calculate your monthly bond repayments based on the property value,
+                  interest rate, loan term, and deposit amount. This helps you plan
+                  your budget and understand the total cost of your loan.
+                </p>
+                <Separator className="my-4" />
+                <h4 className="font-medium text-gray-900 mt-4 mb-2">What you'll need:</h4>
+                <ul className="list-disc pl-5 text-gray-500 space-y-1">
+                  <li>Property value</li>
+                  <li>Interest rate (current prime rate is approximately 11.25%)</li>
+                  <li>Loan term (typically 20-30 years)</li>
+                  <li>Deposit amount (if any)</li>
+                </ul>
+              </div>
+            )}
             
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-3">
-                Affordability Calculator
-              </h3>
-              <p className="text-gray-500 mb-4">
-                Determine how much you can afford to borrow based on your income,
-                expenses, and existing debt. This calculator helps you set realistic
-                expectations when house-hunting.
-              </p>
-              <Separator className="my-4" />
-              <h4 className="font-medium text-gray-900 mt-4 mb-2">What you'll need:</h4>
-              <ul className="list-disc pl-5 text-gray-500 space-y-1">
-                <li>Gross monthly income</li>
-                <li>Monthly expenses</li>
-                <li>Existing debt repayments</li>
-                <li>Current interest rate</li>
-              </ul>
-            </div>
+            {activeTab === "affordability" && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">
+                  Affordability Calculator
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  Determine how much you can afford to borrow based on your income,
+                  expenses, and existing debt. This calculator helps you set realistic
+                  expectations when house-hunting.
+                </p>
+                <Separator className="my-4" />
+                <h4 className="font-medium text-gray-900 mt-4 mb-2">What you'll need:</h4>
+                <ul className="list-disc pl-5 text-gray-500 space-y-1">
+                  <li>Gross monthly income</li>
+                  <li>Monthly expenses</li>
+                  <li>Existing debt repayments</li>
+                  <li>Current interest rate</li>
+                </ul>
+              </div>
+            )}
             
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-3">
-                Deposit Savings Calculator
-              </h3>
-              <p className="text-gray-500 mb-4">
-                Calculate how long it will take to save for your home deposit based
-                on your target property price, deposit percentage, and monthly
-                savings amount.
-              </p>
-              <Separator className="my-4" />
-              <h4 className="font-medium text-gray-900 mt-4 mb-2">What you'll need:</h4>
-              <ul className="list-disc pl-5 text-gray-500 space-y-1">
-                <li>Target property price</li>
-                <li>Desired deposit percentage</li>
-                <li>Monthly amount you can save</li>
-                <li>Expected interest rate on savings</li>
-              </ul>
-            </div>
+            {activeTab === "deposit" && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">
+                  Deposit Savings Calculator
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  Calculate how long it will take to save for your home deposit based
+                  on your target property price, deposit percentage, and monthly
+                  savings amount.
+                </p>
+                <Separator className="my-4" />
+                <h4 className="font-medium text-gray-900 mt-4 mb-2">What you'll need:</h4>
+                <ul className="list-disc pl-5 text-gray-500 space-y-1">
+                  <li>Target property price</li>
+                  <li>Desired deposit percentage</li>
+                  <li>Monthly amount you can save</li>
+                  <li>Expected interest rate on savings</li>
+                </ul>
+              </div>
+            )}
             
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-3">
-                Loan Comparison Simulator
-              </h3>
-              <p className="text-gray-500 mb-4">
-                Compare the impact of different loan terms and interest rates on your monthly 
-                payments and total costs. This interactive simulator helps you understand how 
-                various lending scenarios affect your financial commitments.
-              </p>
-              <Separator className="my-4" />
-              <h4 className="font-medium text-gray-900 mt-4 mb-2">What you'll explore:</h4>
-              <ul className="list-disc pl-5 text-gray-500 space-y-1">
-                <li>Compare loan terms from 10 to 30 years</li>
-                <li>See how different interest rates affect payments</li>
-                <li>Visualize total interest paid across scenarios</li>
-                <li>Understand monthly payment differences</li>
-                <li>Make informed decisions on loan structure</li>
-              </ul>
+            {activeTab === "comparison" && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">
+                  Loan Comparison Simulator
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  Compare the impact of different loan terms and interest rates on your monthly 
+                  payments and total costs. This interactive simulator helps you understand how 
+                  various lending scenarios affect your financial commitments.
+                </p>
+                <Separator className="my-4" />
+                <h4 className="font-medium text-gray-900 mt-4 mb-2">What you'll explore:</h4>
+                <ul className="list-disc pl-5 text-gray-500 space-y-1">
+                  <li>Compare loan terms from 10 to 30 years</li>
+                  <li>See how different interest rates affect payments</li>
+                  <li>Visualize total interest paid across scenarios</li>
+                  <li>Understand monthly payment differences</li>
+                  <li>Make informed decisions on loan structure</li>
+                </ul>
+              </div>
+            )}
+            
+            {activeTab === "transfer" && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">
+                  Bonds and Transfer Costs Calculator
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  Calculate the total bond registration and property transfer costs on your new home.
+                  Understanding these additional expenses is essential for proper budgeting when purchasing property.
+                </p>
+                <Separator className="my-4" />
+                <h4 className="font-medium text-gray-900 mt-4 mb-2">What you'll need:</h4>
+                <ul className="list-disc pl-5 text-gray-500 space-y-1">
+                  <li>Purchase price of the property</li>
+                  <li>Loan amount (if applying for a bond)</li>
+                  <li>Whether you're a first-time buyer</li>
+                </ul>
+              </div>
+            )}
+            
+            {activeTab === "additional" && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">
+                  Additional Payment Calculator
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  Calculate how making additional payments on your home loan can save you money and time.
+                  See the impact of extra payments on your loan term and total interest paid.
+                </p>
+                <Separator className="my-4" />
+                <h4 className="font-medium text-gray-900 mt-4 mb-2">What you'll need:</h4>
+                <ul className="list-disc pl-5 text-gray-500 space-y-1">
+                  <li>Original loan amount</li>
+                  <li>Current interest rate</li>
+                  <li>Original loan term</li>
+                  <li>Additional monthly or annual payment amount</li>
+                </ul>
+              </div>
+            )}
+            
+            {activeTab === "amortisation" && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">
+                  Amortisation Calculator
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  Understand how your home loan repayments are structured in terms of paying off capital and interest 
+                  over time. See a detailed breakdown of your loan amortization schedule.
+                </p>
+                <Separator className="my-4" />
+                <h4 className="font-medium text-gray-900 mt-4 mb-2">What you'll need:</h4>
+                <ul className="list-disc pl-5 text-gray-500 space-y-1">
+                  <li>Loan amount</li>
+                  <li>Interest rate</li>
+                  <li>Loan term</li>
+                  <li>Payment frequency (monthly, bi-weekly, etc.)</li>
+                </ul>
+              </div>
+            )}
+            
+            {/* Add an image or illustration related to the calculator */}
+            <div className="hidden md:block">
+              <div className="bg-gray-50 p-6 rounded-lg h-full flex items-center justify-center">
+                {activeTab === "bond" && (
+                  <div className="text-center">
+                    <HomeIcon className="h-20 w-20 text-primary/70 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Your Home, Your Terms</h3>
+                    <p className="text-gray-500">Find the perfect bond repayment structure for your dream home.</p>
+                  </div>
+                )}
+                {activeTab === "affordability" && (
+                  <div className="text-center">
+                    <BadgeIcon className="h-20 w-20 text-primary/70 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Know Your Limits</h3>
+                    <p className="text-gray-500">Understand exactly what you can afford before you start house hunting.</p>
+                  </div>
+                )}
+                {activeTab === "deposit" && (
+                  <div className="text-center">
+                    <CalendarIcon className="h-20 w-20 text-primary/70 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Saving For Tomorrow</h3>
+                    <p className="text-gray-500">Plan your deposit savings journey with realistic timelines.</p>
+                  </div>
+                )}
+                {activeTab === "transfer" && (
+                  <div className="text-center">
+                    <CreditCardIcon className="h-20 w-20 text-primary/70 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Hidden Costs Revealed</h3>
+                    <p className="text-gray-500">Be prepared for all the costs associated with buying your property.</p>
+                  </div>
+                )}
+                {activeTab === "additional" && (
+                  <div className="text-center">
+                    <BarChart4Icon className="h-20 w-20 text-primary/70 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Pay Less, Finish Faster</h3>
+                    <p className="text-gray-500">See how small additional payments can make a big difference.</p>
+                  </div>
+                )}
+                {activeTab === "amortisation" && (
+                  <div className="text-center">
+                    <CalculatorIcon className="h-20 w-20 text-primary/70 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Track Every Rand</h3>
+                    <p className="text-gray-500">Understand exactly where your money goes throughout your loan term.</p>
+                  </div>
+                )}
+                {activeTab === "comparison" && (
+                  <div className="text-center">
+                    <LineChartIcon className="h-20 w-20 text-primary/70 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Compare & Choose</h3>
+                    <p className="text-gray-500">See different loan options side by side to make the best choice.</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
