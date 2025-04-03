@@ -144,9 +144,9 @@ export default function Footer() {
                     </Link>
                   </li>
                   <li>
-                    <Link href="/about">
+                    <Link href="/banking-partners">
                       <a className="text-base text-gray-500 hover:text-gray-900">
-                        Partners
+                        Banking Partners
                       </a>
                     </Link>
                   </li>
