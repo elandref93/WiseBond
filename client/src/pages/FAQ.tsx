@@ -75,6 +75,39 @@ export default function FAQ() {
     },
   ];
 
+  const applicationFaqs = [
+    {
+      question: "What is pre-approval and why should I get it?",
+      answer:
+        "Pre-approval is an initial assessment by banks to determine how much they would be willing to lend you based on your financial profile. It's highly recommended before house hunting as it shows sellers you're a serious buyer, gives you a clear budget, strengthens your negotiating position, and speeds up the final approval process once you find a property. Our pre-approval is valid for 3 months and completely free.",
+    },
+    {
+      question: "Do I need to apply to multiple banks myself?",
+      answer:
+        "No, that's the main benefit of using WiseBond! With just one application, we submit your details to multiple banks simultaneously, saving you time and effort. Each bank then conducts its own assessment and provides an offer with their best interest rate and terms.",
+    },
+    {
+      question: "Will applying to multiple banks through WiseBond affect my credit score?",
+      answer:
+        "No. When you apply through WiseBond, the banks recognize this as a home loan comparison rather than multiple separate applications. Credit bureaus typically count multiple home loan inquiries within a short period as a single inquiry, minimizing the impact on your credit score.",
+    },
+    {
+      question: "Can I still apply if I don't have a specific property in mind yet?",
+      answer:
+        "Absolutely! We recommend getting pre-approved before you start house hunting. This gives you a clear idea of your budget and strengthens your position when making an offer. Once you find a property, we'll update your application with the property details.",
+    },
+    {
+      question: "Why should I use WiseBond instead of going directly to my bank?",
+      answer:
+        "By applying through WiseBond, you'll receive offers from multiple banks, increasing your chances of approval and securing a better interest rate. On average, our clients save over R100,000 on their home loans through better rates. Additionally, we handle all the paperwork, follow-ups, and negotiations, making the process much smoother.",
+    },
+    {
+      question: "What happens after the banks respond to my application?",
+      answer:
+        "Once the banks respond, your dedicated WiseBond consultant will compile all offers and present them to you in a clear, comparable format. We'll explain the differences in interest rates, terms, and conditions. You can then select the offer that best suits your needs, and we'll help finalize the application with your chosen bank.",
+    },
+  ];
+
   const propertyFaqs = [
     {
       question: "What is the difference between sectional title and freehold property?",
@@ -101,6 +134,11 @@ export default function FAQ() {
       answer:
         "As a property owner in South Africa, you'll need to budget for monthly bond repayments, homeowners insurance, municipal rates and taxes, utilities (water, electricity, sewage), security costs, levies (for sectional title properties), and regular maintenance.",
     },
+    {
+      question: "What is a voetstoots clause in a property sale agreement?",
+      answer:
+        "A voetstoots clause means the property is sold 'as is,' with any defects it may have at the time of sale. This protects sellers from claims related to defects after the sale. However, sellers must disclose known defects, and the clause doesn't protect them if they deliberately conceal problems. As a buyer, it's important to conduct a thorough inspection before signing the offer to purchase.",
+    },
   ];
 
   return (
@@ -122,8 +160,9 @@ export default function FAQ() {
       <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <Tabs defaultValue="general">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsList className="grid w-full grid-cols-4 mb-8">
               <TabsTrigger value="general">General</TabsTrigger>
+              <TabsTrigger value="application">Application</TabsTrigger>
               <TabsTrigger value="loans">Home Loans</TabsTrigger>
               <TabsTrigger value="property">Property</TabsTrigger>
             </TabsList>
@@ -131,6 +170,21 @@ export default function FAQ() {
             <TabsContent value="general">
               <Accordion type="single" collapsible className="space-y-4">
                 {generalFaqs.map((faq, index) => (
+                  <AccordionItem key={index} value={`item-${index}`} className="border rounded-md px-4">
+                    <AccordionTrigger className="text-lg text-left font-medium text-gray-900 py-4">
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-base text-gray-500 pt-2 pb-4">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </TabsContent>
+
+            <TabsContent value="application">
+              <Accordion type="single" collapsible className="space-y-4">
+                {applicationFaqs.map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index}`} className="border rounded-md px-4">
                     <AccordionTrigger className="text-lg text-left font-medium text-gray-900 py-4">
                       {faq.question}
@@ -251,6 +305,34 @@ export default function FAQ() {
                 <dd className="mt-2 text-gray-500">
                   The Finance Linked Individual Subsidy Program is a government subsidy
                   for first-time homebuyers earning between R3,501 and R22,000 per month.
+                </dd>
+              </div>
+
+              <div>
+                <dt className="text-lg font-medium text-gray-900">Loan-to-Value (LTV)</dt>
+                <dd className="mt-2 text-gray-500">
+                  The ratio of the loan amount to the property's purchase price or market value. A lower LTV ratio (larger deposit) typically results in better interest rates and loan terms.
+                </dd>
+              </div>
+
+              <div>
+                <dt className="text-lg font-medium text-gray-900">Bond Insurance</dt>
+                <dd className="mt-2 text-gray-500">
+                  Insurance that covers the outstanding balance of your home loan in case of death, disability, or retrenchment. Many banks require this as a condition of granting the loan.
+                </dd>
+              </div>
+
+              <div>
+                <dt className="text-lg font-medium text-gray-900">Amortization</dt>
+                <dd className="mt-2 text-gray-500">
+                  The gradual reduction of a home loan debt through regular payments of principal and interest over time, typically illustrated in an amortization schedule showing how each payment is allocated.
+                </dd>
+              </div>
+
+              <div>
+                <dt className="text-lg font-medium text-gray-900">Pre-approval</dt>
+                <dd className="mt-2 text-gray-500">
+                  An initial assessment by banks to determine how much they would be willing to lend you based on your financial profile, before you make an offer on a property.
                 </dd>
               </div>
             </dl>

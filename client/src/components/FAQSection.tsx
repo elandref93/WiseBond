@@ -13,29 +13,29 @@ export default function FAQSection() {
         "A bond originator is a professional service that helps home buyers apply for home loans (bonds) with multiple banks simultaneously. We handle the application process, paperwork, and negotiations on your behalf to secure the best possible interest rate.",
     },
     {
+      question: "Why should I use WiseBond instead of going directly to my bank?",
+      answer:
+        "By applying through WiseBond, you'll receive offers from multiple banks, increasing your chances of approval and securing a better interest rate. On average, our clients save over R100,000 on their home loans through better rates. Additionally, we handle all the paperwork, follow-ups, and negotiations, making the process much smoother.",
+    },
+    {
+      question: "What is pre-approval and why should I get it?",
+      answer:
+        "Pre-approval is an initial assessment by banks to determine how much they would be willing to lend you based on your financial profile. It's highly recommended before house hunting as it shows sellers you're a serious buyer, gives you a clear budget, and speeds up the final approval process once you find a property.",
+    },
+    {
+      question: "Will applying to multiple banks through WiseBond affect my credit score?",
+      answer:
+        "No. When you apply through WiseBond, the banks recognize this as a home loan comparison rather than multiple separate applications. Credit bureaus typically count multiple home loan inquiries within a short period as a single inquiry, minimizing the impact on your credit score.",
+    },
+    {
       question: "How much does it cost to use WiseBond?",
       answer:
         "Our service is completely free to you as the home buyer. We are paid a commission by the bank when your home loan is successfully approved. This commission does not affect your interest rate or loan terms in any way.",
     },
     {
-      question: "How long does the application process take?",
+      question: "What happens after the banks respond to my application?",
       answer:
-        "The initial application takes less than 10 minutes to complete. Once submitted, we typically receive responses from banks within 2-5 working days. The entire process from application to approval usually takes between 7-14 days, depending on the complexity of your application.",
-    },
-    {
-      question: "What documents do I need to apply?",
-      answer:
-        "You'll need to provide: a copy of your ID document, proof of income (3 months' payslips or 6 months' bank statements if self-employed), 3 months' bank statements, proof of address, and if applicable, a copy of the offer to purchase for the property you want to buy.",
-    },
-    {
-      question: "Can you help if I have a poor credit score?",
-      answer:
-        "Yes, we work with clients across all credit profiles. While a poor credit score may limit your options, we have relationships with banks that specialize in different risk profiles. We'll work to find the best possible solution based on your specific circumstances.",
-    },
-    {
-      question: "Do you handle FLISP subsidy applications?",
-      answer:
-        "Yes, we assist with Finance Linked Individual Subsidy Program (FLISP) applications for first-time home buyers who qualify. Our consultants are knowledgeable about the requirements and can guide you through the process of applying for this government subsidy.",
+        "Once the banks respond, your dedicated WiseBond consultant will compile all offers and present them to you in a clear, comparable format. We'll explain the differences in interest rates, terms, and conditions. You can then select the offer that best suits your needs, and we'll help finalize the application with your chosen bank.",
     },
   ];
 
