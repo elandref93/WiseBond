@@ -12,8 +12,18 @@ import { Phone, Mail, MapPin, Clock } from "lucide-react";
 
 // Form validation schema
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
+  name: z.string()
+    .min(2, { message: "Name must be at least 2 characters" })
+    .refine(
+      (val) => /^[A-Za-z\s\-']+$/.test(val), 
+      { message: "Name can only contain letters, spaces, hyphens and apostrophes" }
+    ),
+  email: z.string()
+    .email({ message: "Please enter a valid email address" })
+    .refine(
+      (val) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val),
+      { message: "Please enter a valid email format" }
+    ),
   phone: z.string().optional().refine(
     (val) => {
       if (!val) return true; // Allow empty as it's optional
@@ -105,7 +115,16 @@ export default function Contact() {
                         <FormItem>
                           <FormLabel>Full Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Your full name" {...field} />
+                            <Input 
+                              placeholder="Your full name" 
+                              {...field} 
+                              onChange={(e) => {
+                                // Only allow letters, spaces, hyphens and apostrophes
+                                const value = e.target.value;
+                                const sanitized = value.replace(/[^A-Za-z\s\-']/g, '');
+                                field.onChange(sanitized);
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

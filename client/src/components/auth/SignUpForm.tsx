@@ -19,15 +19,24 @@ import {
 
 // Form schema with validation
 const formSchema = z.object({
-  firstName: z.string().min(2, {
-    message: "First name must be at least 2 characters.",
-  }),
-  lastName: z.string().min(2, {
-    message: "Last name must be at least 2 characters.",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
+  firstName: z.string()
+    .min(2, { message: "First name must be at least 2 characters." })
+    .refine(
+      (val) => /^[A-Za-z\s\-']+$/.test(val), 
+      { message: "First name can only contain letters, spaces, hyphens and apostrophes." }
+    ),
+  lastName: z.string()
+    .min(2, { message: "Last name must be at least 2 characters." })
+    .refine(
+      (val) => /^[A-Za-z\s\-']+$/.test(val), 
+      { message: "Last name can only contain letters, spaces, hyphens and apostrophes." }
+    ),
+  email: z.string()
+    .email({ message: "Please enter a valid email address." })
+    .refine(
+      (val) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val),
+      { message: "Please enter a valid email format." }
+    ),
   phone: z.string().optional().refine(
     (val) => {
       if (!val) return true; // Allow empty as it's optional
@@ -142,7 +151,16 @@ export default function SignUpForm() {
               <FormItem className="sm:col-span-3">
                 <FormLabel>First name</FormLabel>
                 <FormControl>
-                  <Input {...field} autoComplete="given-name" />
+                  <Input 
+                    {...field} 
+                    autoComplete="given-name"
+                    onChange={(e) => {
+                      // Only allow letters, spaces, hyphens and apostrophes
+                      const value = e.target.value;
+                      const sanitized = value.replace(/[^A-Za-z\s\-']/g, '');
+                      field.onChange(sanitized);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -156,7 +174,16 @@ export default function SignUpForm() {
               <FormItem className="sm:col-span-3">
                 <FormLabel>Last name</FormLabel>
                 <FormControl>
-                  <Input {...field} autoComplete="family-name" />
+                  <Input 
+                    {...field} 
+                    autoComplete="family-name"
+                    onChange={(e) => {
+                      // Only allow letters, spaces, hyphens and apostrophes
+                      const value = e.target.value;
+                      const sanitized = value.replace(/[^A-Za-z\s\-']/g, '');
+                      field.onChange(sanitized);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
