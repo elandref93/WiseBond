@@ -9,6 +9,13 @@ import { calculateDepositSavings, formatCurrency, parseCurrency, handleCurrencyI
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { InfoIcon } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Form schema with validation
 const formSchema = z.object({
@@ -119,7 +126,19 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
             name="propertyPrice"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Property Price (R)</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Property Price (R)</FormLabel>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <InfoIcon className="h-4 w-4 text-gray-400" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">The total purchase price of the property you wish to buy.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <FormControl>
                   <Input
                     {...field}
@@ -145,7 +164,19 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
             name="depositPercentage"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Deposit Percentage (%)</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Deposit Percentage (%)</FormLabel>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <InfoIcon className="h-4 w-4 text-gray-400" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">The percentage of the property price you need to save for a deposit.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <FormControl>
                   <div className="relative">
                     <Input {...field} className="pr-8" />
@@ -164,21 +195,37 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
             name="initialAmount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Initial Investment Amount (R)</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Initial Investment Amount (R)</FormLabel>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <InfoIcon className="h-4 w-4 text-gray-400" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">The amount you've already saved towards your deposit.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <FormControl>
-                  <Input
-                    {...field}
-                    onChange={(e) => {
-                      const numericValue = handleCurrencyInput(e.target.value);
-                      field.onChange(numericValue);
-                    }}
-                    onBlur={(e) => {
-                      const value = parseCurrency(e.target.value);
-                      if (value > 0) {
-                        field.onChange(formatCurrency(value));
-                      }
-                    }}
-                  />
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        onChange={(e) => {
+                          const numericValue = handleCurrencyInput(e.target.value);
+                          field.onChange(numericValue);
+                        }}
+                        onBlur={(e) => {
+                          const value = parseCurrency(e.target.value);
+                          if (value > 0) {
+                            field.onChange(formatCurrency(value));
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -190,21 +237,37 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
             name="monthlySaving"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Monthly Saving Amount (R)</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Monthly Saving Amount (R)</FormLabel>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <InfoIcon className="h-4 w-4 text-gray-400" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">The amount you can save each month towards your deposit.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <FormControl>
-                  <Input
-                    {...field}
-                    onChange={(e) => {
-                      const numericValue = handleCurrencyInput(e.target.value);
-                      field.onChange(numericValue);
-                    }}
-                    onBlur={(e) => {
-                      const value = parseCurrency(e.target.value);
-                      if (value > 0) {
-                        field.onChange(formatCurrency(value));
-                      }
-                    }}
-                  />
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        onChange={(e) => {
+                          const numericValue = handleCurrencyInput(e.target.value);
+                          field.onChange(numericValue);
+                        }}
+                        onBlur={(e) => {
+                          const value = parseCurrency(e.target.value);
+                          if (value > 0) {
+                            field.onChange(formatCurrency(value));
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -216,7 +279,19 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
             name="savingsInterest"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Savings Interest Rate (%)</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Savings Interest Rate (%)</FormLabel>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <InfoIcon className="h-4 w-4 text-gray-400" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">The annual interest rate you earn on your savings.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <FormControl>
                   <div className="relative">
                     <Input {...field} className="pr-8" />
