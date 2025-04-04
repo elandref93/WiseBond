@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -132,3 +132,52 @@ export type CalculationResult = typeof calculationResults.$inferSelect;
 export type InsertCalculationResult = z.infer<typeof insertCalculationResultSchema>;
 export type ContactSubmission = typeof contactSubmissions.$inferSelect;
 export type InsertContactSubmission = z.infer<typeof insertContactSubmissionSchema>;
+
+// Budget Categories and Expenses
+
+export const budgetCategories = pgTable("budget_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  isDefault: boolean("is_default").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertBudgetCategorySchema = createInsertSchema(budgetCategories).pick({
+  name: true,
+  description: true,
+  isDefault: true,
+  sortOrder: true,
+});
+
+export const expenses = pgTable("expenses", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  categoryId: integer("category_id").references(() => budgetCategories.id).notNull(),
+  name: text("name").notNull(),
+  amount: real("amount").notNull(),
+  isCustom: boolean("is_custom").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertExpenseSchema = createInsertSchema(expenses).pick({
+  userId: true,
+  categoryId: true,
+  name: true,
+  amount: true,
+  isCustom: true,
+});
+
+export const updateExpenseSchema = createInsertSchema(expenses)
+  .omit({ id: true, userId: true, createdAt: true, updatedAt: true })
+  .extend({
+    amount: z.number().min(0, "Amount must be greater than or equal to 0"),
+  });
+
+export type BudgetCategory = typeof budgetCategories.$inferSelect;
+export type InsertBudgetCategory = z.infer<typeof insertBudgetCategorySchema>;
+export type Expense = typeof expenses.$inferSelect;
+export type InsertExpense = z.infer<typeof insertExpenseSchema>;
+export type UpdateExpense = z.infer<typeof updateExpenseSchema>;

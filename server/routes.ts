@@ -3,7 +3,10 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import session from "express-session";
 import MemoryStore from "memorystore";
-import { insertUserSchema, loginSchema, insertCalculationResultSchema, insertContactSubmissionSchema, updateProfileSchema } from "@shared/schema";
+import { 
+  insertUserSchema, loginSchema, insertCalculationResultSchema, insertContactSubmissionSchema, 
+  updateProfileSchema, insertBudgetCategorySchema, insertExpenseSchema, updateExpenseSchema 
+} from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from 'zod-validation-error';
 import { sendCalculationEmail, sendVerificationEmail } from "./email";
@@ -370,6 +373,157 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate PDF reports
   app.post("/api/reports/bond-repayment", generateBondRepaymentReport);
   app.post("/api/reports/additional-payment", generateAdditionalPaymentReport);
+
+  // Budget Management Routes
+  // Budget Categories
+  app.get("/api/budget/categories", async (req, res) => {
+    try {
+      const categories = await storage.getBudgetCategories();
+      res.status(200).json(categories);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get budget categories" });
+    }
+  });
+
+  app.get("/api/budget/categories/:id", async (req, res) => {
+    try {
+      const categoryId = parseInt(req.params.id);
+      if (isNaN(categoryId)) {
+        return res.status(400).json({ message: "Invalid category ID" });
+      }
+      
+      const category = await storage.getBudgetCategory(categoryId);
+      if (!category) {
+        return res.status(404).json({ message: "Budget category not found" });
+      }
+      
+      res.status(200).json(category);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get budget category" });
+    }
+  });
+
+  app.post("/api/budget/categories", isAuthenticated, async (req, res) => {
+    try {
+      const categoryData = insertBudgetCategorySchema.parse(req.body);
+      const category = await storage.createBudgetCategory(categoryData);
+      res.status(201).json(category);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      res.status(500).json({ message: "Failed to create budget category" });
+    }
+  });
+
+  // User Expenses
+  app.get("/api/budget/expenses", isAuthenticated, async (req, res) => {
+    try {
+      const expenses = await storage.getUserExpenses(req.session.userId!);
+      res.status(200).json(expenses);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get expenses" });
+    }
+  });
+
+  app.get("/api/budget/expenses/category/:categoryId", isAuthenticated, async (req, res) => {
+    try {
+      const categoryId = parseInt(req.params.categoryId);
+      if (isNaN(categoryId)) {
+        return res.status(400).json({ message: "Invalid category ID" });
+      }
+      
+      const expenses = await storage.getUserExpensesByCategory(req.session.userId!, categoryId);
+      res.status(200).json(expenses);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get expenses for category" });
+    }
+  });
+
+  app.get("/api/budget/expenses/:id", isAuthenticated, async (req, res) => {
+    try {
+      const expenseId = parseInt(req.params.id);
+      if (isNaN(expenseId)) {
+        return res.status(400).json({ message: "Invalid expense ID" });
+      }
+      
+      const expense = await storage.getExpense(expenseId);
+      if (!expense) {
+        return res.status(404).json({ message: "Expense not found" });
+      }
+      
+      // Verify that the expense belongs to the user
+      if (expense.userId !== req.session.userId) {
+        return res.status(403).json({ message: "Not authorized to access this expense" });
+      }
+      
+      res.status(200).json(expense);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get expense" });
+    }
+  });
+
+  app.post("/api/budget/expenses", isAuthenticated, async (req, res) => {
+    try {
+      const expenseData = insertExpenseSchema.parse({
+        ...req.body,
+        userId: req.session.userId
+      });
+      
+      const expense = await storage.createExpense(expenseData);
+      res.status(201).json(expense);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      res.status(500).json({ message: "Failed to create expense" });
+    }
+  });
+
+  app.patch("/api/budget/expenses/:id", isAuthenticated, async (req, res) => {
+    try {
+      const expenseId = parseInt(req.params.id);
+      if (isNaN(expenseId)) {
+        return res.status(400).json({ message: "Invalid expense ID" });
+      }
+      
+      const updates = updateExpenseSchema.parse(req.body);
+      const updatedExpense = await storage.updateExpense(expenseId, req.session.userId!, updates);
+      
+      if (!updatedExpense) {
+        return res.status(404).json({ message: "Expense not found or not authorized" });
+      }
+      
+      res.status(200).json(updatedExpense);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      res.status(500).json({ message: "Failed to update expense" });
+    }
+  });
+
+  app.delete("/api/budget/expenses/:id", isAuthenticated, async (req, res) => {
+    try {
+      const expenseId = parseInt(req.params.id);
+      if (isNaN(expenseId)) {
+        return res.status(400).json({ message: "Invalid expense ID" });
+      }
+      
+      const deleted = await storage.deleteExpense(expenseId, req.session.userId!);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Expense not found or not authorized" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete expense" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
