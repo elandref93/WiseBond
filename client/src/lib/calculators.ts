@@ -242,7 +242,8 @@ export function calculateDepositSavings(
   propertyPrice: number,
   depositPercentage: number,
   monthlySaving: number,
-  savingsInterest: number
+  savingsInterest: number,
+  initialAmount: number = 0
 ): CalculationResult {
   // Calculate target deposit amount
   const depositAmount = propertyPrice * (depositPercentage / 100);
@@ -250,12 +251,18 @@ export function calculateDepositSavings(
   // Monthly interest rate
   const monthlyInterestRate = savingsInterest / 100 / 12;
   
+  // Amount still needed after considering initial investment
+  const amountStillNeeded = Math.max(0, depositAmount - initialAmount);
+  
   // Calculate months to reach deposit (if interest rate is 0, use simple division)
   let monthsToSave: number;
   
-  if (savingsInterest === 0 || monthlyInterestRate === 0) {
+  // If they already have enough in initial amount
+  if (initialAmount >= depositAmount) {
+    monthsToSave = 0;
+  } else if (savingsInterest === 0 || monthlyInterestRate === 0) {
     // Simple calculation without interest
-    monthsToSave = depositAmount / monthlySaving;
+    monthsToSave = amountStillNeeded / monthlySaving;
   } else {
     // Formula for future value of monthly savings with interest:
     // FV = PMT * [(1 + r)^n - 1] / r
@@ -267,12 +274,12 @@ export function calculateDepositSavings(
       // If monthly saving is zero or negative, it's impossible to reach target
       monthsToSave = Infinity;
     } else {
-      monthsToSave = Math.log(depositAmount * monthlyInterestRate / monthlySaving + 1) / Math.log(1 + monthlyInterestRate);
+      monthsToSave = Math.log(amountStillNeeded * monthlyInterestRate / monthlySaving + 1) / Math.log(1 + monthlyInterestRate);
       
       // Check for NaN or Infinity results (can happen with certain combinations of values)
       if (isNaN(monthsToSave) || !isFinite(monthsToSave)) {
         // Fallback to simple calculation
-        monthsToSave = depositAmount / monthlySaving;
+        monthsToSave = amountStillNeeded / monthlySaving;
       }
     }
   }
@@ -288,44 +295,58 @@ export function calculateDepositSavings(
   let remainingMonths = 0;
   let timeToSaveText = '';
   
-  if (isFinite(monthsToSave)) {
+  if (monthsToSave === 0) {
+    timeToSaveText = "Ready to proceed!";
+  } else if (isFinite(monthsToSave)) {
     yearsToSave = Math.floor(monthsToSave / 12);
     remainingMonths = Math.ceil(monthsToSave % 12);
     
-    timeToSaveText = remainingMonths > 0 
-      ? `${yearsToSave} years, ${remainingMonths} months`
-      : `${yearsToSave} years`;
+    if (yearsToSave === 0) {
+      timeToSaveText = `${remainingMonths} month${remainingMonths !== 1 ? 's' : ''}`;
+    } else {
+      timeToSaveText = remainingMonths > 0 
+        ? `${yearsToSave} year${yearsToSave !== 1 ? 's' : ''}, ${remainingMonths} month${remainingMonths !== 1 ? 's' : ''}`
+        : `${yearsToSave} year${yearsToSave !== 1 ? 's' : ''}`;
+    }
   } else {
     timeToSaveText = "Never (increase savings)";
   }
   
   // Calculate total contributions
   const totalMonths = isFinite(monthsToSave) ? Math.ceil(monthsToSave) : 0;
-  const totalContributions = monthlySaving * totalMonths;
+  const totalContributions = monthlySaving * totalMonths + initialAmount;
   
   // Calculate total savings with compound interest
-  // FV = PMT * [(1 + r)^n - 1] / r
+  // FV = PMT * [(1 + r)^n - 1] / r + (initial investment * (1 + r)^n)
   let totalAccumulated: number;
   let interestEarned: number;
   
   if (isFinite(monthsToSave)) {
-    if (savingsInterest === 0 || monthlyInterestRate === 0) {
-      totalAccumulated = totalContributions;
+    if (monthsToSave === 0) {
+      // If they already have enough, just use the initial amount
+      totalAccumulated = initialAmount;
+      interestEarned = 0;
+    } else if (savingsInterest === 0 || monthlyInterestRate === 0) {
+      totalAccumulated = monthlySaving * totalMonths + initialAmount;
+      interestEarned = 0;
     } else {
-      // This calculates the precise future value of the monthly deposits with compound interest
-      totalAccumulated = monthlySaving * 
+      // Calculate future value of monthly deposits
+      const monthlyContributions = monthlySaving * 
         ((Math.pow(1 + monthlyInterestRate, totalMonths) - 1) / 
         monthlyInterestRate);
+        
+      // Calculate future value of initial investment
+      const initialWithInterest = initialAmount * Math.pow(1 + monthlyInterestRate, totalMonths);
       
-      // We shouldn't override the calculated value, as it includes the interest earned
-      // Keep totalAccumulated as calculated to show proper interest earnings
+      // Total is the sum of both
+      totalAccumulated = monthlyContributions + initialWithInterest;
+      
+      // Interest earned is the difference between total accumulated and contributions
+      interestEarned = totalAccumulated - totalContributions;
     }
-    
-    // Interest earned is the difference between total accumulated and contributions
-    interestEarned = totalAccumulated - totalContributions;
   } else {
     // If savings will never reach the target
-    totalAccumulated = 0;
+    totalAccumulated = initialAmount;
     interestEarned = 0;
   }
   

@@ -18,6 +18,9 @@ const formSchema = z.object({
   depositPercentage: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) < 100, {
     message: "Deposit percentage must be between 0 and 100",
   }),
+  initialAmount: z.string().refine((val) => !isNaN(Number(val.replace(/,/g, ""))), {
+    message: "Initial investment amount must be a number",
+  }),
   monthlySaving: z.string().refine((val) => !isNaN(Number(val.replace(/,/g, ""))), {
     message: "Monthly saving amount must be a number",
   }),
@@ -40,6 +43,7 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
   const defaultValues: DepositSavingsFormValues = {
     propertyPrice: "1,000,000",
     depositPercentage: "10",
+    initialAmount: "0",
     monthlySaving: "5,000",
     savingsInterest: "4.5",
   };
@@ -55,21 +59,31 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
       // Parse input values
       const propertyPrice = Number(values.propertyPrice.replace(/,/g, ""));
       const depositPercentage = Number(values.depositPercentage);
+      const initialAmount = Number(values.initialAmount.replace(/,/g, ""));
       const monthlySaving = Number(values.monthlySaving.replace(/,/g, ""));
       const savingsInterest = Number(values.savingsInterest);
 
       // Calculate results
-      const results = calculateDepositSavings(propertyPrice, depositPercentage, monthlySaving, savingsInterest);
+      const results = calculateDepositSavings(
+        propertyPrice, 
+        depositPercentage, 
+        monthlySaving, 
+        savingsInterest,
+        initialAmount
+      );
       
       // Pass results back to parent component
       onCalculate(results);
 
       // Save calculation if user is logged in
       if (user) {
-        await apiRequest("POST", "/api/calculations", {
-          calculationType: "deposit",
-          inputData: JSON.stringify(values),
-          resultData: JSON.stringify(results),
+        await apiRequest("/api/calculations", {
+          method: "POST",
+          body: JSON.stringify({
+            calculationType: "deposit",
+            inputData: JSON.stringify(values),
+            resultData: JSON.stringify(results),
+          })
         });
         
         // Invalidate the calculations query to refetch
@@ -140,6 +154,34 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                       <span className="text-gray-500 sm:text-sm">%</span>
                     </div>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="initialAmount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Initial Investment Amount (R)</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-500 sm:text-sm">R</span>
+                    </div>
+                    <Input
+                      {...field}
+                      className="pl-8"
+                      onBlur={(e) => {
+                        const value = e.target.value.replace(/,/g, "");
+                        if (!isNaN(Number(value))) {
+                          field.onChange(formatCurrency(value));
+                        }
+                      }}
+                    />
                   </div>
                 </FormControl>
                 <FormMessage />
