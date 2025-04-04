@@ -121,25 +121,19 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
               <FormItem>
                 <FormLabel>Property Price (R)</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-500 sm:text-sm">R</span>
-                    </div>
-                    <Input
-                      {...field}
-                      className="pl-8"
-                      onChange={(e) => {
-                        const numericValue = handleCurrencyInput(e.target.value);
-                        field.onChange(numericValue);
-                      }}
-                      onBlur={(e) => {
-                        const value = parseCurrency(e.target.value);
-                        if (value > 0) {
-                          field.onChange(formatCurrency(value));
-                        }
-                      }}
-                    />
-                  </div>
+                  <Input
+                    {...field}
+                    onChange={(e) => {
+                      const numericValue = handleCurrencyInput(e.target.value);
+                      field.onChange(numericValue);
+                    }}
+                    onBlur={(e) => {
+                      const value = parseCurrency(e.target.value);
+                      if (value > 0) {
+                        field.onChange(formatCurrency(value));
+                      }
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -172,25 +166,19 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
               <FormItem>
                 <FormLabel>Initial Investment Amount (R)</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-500 sm:text-sm">R</span>
-                    </div>
-                    <Input
-                      {...field}
-                      className="pl-8"
-                      onChange={(e) => {
-                        const numericValue = handleCurrencyInput(e.target.value);
-                        field.onChange(numericValue);
-                      }}
-                      onBlur={(e) => {
-                        const value = parseCurrency(e.target.value);
-                        if (value > 0) {
-                          field.onChange(formatCurrency(value));
-                        }
-                      }}
-                    />
-                  </div>
+                  <Input
+                    {...field}
+                    onChange={(e) => {
+                      const numericValue = handleCurrencyInput(e.target.value);
+                      field.onChange(numericValue);
+                    }}
+                    onBlur={(e) => {
+                      const value = parseCurrency(e.target.value);
+                      if (value > 0) {
+                        field.onChange(formatCurrency(value));
+                      }
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -204,25 +192,19 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
               <FormItem>
                 <FormLabel>Monthly Saving Amount (R)</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-500 sm:text-sm">R</span>
-                    </div>
-                    <Input
-                      {...field}
-                      className="pl-8"
-                      onChange={(e) => {
-                        const numericValue = handleCurrencyInput(e.target.value);
-                        field.onChange(numericValue);
-                      }}
-                      onBlur={(e) => {
-                        const value = parseCurrency(e.target.value);
-                        if (value > 0) {
-                          field.onChange(formatCurrency(value));
-                        }
-                      }}
-                    />
-                  </div>
+                  <Input
+                    {...field}
+                    onChange={(e) => {
+                      const numericValue = handleCurrencyInput(e.target.value);
+                      field.onChange(numericValue);
+                    }}
+                    onBlur={(e) => {
+                      const value = parseCurrency(e.target.value);
+                      if (value > 0) {
+                        field.onChange(formatCurrency(value));
+                      }
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
