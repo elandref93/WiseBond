@@ -187,8 +187,7 @@ export default function Profile() {
   
   // Tab navigation items 
   const tabs = [
-    { id: 'personal', label: 'Personal Information', icon: <UserIcon className="h-5 w-5 mr-2" /> },
-    { id: 'address', label: 'Address & Contact', icon: <Home className="h-5 w-5 mr-2" /> },
+    { id: 'personal', label: 'Personal & Contact Details', icon: <UserIcon className="h-5 w-5 mr-2" /> },
     { id: 'employment', label: 'Employment & Income', icon: <Briefcase className="h-5 w-5 mr-2" /> },
     { id: 'financial', label: 'Financial Management', icon: <CreditCard className="h-5 w-5 mr-2" /> },
     { id: 'documents', label: 'Documents', icon: <FileText className="h-5 w-5 mr-2" />, disabled: true },
@@ -245,7 +244,7 @@ export default function Profile() {
             <CardContent className="p-6">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Personal Information Tab */}
+                  {/* Personal & Contact Details Tab */}
                   {activeTab === 'personal' && (
                     <div className="space-y-6">
                       <h2 className="text-xl font-semibold">Personal Details</h2>
@@ -336,13 +335,9 @@ export default function Profile() {
                           </div>
                         </div>
                       )}
-                    </div>
-                  )}
-                  
-                  {/* Address & Contact Tab */}
-                  {activeTab === 'address' && (
-                    <div className="space-y-6">
-                      <h2 className="text-xl font-semibold">Contact Information</h2>
+
+                      <Separator className="my-6" />
+                      <h3 className="text-lg font-medium mb-4">Contact Information</h3>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField
