@@ -26,8 +26,9 @@ import {
   formatIDNumber
 } from '@/lib/saIDHelper';
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { 
   UserCircle as UserIcon, 
   Home, 
@@ -36,7 +37,13 @@ import {
   FileText, 
   ShieldCheck, 
   Clock,
-  BarChart3 
+  BarChart3,
+  Upload,
+  FileQuestion,
+  ClipboardList,
+  Building2,
+  Info,
+  AlertTriangle
 } from 'lucide-react';
 import ExpenseManagement from '@/components/budget/ExpenseManagement';
 
@@ -185,13 +192,13 @@ export default function Profile() {
   
   const watchedIdNumber = form.watch('idNumber');
   
-  // Tab navigation items 
-  const tabs = [
+  // Tab navigation items with disabled flag type
+  const tabs: Array<{ id: string; label: string; icon: React.ReactNode; disabled?: boolean }> = [
     { id: 'personal', label: 'Personal & Contact Details', icon: <UserIcon className="h-5 w-5 mr-2" /> },
     { id: 'employment', label: 'Employment & Income', icon: <Briefcase className="h-5 w-5 mr-2" /> },
     { id: 'financial', label: 'Financial Management', icon: <CreditCard className="h-5 w-5 mr-2" /> },
-    { id: 'documents', label: 'Documents', icon: <FileText className="h-5 w-5 mr-2" />, disabled: true },
-    { id: 'applications', label: 'Loan Applications', icon: <Clock className="h-5 w-5 mr-2" />, disabled: true },
+    { id: 'documents', label: 'Documents', icon: <FileText className="h-5 w-5 mr-2" /> },
+    { id: 'applications', label: 'Loan Applications', icon: <Clock className="h-5 w-5 mr-2" /> },
   ];
 
   return (
@@ -690,19 +697,102 @@ export default function Profile() {
                     </div>
                   )}
                   
-                  {/* Documents Tab - Disabled for now */}
+                  {/* Documents Tab */}
                   {activeTab === 'documents' && (
                     <div className="space-y-6">
-                      <h2 className="text-xl font-semibold">Documents</h2>
-                      <p className="text-gray-500">This section will be available soon.</p>
+                      <h2 className="text-xl font-semibold">Document Management</h2>
+                      <p className="text-gray-600 mb-4">
+                        Upload and manage important documents for your home loan application.
+                      </p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Card className="border-dashed border-2 hover:border-blue-400 transition-colors">
+                          <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full min-h-[200px]">
+                            <Upload className="h-12 w-12 text-blue-500 mb-2" />
+                            <h3 className="font-medium text-lg">ID Document</h3>
+                            <p className="text-sm text-gray-500 mt-1">Upload a copy of your ID document or passport</p>
+                            <Button variant="outline" size="sm" className="mt-4">Upload</Button>
+                          </CardContent>
+                        </Card>
+                        
+                        <Card className="border-dashed border-2 hover:border-blue-400 transition-colors">
+                          <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full min-h-[200px]">
+                            <FileText className="h-12 w-12 text-blue-500 mb-2" />
+                            <h3 className="font-medium text-lg">Proof of Income</h3>
+                            <p className="text-sm text-gray-500 mt-1">Upload your last 3 months of payslips</p>
+                            <Button variant="outline" size="sm" className="mt-4">Upload</Button>
+                          </CardContent>
+                        </Card>
+                        
+                        <Card className="border-dashed border-2 hover:border-blue-400 transition-colors">
+                          <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full min-h-[200px]">
+                            <Building2 className="h-12 w-12 text-blue-500 mb-2" />
+                            <h3 className="font-medium text-lg">Bank Statements</h3>
+                            <p className="text-sm text-gray-500 mt-1">Upload your last 3 months of bank statements</p>
+                            <Button variant="outline" size="sm" className="mt-4">Upload</Button>
+                          </CardContent>
+                        </Card>
+                      </div>
+                      
+                      <div className="mt-8">
+                        <h3 className="text-lg font-medium mb-4">Uploaded Documents</h3>
+                        <div className="bg-muted p-8 rounded-lg flex flex-col items-center justify-center text-center">
+                          <FileQuestion className="h-16 w-16 text-gray-400 mb-4" />
+                          <h4 className="text-lg font-medium">No documents uploaded yet</h4>
+                          <p className="text-gray-500 mt-2 max-w-md">
+                            Upload the required documents above to start your home loan application process.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
                   
-                  {/* Applications Tab - Disabled for now */}
+                  {/* Loan Applications Tab */}
                   {activeTab === 'applications' && (
                     <div className="space-y-6">
                       <h2 className="text-xl font-semibold">Loan Applications</h2>
-                      <p className="text-gray-500">This section will be available soon.</p>
+                      <p className="text-gray-600 mb-4">
+                        View and track the status of your home loan applications.
+                      </p>
+                      
+                      <div className="mt-4">
+                        <Card>
+                          <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h3 className="text-lg font-medium">Start a New Application</h3>
+                                <p className="text-gray-500 mt-1">Begin your journey to homeownership</p>
+                              </div>
+                              <Button>Apply Now</Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                      
+                      <div className="mt-8">
+                        <h3 className="text-lg font-medium mb-4">Your Applications</h3>
+                        <div className="bg-muted p-8 rounded-lg flex flex-col items-center justify-center text-center">
+                          <ClipboardList className="h-16 w-16 text-gray-400 mb-4" />
+                          <h4 className="text-lg font-medium">No applications yet</h4>
+                          <p className="text-gray-500 mt-2 max-w-md">
+                            You haven't started any home loan applications. Click "Apply Now" to begin.
+                          </p>
+                          <div className="mt-6">
+                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-md">
+                              <div className="flex">
+                                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 mr-2" />
+                                <div>
+                                  <h5 className="font-medium text-amber-800">Application Requirements</h5>
+                                  <p className="text-sm text-amber-700 mt-1">
+                                    To complete your application, make sure to upload all required documents and
+                                    complete your personal profile information.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
                   
