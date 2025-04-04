@@ -155,6 +155,7 @@ export const expenses = pgTable("expenses", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
   categoryId: integer("category_id").references(() => budgetCategories.id).notNull(),
+  subcategoryId: text("subcategory_id"), // References the subcategory id from budgetSubcategories.ts
   name: text("name").notNull(),
   amount: real("amount").notNull(),
   description: text("description"),
@@ -168,6 +169,7 @@ export const expenses = pgTable("expenses", {
 export const insertExpenseSchema = createInsertSchema(expenses).pick({
   userId: true,
   categoryId: true,
+  subcategoryId: true,
   name: true,
   amount: true,
   description: true,
@@ -183,6 +185,7 @@ export const updateExpenseSchema = createInsertSchema(expenses)
     description: z.string().optional(),
     isRecurring: z.boolean().optional(),
     frequency: z.enum(['once', 'weekly', 'monthly', 'yearly']).optional(),
+    subcategoryId: z.string().optional(),
   });
 
 export type BudgetCategory = typeof budgetCategories.$inferSelect;

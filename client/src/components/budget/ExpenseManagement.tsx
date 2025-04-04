@@ -28,6 +28,9 @@ import {
   Expense, 
   insertExpenseSchema 
 } from '@shared/schema';
+import { 
+  SubcategoryDef
+} from '@shared/budgetSubcategories';
 import { formatCurrency, parseCurrency } from '../../lib/formatters';
 import { Progress } from '@/components/ui/progress';
 import { useLocation } from 'wouter';
@@ -44,10 +47,14 @@ export default function ExpenseManagement() {
     amount: '',
     description: '',
     categoryId: 0,
+    subcategoryId: '',
     isRecurring: true,
     frequency: 'monthly' as 'once' | 'weekly' | 'monthly' | 'yearly',
     customCategory: '',
   });
+  
+  // State to store available subcategories based on selected category
+  const [subcategories, setSubcategories] = useState<Array<{id: string, name: string, description?: string}>>([]);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   
@@ -79,6 +86,7 @@ export default function ExpenseManagement() {
       categoryId: number;
       isRecurring: boolean;
       frequency: 'once' | 'weekly' | 'monthly' | 'yearly';
+      subcategoryId?: string;
     }) => {
       return apiRequest('/api/budget/expenses', {
         method: 'POST',
@@ -113,6 +121,7 @@ export default function ExpenseManagement() {
       categoryId: number;
       isRecurring: boolean;
       frequency: 'once' | 'weekly' | 'monthly' | 'yearly';
+      subcategoryId?: string;
     }) => {
       const { id, ...updates } = expense;
       return apiRequest(`/api/budget/expenses/${id}`, {
@@ -191,10 +200,12 @@ export default function ExpenseManagement() {
       amount: '',
       description: '',
       categoryId: 0,
+      subcategoryId: '',
       isRecurring: true,
-      frequency: 'monthly',
+      frequency: 'monthly' as 'once' | 'weekly' | 'monthly' | 'yearly',
       customCategory: '',
     });
+    setSubcategories([]);
   };
 
   // Handle adding a new expense
@@ -208,21 +219,40 @@ export default function ExpenseManagement() {
       return;
     }
 
-    addExpenseMutation.mutate({
+    // Build the expense object
+    const expenseData: any = {
       name: newExpense.name,
       amount: parseCurrency(newExpense.amount),
       description: newExpense.description,
       categoryId: newExpense.categoryId,
       isRecurring: newExpense.isRecurring,
       frequency: newExpense.frequency,
-    });
+    };
+    
+    // Add subcategory if selected
+    if (newExpense.subcategoryId) {
+      expenseData.subcategoryId = newExpense.subcategoryId;
+    }
+    
+    addExpenseMutation.mutate(expenseData);
+  };
+
+  // Load subcategories for an expense when editing
+  const loadSubcategoriesForExpense = (expense: Expense) => {
+    if (!expense) return;
+    
+    const categoryName = getCategoryName(expense.categoryId);
+    const subcats = getSubcategoriesForCategory(categoryName);
+    setSubcategories(subcats);
+    return subcats;
   };
 
   // Handle updating an expense
   const handleUpdateExpense = () => {
     if (!editingExpense) return;
 
-    updateExpenseMutation.mutate({
+    // Build the expense object
+    const expenseData: any = {
       id: editingExpense.id,
       name: editingExpense.name,
       amount: editingExpense.amount,
@@ -230,7 +260,14 @@ export default function ExpenseManagement() {
       categoryId: editingExpense.categoryId,
       isRecurring: editingExpense.isRecurring ?? true,
       frequency: (editingExpense.frequency ?? 'monthly') as 'once' | 'weekly' | 'monthly' | 'yearly',
-    });
+    };
+    
+    // Add subcategory if present
+    if (editingExpense.subcategoryId) {
+      expenseData.subcategoryId = editingExpense.subcategoryId;
+    }
+    
+    updateExpenseMutation.mutate(expenseData);
   };
 
   // Handle deleting an expense
@@ -495,7 +532,19 @@ export default function ExpenseManagement() {
                     <Select 
                       value={newExpense.categoryId.toString()} 
                       onValueChange={(value) => {
-                        setNewExpense({...newExpense, categoryId: Number(value)});
+                        const categoryId = Number(value);
+                        const categoryName = getCategoryName(categoryId);
+                        
+                        // Load subcategories for this category
+                        const subcats = getSubcategoriesForCategory(categoryName);
+                        setSubcategories(subcats);
+
+                        // Reset subcategory when changing categories
+                        setNewExpense({
+                          ...newExpense, 
+                          categoryId: categoryId,
+                          subcategoryId: ''
+                        });
                       }}
                     >
                       <SelectTrigger className="col-span-3">
@@ -510,6 +559,32 @@ export default function ExpenseManagement() {
                       </SelectContent>
                     </Select>
                   </div>
+                  {/* Subcategory Selection - only shown when a category is selected and has subcategories */}
+                  {newExpense.categoryId > 0 && subcategories.length > 0 && (
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="subcategory" className="text-right">
+                        Type
+                      </Label>
+                      <Select 
+                        value={newExpense.subcategoryId} 
+                        onValueChange={(value) => {
+                          setNewExpense({...newExpense, subcategoryId: value});
+                        }}
+                      >
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Select expense type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {subcategories.map((subcat) => (
+                            <SelectItem key={subcat.id} value={subcat.id}>
+                              {subcat.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="frequency" className="text-right">
                       Frequency
@@ -588,7 +663,10 @@ export default function ExpenseManagement() {
                             <div key={expense.id} className="p-3">
                               <ExpenseItem
                                 expense={expense}
-                                onEdit={() => setEditingExpense(expense)}
+                                onEdit={() => {
+                                  setEditingExpense(expense);
+                                  loadSubcategoriesForExpense(expense);
+                                }}
                                 onDelete={() => handleDeleteExpense(expense.id)}
                                 formatFrequency={formatFrequency}
                               />
@@ -607,9 +685,14 @@ export default function ExpenseManagement() {
                         size="sm" 
                         className="ml-auto text-xs"
                         onClick={() => {
+                          // Set category and load subcategories
+                          const subcats = getSubcategoriesForCategory(category.name);
+                          setSubcategories(subcats);
+                          
                           setNewExpense({
                             ...newExpense,
-                            categoryId: category.id
+                            categoryId: category.id,
+                            subcategoryId: ''
                           });
                           setAddExpenseOpen(true);
                         }}
@@ -687,7 +770,19 @@ export default function ExpenseManagement() {
                 <Select 
                   value={editingExpense.categoryId.toString()} 
                   onValueChange={(value) => {
-                    setEditingExpense({...editingExpense, categoryId: Number(value)});
+                    const categoryId = Number(value);
+                    const categoryName = getCategoryName(categoryId);
+                    
+                    // Load subcategories for this category
+                    const subcats = getSubcategoriesForCategory(categoryName);
+                    setSubcategories(subcats);
+
+                    // Reset subcategory when changing categories
+                    setEditingExpense({
+                      ...editingExpense, 
+                      categoryId: categoryId,
+                      subcategoryId: ''
+                    });
                   }}
                 >
                   <SelectTrigger className="col-span-3">
@@ -702,6 +797,32 @@ export default function ExpenseManagement() {
                   </SelectContent>
                 </Select>
               </div>
+              {/* Subcategory Selection for Edit Dialog */}
+              {editingExpense.categoryId > 0 && subcategories.length > 0 && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-subcategory" className="text-right">
+                    Type
+                  </Label>
+                  <Select 
+                    value={editingExpense.subcategoryId || ''} 
+                    onValueChange={(value) => {
+                      setEditingExpense({...editingExpense, subcategoryId: value});
+                    }}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select expense type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subcategories.map((subcat) => (
+                        <SelectItem key={subcat.id} value={subcat.id}>
+                          {subcat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-frequency" className="text-right">
                   Frequency
@@ -761,8 +882,18 @@ function ExpenseItem({ expense, onEdit, onDelete, formatFrequency }: ExpenseItem
     <div className="flex items-center justify-between p-3 bg-white border rounded-md shadow-sm hover:shadow-md transition-all">
       <div className="flex-1">
         <div className="font-medium">{expense.name}</div>
-        <div className="text-sm text-gray-500 flex items-center gap-1">
+        <div className="text-sm text-gray-500 flex items-center gap-1 flex-wrap">
           <span>{formatFrequency(expense.frequency)}</span>
+          
+          {expense.subcategoryId && (
+            <>
+              <span>•</span>
+              <span className="px-1.5 py-0.5 bg-gray-100 rounded-full text-xs">
+                {getSubcategoryById(expense.subcategoryId)?.name || 'Unknown Type'}
+              </span>
+            </>
+          )}
+          
           {expense.description && (
             <>
               <span>•</span>
