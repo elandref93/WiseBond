@@ -13,8 +13,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/calculators";
+import { formatCurrency, parseCurrency, handleCurrencyInput } from "@/lib/calculators";
 import { CalculationResult } from "@/lib/calculators";
+import { InfoIcon } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const formSchema = z.object({
   purchasePrice: z.string().min(1, { message: "Purchase price is required" }),
@@ -130,19 +137,44 @@ export default function BondsTransferCostsCalculator({ onCalculate }: BondsTrans
               name="purchasePrice"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Property Purchase Price (R)</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Property Purchase Price (R)</FormLabel>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <InfoIcon className="h-4 w-4 text-gray-400" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-xs">The purchase price of the property you're buying.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <FormControl>
-                    <Input
-                      {...field}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/[^0-9]/g, "");
-                        const formattedValue = value
-                          ? formatCurrency(parseInt(value))
-                          : "";
-                        field.onChange(formattedValue);
-                      }}
-                      placeholder="e.g., R1,500,000"
-                    />
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 sm:text-sm">R</span>
+                      </div>
+                      <Input
+                        {...field}
+                        className="pl-8"
+                        onChange={(e) => {
+                          // Remove any R from the input value first
+                          const valueWithoutR = e.target.value.replace(/R/g, '');
+                          const numericValue = handleCurrencyInput(valueWithoutR);
+                          field.onChange(numericValue);
+                        }}
+                        onBlur={(e) => {
+                          // Remove any R from the input value first
+                          const valueWithoutR = e.target.value.replace(/R/g, '');
+                          const value = parseCurrency(valueWithoutR);
+                          if (value > 0) {
+                            field.onChange(formatCurrency(value));
+                          }
+                        }}
+                        placeholder="e.g., 1,500,000"
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
