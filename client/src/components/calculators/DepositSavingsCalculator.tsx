@@ -5,7 +5,7 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { calculateDepositSavings, formatCurrency, type CalculationResult } from "@/lib/calculators";
+import { calculateDepositSavings, formatCurrency, parseCurrency, handleCurrencyInput, type CalculationResult } from "@/lib/calculators";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -128,9 +128,13 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
                     <Input
                       {...field}
                       className="pl-8"
+                      onChange={(e) => {
+                        const numericValue = handleCurrencyInput(e.target.value);
+                        field.onChange(numericValue);
+                      }}
                       onBlur={(e) => {
-                        const value = e.target.value.replace(/,/g, "");
-                        if (!isNaN(Number(value))) {
+                        const value = parseCurrency(e.target.value);
+                        if (value > 0) {
                           field.onChange(formatCurrency(value));
                         }
                       }}
@@ -175,9 +179,13 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
                     <Input
                       {...field}
                       className="pl-8"
+                      onChange={(e) => {
+                        const numericValue = handleCurrencyInput(e.target.value);
+                        field.onChange(numericValue);
+                      }}
                       onBlur={(e) => {
-                        const value = e.target.value.replace(/,/g, "");
-                        if (!isNaN(Number(value))) {
+                        const value = parseCurrency(e.target.value);
+                        if (value > 0) {
                           field.onChange(formatCurrency(value));
                         }
                       }}
@@ -203,9 +211,13 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
                     <Input
                       {...field}
                       className="pl-8"
+                      onChange={(e) => {
+                        const numericValue = handleCurrencyInput(e.target.value);
+                        field.onChange(numericValue);
+                      }}
                       onBlur={(e) => {
-                        const value = e.target.value.replace(/,/g, "");
-                        if (!isNaN(Number(value))) {
+                        const value = parseCurrency(e.target.value);
+                        if (value > 0) {
                           field.onChange(formatCurrency(value));
                         }
                       }}
