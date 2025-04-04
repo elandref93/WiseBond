@@ -360,7 +360,10 @@ export default function LoanComparisonSimulator({
                           ? "bg-primary text-white"
                           : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                       }`}
-                      onClick={() => setSelectedTerm(term)}
+                      onClick={() => {
+                        setSelectedTerm(term);
+                        setLoanTerm(term); // Update the main loan term slider as well
+                      }}
                     >
                       {term} years
                     </button>
@@ -549,7 +552,10 @@ export default function LoanComparisonSimulator({
                           ? "bg-primary text-white"
                           : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                       }`}
-                      onClick={() => setSelectedRateIndex(index)}
+                      onClick={() => {
+                        setSelectedRateIndex(index);
+                        setInterestRate(rate.value); // Update the interest rate slider as well
+                      }}
                       style={{
                         borderLeft: `4px solid ${rate.color}`
                       }}
