@@ -1,137 +1,148 @@
 /**
- * Format a number as South African Rand currency
- * 
- * @param value - The number to format
+ * Utility functions for formatting and parsing currency values
+ * Designed for South African Rand (ZAR) but can be used with other currencies
+ */
+
+interface FormatCurrencyOptions {
+  locale?: string;
+  currency?: string;
+  symbol?: string;
+  decimal?: string;
+  thousand?: string;
+  precision?: number;
+  format?: string;
+}
+
+/**
+ * Format a number as currency
+ * @param value - Number to format
  * @param options - Formatting options
  * @returns Formatted currency string
  */
 export function formatCurrency(
-  value: number, 
-  options: { 
-    symbol?: string; 
-    decimal?: string; 
-    thousand?: string;
-  } = {}
+  value: number | string,
+  options: FormatCurrencyOptions = {}
 ): string {
-  const { 
-    symbol = 'R', 
-    decimal = '.', 
-    thousand = ',' 
-  } = options;
+  // Default options for South African Rand
+  const defaults: Required<FormatCurrencyOptions> = {
+    locale: 'en-ZA',
+    currency: 'ZAR',
+    symbol: 'R',
+    decimal: '.',
+    thousand: ',',
+    precision: 2,
+    format: '%s %v',
+  };
+
+  const opts = { ...defaults, ...options };
   
-  // Handle null, undefined, or NaN values
-  if (value === null || value === undefined || isNaN(value)) {
-    return `${symbol}0.00`;
+  // Convert value to number if it's a string
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  
+  // Handle NaN and invalid values
+  if (isNaN(numValue)) return `${opts.symbol}0.00`;
+  
+  // Format using Intl if no custom formatting needed
+  if (
+    opts.symbol === 'R' && 
+    opts.decimal === '.' && 
+    opts.thousand === ',' && 
+    opts.format === '%s %v'
+  ) {
+    return new Intl.NumberFormat(opts.locale, {
+      style: 'currency',
+      currency: opts.currency,
+      minimumFractionDigits: opts.precision,
+      maximumFractionDigits: opts.precision,
+    }).format(numValue);
   }
   
-  // Convert to fixed 2 decimal places and split on decimal point
-  const [integerPart, decimalPart = '00'] = value.toFixed(2).split('.');
+  // Custom formatting
+  const negative = numValue < 0 ? '-' : '';
+  const absValue = Math.abs(numValue);
   
-  // Format integer part with thousand separators
-  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, thousand);
+  // Format the number with the specified precision
+  let i = parseInt(absValue.toFixed(opts.precision), 10) + '';
+  let j = i.length > 3 ? i.length % 3 : 0;
   
-  // Combine with symbol and decimal parts
-  return `${symbol}${formattedInteger}${decimal}${decimalPart}`;
+  // Build the formatted value
+  const formatted = 
+    negative + 
+    (j ? i.substr(0, j) + opts.thousand : '') + 
+    i.substr(j).replace(/(\d{3})(?=\d)/g, '$1' + opts.thousand) + 
+    (opts.precision > 0 
+      ? opts.decimal + 
+        Math.abs(absValue - parseInt(i, 10))
+          .toFixed(opts.precision)
+          .slice(2) 
+      : '');
+  
+  // Apply the format
+  return opts.format
+    .replace('%s', opts.symbol)
+    .replace('%v', formatted);
 }
 
 /**
- * Parse a string with currency formatting back to a number
- * 
- * @param value - The string to parse
+ * Parse a string as currency and return a number
+ * @param value - String to parse as currency
  * @returns Parsed number value
  */
 export function parseCurrency(value: string): number {
   if (!value) return 0;
   
-  // Remove currency symbol, thousand separators, and anything except digits and decimal points
-  const cleaned = value.replace(/[^\d.-]/g, '');
+  // Remove currency symbol, spaces, and thousand separators
+  const cleanValue = value
+    .replace(/[R$€£¥]/g, '')   // Remove common currency symbols
+    .replace(/\s/g, '')       // Remove spaces
+    .replace(/,/g, '');       // Remove thousand separators
   
-  // Parse as float and handle NaN
-  const parsed = parseFloat(cleaned);
-  return isNaN(parsed) ? 0 : parsed;
+  // Parse as float
+  const result = parseFloat(cleanValue);
+  
+  // Return 0 if parsing failed
+  return isNaN(result) ? 0 : result;
 }
 
 /**
- * Format a date to locale string
- * 
- * @param date - Date to format
- * @param options - Formatting options
- * @returns Formatted date string
- */
-export function formatDate(
-  date: Date | string | null | undefined,
-  options: Intl.DateTimeFormatOptions = { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  }
-): string {
-  if (!date) return '';
-  
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
-  if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
-    return '';
-  }
-  
-  return dateObj.toLocaleDateString('en-ZA', options);
-}
-
-/**
- * Format a percentage value
- * 
- * @param value - The number to format as percentage
- * @param decimalPlaces - Number of decimal places
+ * Format a number as a percentage
+ * @param value - Number to format as percentage
+ * @param precision - Number of decimal places
  * @returns Formatted percentage string
  */
-export function formatPercentage(value: number, decimalPlaces: number = 2): string {
-  if (value === null || value === undefined || isNaN(value)) {
-    return '0%';
-  }
-  
-  return `${value.toFixed(decimalPlaces)}%`;
+export function formatPercentage(value: number, precision: number = 2): string {
+  return `${value.toFixed(precision)}%`;
 }
 
 /**
- * Format a number with thousand separators
- * 
- * @param value - The number to format
- * @param decimalPlaces - Number of decimal places
+ * Format a number with proper thousand separators
+ * @param value - Number to format
+ * @param precision - Number of decimal places
  * @returns Formatted number string
  */
-export function formatNumber(value: number, decimalPlaces: number = 0): string {
-  if (value === null || value === undefined || isNaN(value)) {
-    return '0';
-  }
-  
-  return value.toLocaleString('en-ZA', {
-    minimumFractionDigits: decimalPlaces,
-    maximumFractionDigits: decimalPlaces
-  });
+export function formatNumber(value: number, precision: number = 0): string {
+  return new Intl.NumberFormat('en-ZA', {
+    minimumFractionDigits: precision,
+    maximumFractionDigits: precision,
+  }).format(value);
 }
 
 /**
- * Format a phone number in South African format
- * 
- * @param phoneNumber - The phone number to format
- * @returns Formatted phone number
+ * Abbreviate large numbers for display (e.g., 1,000 to 1K)
+ * @param value - Number to abbreviate 
+ * @param precision - Number of decimal places
+ * @returns Abbreviated number string
  */
-export function formatPhone(phoneNumber: string): string {
-  if (!phoneNumber) return '';
+export function abbreviateNumber(value: number, precision: number = 1): string {
+  if (value < 1000) return value.toString();
   
-  // Remove all non-digits
-  const digits = phoneNumber.replace(/\D/g, '');
+  const suffixes = ['', 'K', 'M', 'B', 'T'];
+  const suffixIndex = Math.floor(Math.log10(Math.abs(value)) / 3);
   
-  // Handle +27 format
-  if (digits.startsWith('27') && digits.length === 11) {
-    return `+27 ${digits.substring(2, 5)} ${digits.substring(5, 8)} ${digits.substring(8)}`;
+  if (suffixIndex >= suffixes.length) {
+    return value.toExponential(precision);
   }
   
-  // Handle 0XX format
-  if (digits.startsWith('0') && digits.length === 10) {
-    return `0${digits.substring(1, 4)} ${digits.substring(4, 7)} ${digits.substring(7)}`;
-  }
-  
-  // Return original if not in expected format
-  return phoneNumber;
+  const shortValue = value / Math.pow(1000, suffixIndex);
+  return shortValue.toFixed(precision) + suffixes[suffixIndex];
 }

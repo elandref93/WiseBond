@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { PlusCircle, MinusCircle, Edit, Save, X, AlertCircle } from 'lucide-react';
+import { PlusCircle, MinusCircle, Edit, Save, X, AlertCircle, LogIn } from 'lucide-react';
 import { 
   Select,
   SelectContent,
@@ -34,9 +34,12 @@ import { formatCurrency, parseCurrency } from '@/lib/formatters';
 import { AlertTriangle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useLocation } from 'wouter';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function ExpenseManagement() {
   const queryClient = useQueryClient();
+  const [location, navigate] = useLocation();
   const [income, setIncome] = useState<number>(0);
   const [addExpenseOpen, setAddExpenseOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<BudgetCategory | null>(null);
@@ -65,7 +68,8 @@ export default function ExpenseManagement() {
   const { 
     data: expenses = [], 
     isLoading: loadingExpenses,
-    error: expensesError
+    error: expensesError,
+    isError: isExpensesError
   } = useQuery<Expense[]>({
     queryKey: ['/api/budget/expenses'],
   });
@@ -289,6 +293,37 @@ export default function ExpenseManagement() {
 
   // Error state
   if (categoriesError || expensesError) {
+    // Check if the error is due to authentication
+    const isAuthError = isExpensesError && 
+      expensesError instanceof Error && 
+      expensesError.message?.includes('Not authenticated');
+    
+    if (isAuthError) {
+      return (
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle>Authentication Required</CardTitle>
+            <CardDescription>Please log in to view your budget management</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center py-10 gap-6">
+            <Alert className="w-full max-w-md bg-amber-50 border-amber-200">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertTitle>Authentication Required</AlertTitle>
+              <AlertDescription>
+                You need to be logged in to view and manage your budget expenses.
+              </AlertDescription>
+            </Alert>
+            <Button 
+              onClick={() => navigate('/login')} 
+              className="flex items-center gap-2"
+            >
+              <LogIn className="h-4 w-4" /> Login to Your Account
+            </Button>
+          </CardContent>
+        </Card>
+      );
+    }
+    
     return (
       <Card className="w-full">
         <CardHeader>

@@ -44,36 +44,45 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  try {
-    // Try to load secrets from Azure Key Vault
-    console.log('Attempting to load secrets from Azure Key Vault...');
-    await initializeSecretsFromKeyVault();
+  // Prioritize environment variables (Replit secrets) over Azure Key Vault
+  // Log available environment variables for debugging (without revealing values)
+  const envVars = [
+    'MAILGUN_API_KEY', 
+    'MAILGUN_DOMAIN', 
+    'MAILGUN_FROM_EMAIL',
+    'GOOGLE_MAPS_API_KEY'
+  ];
+  
+  console.log('Available environment variables:');
+  envVars.forEach(varName => {
+    console.log(`- ${varName}: ${process.env[varName] ? 'Set' : 'Not set'}`);
+  });
+  
+  // Ensure Google Maps API Key is copied to VITE_ version for frontend access
+  if (process.env.GOOGLE_MAPS_API_KEY && !process.env.VITE_GOOGLE_MAPS_API_KEY) {
+    process.env.VITE_GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+    console.log('Copied GOOGLE_MAPS_API_KEY to VITE_GOOGLE_MAPS_API_KEY for frontend access');
+  }
+  
+  // Only try Azure Key Vault if environment variables are not available
+  const missingEnvVars = envVars.filter(varName => !process.env[varName]);
+  if (missingEnvVars.length > 0) {
+    console.log(`Missing environment variables: ${missingEnvVars.join(', ')}. Trying Azure Key Vault...`);
     
-    // List available keys for debugging
-    const availableKeys = await listAvailableKeys();
-    console.log('Available keys in Azure Key Vault:', availableKeys);
-  } catch (error) {
-    console.error('Error initializing Azure Key Vault:', error);
-    console.log('Continuing with environment variables from Replit secrets...');
-    
-    // Log available environment variables for debugging (without revealing values)
-    const envVars = [
-      'MAILGUN_API_KEY', 
-      'MAILGUN_DOMAIN', 
-      'MAILGUN_FROM_EMAIL',
-      'GOOGLE_MAPS_API_KEY'
-    ];
-    
-    console.log('Available environment variables:');
-    envVars.forEach(varName => {
-      console.log(`- ${varName}: ${process.env[varName] ? 'Set' : 'Not set'}`);
-    });
-    
-    // Ensure Google Maps API Key is copied to VITE_ version for frontend access
-    if (process.env.GOOGLE_MAPS_API_KEY && !process.env.VITE_GOOGLE_MAPS_API_KEY) {
-      process.env.VITE_GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
-      console.log('Copied GOOGLE_MAPS_API_KEY to VITE_GOOGLE_MAPS_API_KEY for frontend access');
+    try {
+      // Try to load secrets from Azure Key Vault
+      console.log('Attempting to load secrets from Azure Key Vault...');
+      await initializeSecretsFromKeyVault();
+      
+      // List available keys for debugging
+      const availableKeys = await listAvailableKeys();
+      console.log('Available keys in Azure Key Vault:', availableKeys);
+    } catch (error) {
+      console.error('Error initializing Azure Key Vault:', error);
+      console.log('Failed to load Azure Key Vault secrets. Some functionality may be limited.');
     }
+  } else {
+    console.log('All required environment variables are set. Skipping Azure Key Vault.');
   }
   
   const server = await registerRoutes(app);
