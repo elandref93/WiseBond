@@ -47,12 +47,11 @@ interface DataPoint {
 }
 
 const termColors = {
-  5: "#059669", // Shortest term - green (less interest)
-  6: "#10b981",
-  7: "#34d399",
-  8: "#6366f1", // Medium term - blue
-  9: "#818cf8",
-  10: "#f59e0b"  // Longer term - orange (more interest)
+  10: "#10b981", // Shorter term - green (less interest)
+  15: "#22c55e",
+  20: "#6366f1", // Medium term - blue
+  25: "#f59e0b",
+  30: "#ef4444"  // Longer term - red (more interest)
 };
 
 export default function LoanComparisonSimulator({
@@ -89,7 +88,7 @@ export default function LoanComparisonSimulator({
   const [rateComparisonData, setRateComparisonData] = useState<any[]>([]);
 
   // Available terms
-  const terms = [5, 6, 7, 8, 9, 10]; // Loan terms in years
+  const terms = [10, 15, 20, 25, 30]; // Loan terms in years
   
   // Calculate monthly payment based on term and rate
   const calculateMonthlyPayment = (principal: number, rate: number, termYears: number) => {
@@ -324,17 +323,17 @@ export default function LoanComparisonSimulator({
                 </div>
                 <Slider
                   value={[loanTerm]}
-                  min={5}
-                  max={10}
-                  step={1}
+                  min={10}
+                  max={30}
+                  step={5}
                   onValueChange={(value) => {
                     setLoanTerm(value[0]);
                     setSelectedTerm(value[0]);
                   }}
                 />
                 <div className="flex justify-between text-xs text-gray-500">
-                  <span>5 years</span>
                   <span>10 years</span>
+                  <span>30 years</span>
                 </div>
               </div>
             </div>
@@ -352,7 +351,7 @@ export default function LoanComparisonSimulator({
               {/* Term Selection */}
               <div className="space-y-4">
                 <h3 className="text-sm font-medium">Select Loan Term to Compare</h3>
-                <div className="grid grid-cols-6 gap-2">
+                <div className="grid grid-cols-5 gap-2">
                   {terms.map((term) => (
                     <button
                       key={term}
