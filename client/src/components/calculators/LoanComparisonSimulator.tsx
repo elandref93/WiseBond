@@ -209,14 +209,22 @@ export default function LoanComparisonSimulator({
     
     setRateResults({ monthlyPaymentData, totalInterestData });
     
-    // Generate amortization comparison for selected rate and best rate
+    // Generate amortization comparison for three rates: Prime+1, selected rate and best rate
     const selectedRate = rates[selectedRateIndex];
     const bestRate = rates[rates.length - 1]; // Prime - 1%
+    const higherRate = rates[0]; // Prime + 1%
     
     const comparisonData = [];
     
     for (let year = 0; year <= loanTerm; year++) {
-      // Calculate remaining balance at this year for both rates
+      // Calculate remaining balance at this year for all three rates
+      const higherBalance = calculateRemainingBalance(
+        loanAmount,
+        higherRate.value,
+        loanTerm,
+        year
+      );
+      
       const selectedBalance = calculateRemainingBalance(
         loanAmount, 
         selectedRate.value, 
@@ -233,8 +241,10 @@ export default function LoanComparisonSimulator({
       
       comparisonData.push({
         year,
+        [higherRate.label]: higherBalance,
         [selectedRate.label]: selectedBalance,
         [bestRate.label]: bestBalance,
+        higherColor: higherRate.color,
         selectedColor: selectedRate.color,
         bestColor: bestRate.color,
       });
@@ -665,6 +675,12 @@ export default function LoanComparisonSimulator({
                         <YAxis tickFormatter={(value: number) => formatCurrency(value).toString()} />
                         <Tooltip formatter={(value: number) => formatCurrency(Number(value))} />
                         <Legend />
+                        <Line 
+                          type="monotone" 
+                          dataKey="Prime + 1%" 
+                          stroke={rateComparisonData[0]?.higherColor || "#ef4444"} 
+                          strokeWidth={2} 
+                        />
                         <Line 
                           type="monotone" 
                           dataKey={rates[selectedRateIndex].label} 

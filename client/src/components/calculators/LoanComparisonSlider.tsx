@@ -102,22 +102,26 @@ export default function LoanComparisonSlider({
     rate: item.rate,
   }));
   
-  // Generate amortization schedule for two rates (default and best)
+  // Generate amortization schedule for three rates (higher, default and best)
   const generateComparisonData = () => {
+    const higherRate = rates[0]; // Prime + 1%
     const defaultRate = rates[2]; // Prime
     const bestRate = rates[4]; // Prime - 1%
     
     const result = [];
     
     for (let year = 1; year <= loanTerm; year++) {
-      // Calculate remaining balance at this year for both rates
+      // Calculate remaining balance at this year for all three rates
+      const higherBalance = calculateRemainingBalance(higherRate.value, year);
       const defaultBalance = calculateRemainingBalance(defaultRate.value, year);
       const bestBalance = calculateRemainingBalance(bestRate.value, year);
       
       result.push({
         year,
+        [higherRate.label]: higherBalance,
         [defaultRate.label]: defaultBalance,
         [bestRate.label]: bestBalance,
+        higherColor: higherRate.color,
         defaultColor: defaultRate.color,
         bestColor: bestRate.color,
       });
@@ -314,6 +318,12 @@ export default function LoanComparisonSlider({
                   <YAxis tickFormatter={(value: number) => formatCurrency(value).toString()} />
                   <Tooltip formatter={(value: number) => formatCurrency(Number(value))} />
                   <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="Prime + 1%" 
+                    stroke={amortizationData[0]?.higherColor || "#ef4444"} 
+                    strokeWidth={2} 
+                  />
                   <Line 
                     type="monotone" 
                     dataKey="Prime" 
