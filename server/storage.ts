@@ -358,6 +358,9 @@ export class MemStorage implements IStorage {
       categoryId: insertExpense.categoryId,
       name: insertExpense.name,
       amount: insertExpense.amount,
+      description: insertExpense.description ?? null,
+      isRecurring: insertExpense.isRecurring ?? true,
+      frequency: insertExpense.frequency ?? 'monthly',
       isCustom: insertExpense.isCustom ?? false,
       createdAt: now,
       updatedAt: now

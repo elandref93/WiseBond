@@ -157,6 +157,9 @@ export const expenses = pgTable("expenses", {
   categoryId: integer("category_id").references(() => budgetCategories.id).notNull(),
   name: text("name").notNull(),
   amount: real("amount").notNull(),
+  description: text("description"),
+  isRecurring: boolean("is_recurring").default(true),
+  frequency: text("frequency").default("monthly"), // once, weekly, monthly, yearly
   isCustom: boolean("is_custom").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -167,6 +170,9 @@ export const insertExpenseSchema = createInsertSchema(expenses).pick({
   categoryId: true,
   name: true,
   amount: true,
+  description: true,
+  isRecurring: true,
+  frequency: true,
   isCustom: true,
 });
 
@@ -174,6 +180,9 @@ export const updateExpenseSchema = createInsertSchema(expenses)
   .omit({ id: true, userId: true, createdAt: true, updatedAt: true })
   .extend({
     amount: z.number().min(0, "Amount must be greater than or equal to 0"),
+    description: z.string().optional(),
+    isRecurring: z.boolean().optional(),
+    frequency: z.enum(['once', 'weekly', 'monthly', 'yearly']).optional(),
   });
 
 export type BudgetCategory = typeof budgetCategories.$inferSelect;

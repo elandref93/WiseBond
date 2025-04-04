@@ -35,8 +35,10 @@ import {
   CreditCard, 
   FileText, 
   ShieldCheck, 
-  Clock 
+  Clock,
+  BarChart3 
 } from 'lucide-react';
+import ExpenseManagement from '@/components/budget/ExpenseManagement';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -188,6 +190,7 @@ export default function Profile() {
     { id: 'personal', label: 'Personal Information', icon: <UserIcon className="h-5 w-5 mr-2" /> },
     { id: 'address', label: 'Address & Contact', icon: <Home className="h-5 w-5 mr-2" /> },
     { id: 'employment', label: 'Employment & Income', icon: <Briefcase className="h-5 w-5 mr-2" /> },
+    { id: 'budget', label: 'Budget Management', icon: <BarChart3 className="h-5 w-5 mr-2" /> },
     { id: 'financial', label: 'Financial Information', icon: <CreditCard className="h-5 w-5 mr-2" />, disabled: true },
     { id: 'documents', label: 'Documents', icon: <FileText className="h-5 w-5 mr-2" />, disabled: true },
     { id: 'applications', label: 'Loan Applications', icon: <Clock className="h-5 w-5 mr-2" />, disabled: true },
@@ -482,6 +485,18 @@ export default function Profile() {
                           )}
                         />
                       </div>
+                    </div>
+                  )}
+                  
+                  {/* Budget Management Tab */}
+                  {activeTab === 'budget' && (
+                    <div className="space-y-6">
+                      <h2 className="text-xl font-semibold">Budget Management</h2>
+                      <p className="text-gray-600 mb-4">
+                        Track and manage your monthly expenses to help with your home loan application.
+                      </p>
+                      
+                      <ExpenseManagement />
                     </div>
                   )}
                   
