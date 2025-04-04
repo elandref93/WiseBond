@@ -28,8 +28,11 @@ import {
   Expense, 
   insertExpenseSchema 
 } from '@shared/schema';
+// Use the appropriate alias path
 import { 
-  SubcategoryDef
+  SubcategoryDef,
+  getSubcategoriesForCategory,
+  getSubcategoryById
 } from '@shared/budgetSubcategories';
 import { formatCurrency, parseCurrency } from '../../lib/formatters';
 import { Progress } from '@/components/ui/progress';
