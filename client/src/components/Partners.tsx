@@ -29,12 +29,12 @@ export default function Partners() {
           {bankLogos.map((bank, index) => (
             <div 
               key={bank.name}
-              className="flex justify-center items-center col-span-1 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-300 h-24"
+              className="flex justify-center items-center col-span-1 bg-white rounded-lg p-5 shadow-sm hover:shadow-md transition-all duration-300 h-28"
             >
               <img 
                 src={bank.src} 
                 alt={bank.name} 
-                className="h-16 object-contain"
+                className="h-20 object-contain"
               />
             </div>
           ))}
