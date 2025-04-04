@@ -1,12 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { PlusCircle, MinusCircle, Edit, Save, X, AlertCircle, LogIn } from 'lucide-react';
+import { PlusCircle, MinusCircle, Edit, AlertCircle, LogIn, AlertTriangle } from 'lucide-react';
 import { 
   Select,
   SelectContent,
@@ -30,10 +28,8 @@ import {
   Expense, 
   insertExpenseSchema 
 } from '@shared/schema';
-import { formatCurrency, parseCurrency } from '@/lib/formatters';
-import { AlertTriangle } from 'lucide-react';
+import { formatCurrency, parseCurrency } from '../../lib/formatters';
 import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLocation } from 'wouter';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -354,17 +350,35 @@ export default function ExpenseManagement() {
           <div className="grid w-full items-center gap-4">
             <div className="flex flex-col space-y-2">
               <Label htmlFor="income">Monthly Income (R)</Label>
-              <Input
-                id="income"
-                type="text"
-                placeholder="0.00"
-                value={income ? formatCurrency(income, { symbol: '', decimal: '.', thousand: ',' }) : ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setIncome(parseCurrency(value));
-                }}
-                className="max-w-md"
-              />
+              <div className="relative max-w-md">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">R</span>
+                <Input
+                  id="income"
+                  type="text"
+                  placeholder="0.00"
+                  value={income ? formatCurrency(income, { symbol: '', decimal: '.', thousand: ',' }) : ''}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^\d.,]/g, '');
+                    setIncome(parseCurrency(value));
+                  }}
+                  onKeyDown={(e) => {
+                    // Allow: backspace, delete, tab, escape, enter, decimal point, comma
+                    if (![8, 9, 13, 27, 46, 110, 190, 188].includes(e.keyCode) &&
+                        // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                        !(e.keyCode === 65 && e.ctrlKey) &&
+                        !(e.keyCode === 67 && e.ctrlKey) &&
+                        !(e.keyCode === 86 && e.ctrlKey) &&
+                        !(e.keyCode === 88 && e.ctrlKey) &&
+                        // Allow: home, end, left, right
+                        !(e.keyCode >= 35 && e.keyCode <= 39) &&
+                        // Ensure it's a number and prevent alpha characters
+                        ((e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105))) {
+                      e.preventDefault();
+                    }
+                  }}
+                  className="pl-8"
+                />
+              </div>
             </div>
           </div>
 
@@ -445,13 +459,34 @@ export default function ExpenseManagement() {
                     <Label htmlFor="amount" className="text-right">
                       Amount (R)
                     </Label>
-                    <Input
-                      id="amount"
-                      value={newExpense.amount}
-                      onChange={(e) => setNewExpense({...newExpense, amount: e.target.value})}
-                      className="col-span-3"
-                      placeholder="0.00"
-                    />
+                    <div className="relative col-span-3">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">R</span>
+                      <Input
+                        id="amount"
+                        value={newExpense.amount}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^\d.,]/g, '');
+                          setNewExpense({...newExpense, amount: value});
+                        }}
+                        onKeyDown={(e) => {
+                          // Allow: backspace, delete, tab, escape, enter, decimal point, comma
+                          if (![8, 9, 13, 27, 46, 110, 190, 188].includes(e.keyCode) &&
+                              // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                              !(e.keyCode === 65 && e.ctrlKey) &&
+                              !(e.keyCode === 67 && e.ctrlKey) &&
+                              !(e.keyCode === 86 && e.ctrlKey) &&
+                              !(e.keyCode === 88 && e.ctrlKey) &&
+                              // Allow: home, end, left, right
+                              !(e.keyCode >= 35 && e.keyCode <= 39) &&
+                              // Ensure it's a number and prevent alpha characters
+                              ((e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105))) {
+                            e.preventDefault();
+                          }
+                        }}
+                        placeholder="0.00"
+                        className="pl-8"
+                      />
+                    </div>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="category" className="text-right">
@@ -519,76 +554,74 @@ export default function ExpenseManagement() {
             </Dialog>
           </div>
 
-          {/* Expense List */}
+          {/* Expense List - Vertical Layout */}
           <div>
-            <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="mb-4 flex overflow-auto">
-                <TabsTrigger value="all">All Categories</TabsTrigger>
-                {categories.map((category) => (
-                  <TabsTrigger key={category.id} value={category.name.toLowerCase()}>
-                    {category.name}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              
-              <TabsContent value={activeTab} className="space-y-4">
-                {activeTab === 'all' ? (
-                  <Accordion type="multiple" className="w-full">
-                    {categories.map((category) => {
-                      const categoryExpenses = expensesByCategory[category.id] || [];
-                      const categoryTotal = categoryTotals[category.id] || 0;
-                      
-                      if (categoryExpenses.length === 0) return null;
-                      
-                      return (
-                        <AccordionItem key={category.id} value={`category-${category.id}`}>
-                          <AccordionTrigger className="hover:bg-gray-50 px-4 py-2 rounded-md">
-                            <div className="flex flex-1 items-center justify-between">
-                              <span>{category.name}</span>
-                              <span className="text-red-500 font-medium mr-4">
-                                {formatCurrency(categoryTotal)}
-                              </span>
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            <ScrollArea className="h-[var(--radix-accordion-content-height)] max-h-96">
-                              <div className="space-y-2 p-2">
-                                {categoryExpenses.map((expense) => (
-                                  <ExpenseItem
-                                    key={expense.id}
-                                    expense={expense}
-                                    onEdit={() => setEditingExpense(expense)}
-                                    onDelete={() => handleDeleteExpense(expense.id)}
-                                    formatFrequency={formatFrequency}
-                                  />
-                                ))}
-                              </div>
-                            </ScrollArea>
-                          </AccordionContent>
-                        </AccordionItem>
-                      );
-                    })}
-                  </Accordion>
-                ) : (
-                  <div className="space-y-2">
-                    {getFilteredExpenses().map((expense) => (
-                      <ExpenseItem
-                        key={expense.id}
-                        expense={expense}
-                        onEdit={() => setEditingExpense(expense)}
-                        onDelete={() => handleDeleteExpense(expense.id)}
-                        formatFrequency={formatFrequency}
-                      />
-                    ))}
-                    {getFilteredExpenses().length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
-                        No expenses in this category. Click "Add Expense" to get started.
+            <div className="mb-4">
+              <h3 className="text-lg font-medium mb-2">Expense Categories</h3>
+              <p className="text-sm text-gray-500 mb-4">
+                List all your monthly expenses below to provide an accurate financial picture for your bond application.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              {categories.map((category) => {
+                const categoryExpenses = expensesByCategory[category.id] || [];
+                const categoryTotal = categoryTotals[category.id] || 0;
+                
+                return (
+                  <Card key={category.id} className="overflow-hidden">
+                    <CardHeader className="py-3 px-4 bg-gray-50 border-b">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base font-medium">{category.name}</CardTitle>
+                        <span className="text-red-500 font-medium">
+                          {formatCurrency(categoryTotal)}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
+                      {category.description && (
+                        <CardDescription className="text-xs">{category.description}</CardDescription>
+                      )}
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      {categoryExpenses.length > 0 ? (
+                        <div className="divide-y">
+                          {categoryExpenses.map((expense) => (
+                            <div key={expense.id} className="p-3">
+                              <ExpenseItem
+                                expense={expense}
+                                onEdit={() => setEditingExpense(expense)}
+                                onDelete={() => handleDeleteExpense(expense.id)}
+                                formatFrequency={formatFrequency}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-6 text-gray-500">
+                          <p className="text-sm">No expenses in this category</p>
+                        </div>
+                      )}
+                    </CardContent>
+                    <CardFooter className="py-2 px-4 bg-gray-50 border-t">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="ml-auto text-xs"
+                        onClick={() => {
+                          setNewExpense({
+                            ...newExpense,
+                            categoryId: category.id
+                          });
+                          setAddExpenseOpen(true);
+                        }}
+                      >
+                        <PlusCircle className="h-3.5 w-3.5 mr-1" />
+                        Add Expense
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                );
+              })}
+            </div>
           </div>
         </div>
       </CardContent>
@@ -619,15 +652,33 @@ export default function ExpenseManagement() {
                 <Label htmlFor="edit-amount" className="text-right">
                   Amount (R)
                 </Label>
-                <Input
-                  id="edit-amount"
-                  value={formatCurrency(editingExpense.amount, { symbol: '', decimal: '.', thousand: ',' })}
-                  onChange={(e) => {
-                    const value = parseCurrency(e.target.value);
-                    setEditingExpense({...editingExpense, amount: value});
-                  }}
-                  className="col-span-3"
-                />
+                <div className="relative col-span-3">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">R</span>
+                  <Input
+                    id="edit-amount"
+                    value={formatCurrency(editingExpense.amount, { symbol: '', decimal: '.', thousand: ',' })}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^\d.,]/g, '');
+                      setEditingExpense({...editingExpense, amount: parseCurrency(value)});
+                    }}
+                    onKeyDown={(e) => {
+                      // Allow: backspace, delete, tab, escape, enter, decimal point, comma
+                      if (![8, 9, 13, 27, 46, 110, 190, 188].includes(e.keyCode) &&
+                          // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                          !(e.keyCode === 65 && e.ctrlKey) &&
+                          !(e.keyCode === 67 && e.ctrlKey) &&
+                          !(e.keyCode === 86 && e.ctrlKey) &&
+                          !(e.keyCode === 88 && e.ctrlKey) &&
+                          // Allow: home, end, left, right
+                          !(e.keyCode >= 35 && e.keyCode <= 39) &&
+                          // Ensure it's a number and prevent alpha characters
+                          ((e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105))) {
+                        e.preventDefault();
+                      }
+                    }}
+                    className="pl-8"
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-category" className="text-right">
