@@ -190,8 +190,7 @@ export default function Profile() {
     { id: 'personal', label: 'Personal Information', icon: <UserIcon className="h-5 w-5 mr-2" /> },
     { id: 'address', label: 'Address & Contact', icon: <Home className="h-5 w-5 mr-2" /> },
     { id: 'employment', label: 'Employment & Income', icon: <Briefcase className="h-5 w-5 mr-2" /> },
-    { id: 'budget', label: 'Budget Management', icon: <BarChart3 className="h-5 w-5 mr-2" /> },
-    { id: 'financial', label: 'Financial Information', icon: <CreditCard className="h-5 w-5 mr-2" />, disabled: true },
+    { id: 'financial', label: 'Financial Management', icon: <CreditCard className="h-5 w-5 mr-2" /> },
     { id: 'documents', label: 'Documents', icon: <FileText className="h-5 w-5 mr-2" />, disabled: true },
     { id: 'applications', label: 'Loan Applications', icon: <Clock className="h-5 w-5 mr-2" />, disabled: true },
   ];
@@ -488,10 +487,10 @@ export default function Profile() {
                     </div>
                   )}
                   
-                  {/* Budget Management Tab */}
-                  {activeTab === 'budget' && (
+                  {/* Financial Management Tab */}
+                  {activeTab === 'financial' && (
                     <div className="space-y-6">
-                      <h2 className="text-xl font-semibold">Budget Management</h2>
+                      <h2 className="text-xl font-semibold">Financial Management</h2>
                       <p className="text-gray-600 mb-4">
                         Track and manage your monthly expenses to help with your home loan application.
                       </p>
@@ -689,18 +688,10 @@ export default function Profile() {
                         form.watch('employmentStatus') === 'retired' || form.watch('employmentStatus') === 'student') && (
                         <Alert className="mt-4 bg-blue-50 text-blue-700 border-blue-200">
                           <AlertDescription>
-                            Please fill out the financial information section to provide details about your income sources and financial situation.
+                            Please visit the Financial Management section to provide details about your income sources and expenses.
                           </AlertDescription>
                         </Alert>
                       )}
-                    </div>
-                  )}
-
-                  {/* Financial Information Tab - Disabled for now */}
-                  {activeTab === 'financial' && (
-                    <div className="space-y-6">
-                      <h2 className="text-xl font-semibold">Financial Information</h2>
-                      <p className="text-gray-500">This section will be available soon.</p>
                     </div>
                   )}
                   
