@@ -19,16 +19,16 @@ import {
 
 // Form schema with validation
 const formSchema = z.object({
-  propertyPrice: z.string().refine((val) => !isNaN(Number(val.replace(/,/g, ""))), {
+  propertyPrice: z.string().refine((val) => !isNaN(Number(val.replace(/,/g, "").replace(/R/g, ""))), {
     message: "Property price must be a number",
   }),
   depositPercentage: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) < 100, {
     message: "Deposit percentage must be between 0 and 100",
   }),
-  initialAmount: z.string().refine((val) => !isNaN(Number(val.replace(/,/g, ""))), {
+  initialAmount: z.string().refine((val) => !isNaN(Number(val.replace(/,/g, "").replace(/R/g, ""))), {
     message: "Initial investment amount must be a number",
   }),
-  monthlySaving: z.string().refine((val) => !isNaN(Number(val.replace(/,/g, ""))), {
+  monthlySaving: z.string().refine((val) => !isNaN(Number(val.replace(/,/g, "").replace(/R/g, ""))), {
     message: "Monthly saving amount must be a number",
   }),
   savingsInterest: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0 && Number(val) < 100, {
@@ -64,10 +64,10 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
     setIsCalculating(true);
     try {
       // Parse input values
-      const propertyPrice = Number(values.propertyPrice.replace(/,/g, ""));
+      const propertyPrice = Number(values.propertyPrice.replace(/,/g, "").replace(/R/g, ""));
       const depositPercentage = Number(values.depositPercentage);
-      const initialAmount = Number(values.initialAmount.replace(/,/g, ""));
-      const monthlySaving = Number(values.monthlySaving.replace(/,/g, ""));
+      const initialAmount = Number(values.initialAmount.replace(/,/g, "").replace(/R/g, ""));
+      const monthlySaving = Number(values.monthlySaving.replace(/,/g, "").replace(/R/g, ""));
       const savingsInterest = Number(values.savingsInterest);
 
       // Calculate results
@@ -140,19 +140,29 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
                   </TooltipProvider>
                 </div>
                 <FormControl>
-                  <Input
-                    {...field}
-                    onChange={(e) => {
-                      const numericValue = handleCurrencyInput(e.target.value);
-                      field.onChange(numericValue);
-                    }}
-                    onBlur={(e) => {
-                      const value = parseCurrency(e.target.value);
-                      if (value > 0) {
-                        field.onChange(formatCurrency(value));
-                      }
-                    }}
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-500 sm:text-sm">R</span>
+                    </div>
+                    <Input
+                      {...field}
+                      className="pl-8"
+                      onChange={(e) => {
+                        // Remove any R from the input value first
+                        const valueWithoutR = e.target.value.replace(/R/g, '');
+                        const numericValue = handleCurrencyInput(valueWithoutR);
+                        field.onChange(numericValue);
+                      }}
+                      onBlur={(e) => {
+                        // Remove any R from the input value first
+                        const valueWithoutR = e.target.value.replace(/R/g, '');
+                        const value = parseCurrency(valueWithoutR);
+                        if (value > 0) {
+                          field.onChange(formatCurrency(value));
+                        }
+                      }}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -209,22 +219,28 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
                   </TooltipProvider>
                 </div>
                 <FormControl>
-                  <div className="space-y-3">
-                    <div className="relative">
-                      <Input
-                        {...field}
-                        onChange={(e) => {
-                          const numericValue = handleCurrencyInput(e.target.value);
-                          field.onChange(numericValue);
-                        }}
-                        onBlur={(e) => {
-                          const value = parseCurrency(e.target.value);
-                          if (value > 0) {
-                            field.onChange(formatCurrency(value));
-                          }
-                        }}
-                      />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-500 sm:text-sm">R</span>
                     </div>
+                    <Input
+                      {...field}
+                      className="pl-8"
+                      onChange={(e) => {
+                        // Remove any R from the input value first
+                        const valueWithoutR = e.target.value.replace(/R/g, '');
+                        const numericValue = handleCurrencyInput(valueWithoutR);
+                        field.onChange(numericValue);
+                      }}
+                      onBlur={(e) => {
+                        // Remove any R from the input value first
+                        const valueWithoutR = e.target.value.replace(/R/g, '');
+                        const value = parseCurrency(valueWithoutR);
+                        if (value > 0) {
+                          field.onChange(formatCurrency(value));
+                        }
+                      }}
+                    />
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -251,22 +267,28 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
                   </TooltipProvider>
                 </div>
                 <FormControl>
-                  <div className="space-y-3">
-                    <div className="relative">
-                      <Input
-                        {...field}
-                        onChange={(e) => {
-                          const numericValue = handleCurrencyInput(e.target.value);
-                          field.onChange(numericValue);
-                        }}
-                        onBlur={(e) => {
-                          const value = parseCurrency(e.target.value);
-                          if (value > 0) {
-                            field.onChange(formatCurrency(value));
-                          }
-                        }}
-                      />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-500 sm:text-sm">R</span>
                     </div>
+                    <Input
+                      {...field}
+                      className="pl-8"
+                      onChange={(e) => {
+                        // Remove any R from the input value first
+                        const valueWithoutR = e.target.value.replace(/R/g, '');
+                        const numericValue = handleCurrencyInput(valueWithoutR);
+                        field.onChange(numericValue);
+                      }}
+                      onBlur={(e) => {
+                        // Remove any R from the input value first
+                        const valueWithoutR = e.target.value.replace(/R/g, '');
+                        const value = parseCurrency(valueWithoutR);
+                        if (value > 0) {
+                          field.onChange(formatCurrency(value));
+                        }
+                      }}
+                    />
                   </div>
                 </FormControl>
                 <FormMessage />
