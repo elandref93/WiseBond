@@ -99,9 +99,9 @@ export default function LoginForm() {
 
         <div className="flex items-center justify-between">
           <div className="text-sm">
-            <a href="#" className="font-medium text-primary hover:text-primary-600">
+            <Link href="/forgot-password" className="font-medium text-primary hover:text-primary-600">
               Forgot your password?
-            </a>
+            </Link>
           </div>
         </div>
 
@@ -152,10 +152,8 @@ export default function LoginForm() {
 
         <div className="mt-6 text-center text-sm text-gray-500">
           Don't have an account?{" "}
-          <Link href="/signup">
-            <a className="font-medium text-primary hover:text-primary-600">
-              Sign up
-            </a>
+          <Link href="/signup" className="font-medium text-primary hover:text-primary-600">
+            Sign up
           </Link>
         </div>
       </form>
