@@ -395,15 +395,24 @@ export default function ExpenseManagement() {
                 <Input
                   id="income"
                   type="text"
-                  placeholder="0.00"
-                  value={income ? formatCurrency(income, { symbol: '', decimal: '.', thousand: ',' }) : ''}
+                  placeholder="Enter monthly income"
+                  value={income ? income.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^\d.,]/g, '');
-                    // Allow the field to be completely empty
-                    if (value === '') {
+                    // Allow empty field
+                    if (e.target.value === '') {
                       setIncome(0);
-                    } else {
-                      setIncome(parseCurrency(value));
+                      return;
+                    }
+                    
+                    // Remove any non-digits and commas
+                    const value = e.target.value.replace(/[^\d,]/g, '');
+                    
+                    // Remove commas for processing
+                    const numericValue = value.replace(/,/g, '');
+                    
+                    // Check if the result is a valid number
+                    if (/^\d+$/.test(numericValue)) {
+                      setIncome(parseInt(numericValue, 10));
                     }
                   }}
                   onKeyDown={(e) => {
