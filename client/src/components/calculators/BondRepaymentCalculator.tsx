@@ -533,9 +533,9 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         <div className="mt-8 space-y-8">
           {/* Chart Section */}
           <div className="flex flex-col items-center">
-            <div className="flex items-center justify-between mb-3 w-full">
-              <h4 className="text-sm font-medium text-gray-700">Loan Overview</h4>
-              <div className="flex items-center text-xs text-gray-500 space-x-4">
+            <div className="flex flex-col items-center mb-4 w-full">
+              <h3 className="text-lg font-medium text-gray-800 mb-2">Loan Overview</h3>
+              <div className="flex items-center text-xs text-gray-500 space-x-6">
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-blue-500 rounded-full mr-1.5"></div>
                   <span>Principal</span>
@@ -565,7 +565,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
           
           {/* Yearly Breakdown Table */}
           <div className="flex flex-col items-center">
-            <h4 className="text-sm font-medium text-gray-700 mb-3 self-start">Yearly Breakdown</h4>
+            <h3 className="text-lg font-medium text-gray-800 mb-3 text-center w-full">Yearly Breakdown</h3>
             <div className="overflow-x-auto w-full max-w-4xl mx-auto shadow-sm rounded-lg">
               <table className="w-full divide-y divide-gray-200 text-sm border border-gray-200 rounded-lg">
                 <thead className="bg-gray-50">
