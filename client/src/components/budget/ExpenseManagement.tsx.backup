@@ -497,7 +497,6 @@ export default function ExpenseManagement() {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                  {/* First - Category selection */}
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="category" className="text-right">
                       Category
@@ -533,11 +532,11 @@ export default function ExpenseManagement() {
                     </Select>
                   </div>
                   
-                  {/* Second - Expense Type (Subcategory) */}
+                  {/* Subcategory Selection - only shown when a category is selected and has subcategories */}
                   {newExpense.categoryId > 0 && subcategories.length > 0 && (
                     <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="subcategory" className="text-right font-semibold">
-                        Expense Type
+                      <Label htmlFor="subcategory" className="text-right">
+                        Type
                       </Label>
                       <Select 
                         value={newExpense.subcategoryId} 
@@ -569,21 +568,6 @@ export default function ExpenseManagement() {
                     </div>
                   )}
                   
-                  {/* Third - Name (auto-populated from subcategory) */}
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">
-                      Name
-                    </Label>
-                    <Input
-                      id="name"
-                      value={newExpense.name}
-                      onChange={(e) => setNewExpense({...newExpense, name: e.target.value})}
-                      className="col-span-3"
-                      placeholder="e.g., Rent, Electricity"
-                    />
-                  </div>
-                  
-                  {/* Fourth - Amount */}
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="amount" className="text-right">
                       Amount (R)
@@ -617,8 +601,20 @@ export default function ExpenseManagement() {
                       />
                     </div>
                   </div>
+                  
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Name
+                    </Label>
+                    <Input
+                      id="name"
+                      value={newExpense.name}
+                      onChange={(e) => setNewExpense({...newExpense, name: e.target.value})}
+                      className="col-span-3"
+                      placeholder="e.g., Rent, Electricity"
+                    />
+                  </div>
 
-                  {/* Fifth - Frequency */}
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="frequency" className="text-right">
                       Frequency
@@ -641,7 +637,7 @@ export default function ExpenseManagement() {
                     </Select>
                   </div>
                   
-                  {/* Last - Description field with gray background */}
+                  {/* Description field with gray background */}
                   <div className="bg-gray-50 p-4 rounded-md">
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="description" className="text-right">
@@ -655,6 +651,7 @@ export default function ExpenseManagement() {
                         placeholder="Optional details about this expense"
                       />
                     </div>
+                  </div>
                   </div>
                 </div>
                 <DialogFooter>
@@ -758,7 +755,6 @@ export default function ExpenseManagement() {
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              {/* First - Category selection */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-category" className="text-right">
                   Category
@@ -794,11 +790,11 @@ export default function ExpenseManagement() {
                 </Select>
               </div>
               
-              {/* Second - Expense Type (Subcategory) */}
+              {/* Subcategory Selection for Edit Dialog */}
               {editingExpense.categoryId > 0 && subcategories.length > 0 && (
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="edit-subcategory" className="text-right font-semibold">
-                    Expense Type
+                  <Label htmlFor="edit-subcategory" className="text-right">
+                    Type
                   </Label>
                   <Select 
                     value={editingExpense.subcategoryId || ''} 
@@ -830,20 +826,6 @@ export default function ExpenseManagement() {
                 </div>
               )}
               
-              {/* Third - Name (auto-populated from subcategory) */}
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-name" className="text-right">
-                  Name
-                </Label>
-                <Input
-                  id="edit-name"
-                  value={editingExpense.name}
-                  onChange={(e) => setEditingExpense({...editingExpense, name: e.target.value})}
-                  className="col-span-3"
-                />
-              </div>
-              
-              {/* Fourth - Amount */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-amount" className="text-right">
                   Amount (R)
@@ -877,7 +859,18 @@ export default function ExpenseManagement() {
                 </div>
               </div>
               
-              {/* Fifth - Frequency */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="edit-name"
+                  value={editingExpense.name}
+                  onChange={(e) => setEditingExpense({...editingExpense, name: e.target.value})}
+                  className="col-span-3"
+                />
+              </div>
+              
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-frequency" className="text-right">
                   Frequency
@@ -900,7 +893,7 @@ export default function ExpenseManagement() {
                 </Select>
               </div>
               
-              {/* Last - Description field with gray background */}
+              {/* Description field with gray background */}
               <div className="bg-gray-50 p-4 rounded-md">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="edit-description" className="text-right">
@@ -913,6 +906,7 @@ export default function ExpenseManagement() {
                     className="col-span-3 bg-white"
                   />
                 </div>
+              </div>
               </div>
             </div>
             <DialogFooter>
