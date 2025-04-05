@@ -9,7 +9,7 @@ import {
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from 'zod-validation-error';
-import { sendCalculationEmail, sendVerificationEmail } from "./email";
+import { sendCalculationEmail, sendVerificationEmail, sendWelcomeEmail } from "./email";
 import { generateBondRepaymentReport, generateAdditionalPaymentReport } from "./services/pdf/reportController";
 
 // Extend the session type to include userId
@@ -160,6 +160,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!isValid) {
         return res.status(400).json({ message: "Invalid or expired OTP" });
+      }
+      
+      // Get user data for welcome email
+      const user = await storage.getUser(userId);
+      if (user) {
+        // Send welcome email
+        try {
+          const emailResult = await sendWelcomeEmail({
+            firstName: user.firstName,
+            email: user.email
+          });
+          
+          if (!emailResult.success) {
+            console.warn(`Failed to send welcome email to ${user.email}:`, emailResult.error);
+          } else {
+            console.log(`Welcome email sent to ${user.email} successfully`);
+          }
+        } catch (emailError) {
+          console.error("Error sending welcome email:", emailError);
+          // Don't fail the verification just because the welcome email failed
+        }
       }
       
       res.json({ message: "OTP verified successfully" });
