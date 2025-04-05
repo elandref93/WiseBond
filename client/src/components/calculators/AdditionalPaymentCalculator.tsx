@@ -391,17 +391,7 @@ export default function AdditionalPaymentCalculator({ onCalculate }: AdditionalP
         </CardContent>
       </Card>
 
-      {/* Additional Payment Chart */}
-      {showChart && paymentDetails && (
-        <div className="mt-8">
-          <AdditionalPaymentChart 
-            loanAmount={paymentDetails.loanAmount}
-            interestRate={paymentDetails.interestRate}
-            loanTerm={paymentDetails.loanTerm}
-            additionalPayment={paymentDetails.additionalPayment}
-          />
-        </div>
-      )}
+      {/* No chart here - chart is displayed in the parent Calculators component */}
     </div>
   );
 }
