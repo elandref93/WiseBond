@@ -15,6 +15,7 @@ async function sendTestWelcomeEmail() {
     const recipientEmail = "elandrefourie18@gmail.com";
     const firstName = "Elandre";
     
+    // Send a welcome email with the updated templates
     const result = await sendWelcomeEmail({
       firstName,
       email: recipientEmail
