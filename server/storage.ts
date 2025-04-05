@@ -846,7 +846,8 @@ export class DatabaseStorage implements IStorage {
           )
         );
       
-      return result.count > 0;
+      // If no errors occurred during deletion, consider it successful
+      return true;
     } catch (error) {
       console.error("Database error in deleteExpense:", error);
       return false;

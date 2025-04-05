@@ -83,7 +83,7 @@ export default function Profile() {
       employmentSector: '',
       jobTitle: '',
       employmentDuration: '',
-      monthlyIncome: 0,
+      monthlyIncome: undefined,
     },
   });
   
@@ -108,7 +108,7 @@ export default function Profile() {
         employmentSector: profileData.employmentSector || '',
         jobTitle: profileData.jobTitle || '',
         employmentDuration: profileData.employmentDuration || '',
-        monthlyIncome: profileData.monthlyIncome || 0,
+        monthlyIncome: profileData.monthlyIncome === null ? undefined : profileData.monthlyIncome,
         otpVerified: profileData.otpVerified || false,
         profileComplete: profileData.profileComplete || false
       };
@@ -668,9 +668,9 @@ export default function Profile() {
                                       type="number" 
                                       className="pl-7"
                                       placeholder="Your gross monthly income" 
-                                      value={field.value ?? 0}
+                                      value={field.value === 0 ? '' : field.value}
                                       onChange={(e) => {
-                                        const value = e.target.value === '' ? 0 : parseInt(e.target.value);
+                                        const value = e.target.value === '' ? undefined : parseInt(e.target.value);
                                         field.onChange(value);
                                       }}
                                     />
