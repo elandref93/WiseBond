@@ -269,16 +269,16 @@ export default function AdditionalPaymentChart({
             <h3 className="text-xl font-semibold mb-4 text-center">Standard Repayment</h3>
             <div className="flex flex-col md:flex-row items-center">
               <div className="w-full md:w-1/2">
-                <div className="h-[300px]">
+                <div className="h-[350px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={originalPieData}
                         cx="50%"
-                        cy="45%"
-                        labelLine={true}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={115}
+                        cy="40%"
+                        labelLine={false}
+                        label={false}
+                        outerRadius={100}
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -287,6 +287,7 @@ export default function AdditionalPaymentChart({
                         ))}
                       </Pie>
                       <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                      <Legend layout="horizontal" verticalAlign="bottom" align="center" />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -314,16 +315,16 @@ export default function AdditionalPaymentChart({
             <h3 className="text-xl font-semibold mb-4 text-center">With Additional Payment</h3>
             <div className="flex flex-col md:flex-row items-center">
               <div className="w-full md:w-1/2">
-                <div className="h-[300px]">
+                <div className="h-[350px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={additionalPaymentPieData}
                         cx="50%"
-                        cy="45%"
-                        labelLine={true}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={115}
+                        cy="40%"
+                        labelLine={false}
+                        label={false}
+                        outerRadius={100}
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -332,6 +333,7 @@ export default function AdditionalPaymentChart({
                         ))}
                       </Pie>
                       <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                      <Legend layout="horizontal" verticalAlign="bottom" align="center" />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
