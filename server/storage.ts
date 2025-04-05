@@ -28,6 +28,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   verifyUser(username: string, password: string): Promise<User | undefined>;
   updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
+  updateUserPassword(id: number, newPassword: string): Promise<boolean>;
   
   // Calculation results
   saveCalculationResult(result: InsertCalculationResult): Promise<CalculationResult>;
@@ -39,6 +40,12 @@ export interface IStorage {
   // OTP verification
   storeOTP(userId: number, otp: string, expiresAt: Date): Promise<void>;
   verifyOTP(userId: number, otp: string): Promise<boolean>;
+  
+  // Password reset
+  storePasswordResetToken(email: string, token: string, expiresAt: Date): Promise<number | undefined>; // Returns user ID if successful
+  validatePasswordResetToken(token: string): Promise<number | undefined>; // Returns user ID if valid
+  checkPasswordResetToken(token: string): Promise<number | undefined>; // Returns user ID if valid without consuming the token
+  comparePasswords(userId: number, password: string): Promise<boolean>; // Compare if supplied password matches stored password
   
   // Budget management
   getBudgetCategories(): Promise<BudgetCategory[]>;
@@ -66,6 +73,7 @@ export class MemStorage implements IStorage {
   private budgetCategoryIdCounter: number;
   private expenseIdCounter: number;
   private otpStore: Map<number, { otp: string, expiresAt: Date }>;
+  private passwordResetTokens: Map<string, { userId: number, expiresAt: Date }>;
   sessionStore: session.Store;
 
   constructor() {
@@ -81,6 +89,7 @@ export class MemStorage implements IStorage {
     this.budgetCategoryIdCounter = 1;
     this.expenseIdCounter = 1;
     this.otpStore = new Map();
+    this.passwordResetTokens = new Map();
     
     // Create a memory store for sessions
     this.sessionStore = new MemoryStore({
@@ -430,6 +439,82 @@ export class MemStorage implements IStorage {
     }
     
     return this.expenses.delete(id);
+  }
+
+  async updateUserPassword(id: number, newPassword: string): Promise<boolean> {
+    const user = this.users.get(id);
+    if (!user) return false;
+    
+    try {
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+      
+      await this.updateUser(id, { password: hashedPassword });
+      return true;
+    } catch (error) {
+      console.error("Error updating user password:", error);
+      return false;
+    }
+  }
+  
+  async storePasswordResetToken(email: string, token: string, expiresAt: Date): Promise<number | undefined> {
+    const user = await this.getUserByEmail(email);
+    if (!user) return undefined;
+    
+    this.passwordResetTokens.set(token, { userId: user.id, expiresAt });
+    return user.id;
+  }
+  
+  async validatePasswordResetToken(token: string): Promise<number | undefined> {
+    const tokenData = this.passwordResetTokens.get(token);
+    
+    if (!tokenData) {
+      return undefined;
+    }
+    
+    // Check if token has expired
+    if (new Date() > tokenData.expiresAt) {
+      this.passwordResetTokens.delete(token); // Clean up expired token
+      return undefined;
+    }
+    
+    // Token is valid, return the user ID
+    const userId = tokenData.userId;
+    
+    // Clean up used token
+    this.passwordResetTokens.delete(token);
+    
+    return userId;
+  }
+  
+  async checkPasswordResetToken(token: string): Promise<number | undefined> {
+    const tokenData = this.passwordResetTokens.get(token);
+    
+    if (!tokenData) {
+      return undefined;
+    }
+    
+    // Check if token has expired
+    if (new Date() > tokenData.expiresAt) {
+      this.passwordResetTokens.delete(token); // Clean up expired token
+      return undefined;
+    }
+    
+    // Token is valid, return the user ID without deleting it
+    return tokenData.userId;
+  }
+  
+  async comparePasswords(userId: number, password: string): Promise<boolean> {
+    const user = await this.getUser(userId);
+    if (!user) return false;
+    
+    try {
+      const isMatch = await bcrypt.compare(password, user.password);
+      return isMatch;
+    } catch (error) {
+      console.error("Error comparing passwords:", error);
+      return false;
+    }
   }
 }
 /**
@@ -865,6 +950,106 @@ export class DatabaseStorage implements IStorage {
       return true;
     } catch (error) {
       console.error("Database error in deleteExpense:", error);
+      return false;
+    }
+  }
+  
+  // Password reset functionality
+
+  async updateUserPassword(id: number, newPassword: string): Promise<boolean> {
+    try {
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+      
+      const result = await db.update(users)
+        .set({
+          password: hashedPassword,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error("Database error in updateUserPassword:", error);
+      return false;
+    }
+  }
+  
+  // We'll use an in-memory approach for password reset tokens
+  // In a production environment, these should be stored in the database
+  private passwordResetTokens = new Map<string, { userId: number, expiresAt: Date }>();
+  
+  async storePasswordResetToken(email: string, token: string, expiresAt: Date): Promise<number | undefined> {
+    try {
+      const user = await this.getUserByEmail(email);
+      if (!user) return undefined;
+      
+      this.passwordResetTokens.set(token, { userId: user.id, expiresAt });
+      return user.id;
+    } catch (error) {
+      console.error("Error storing password reset token:", error);
+      return undefined;
+    }
+  }
+  
+  async validatePasswordResetToken(token: string): Promise<number | undefined> {
+    try {
+      const tokenData = this.passwordResetTokens.get(token);
+      
+      if (!tokenData) {
+        return undefined;
+      }
+      
+      // Check if token has expired
+      if (new Date() > tokenData.expiresAt) {
+        this.passwordResetTokens.delete(token); // Clean up expired token
+        return undefined;
+      }
+      
+      // Token is valid, return the user ID
+      const userId = tokenData.userId;
+      
+      // Clean up used token
+      this.passwordResetTokens.delete(token);
+      
+      return userId;
+    } catch (error) {
+      console.error("Error validating password reset token:", error);
+      return undefined;
+    }
+  }
+  
+  async checkPasswordResetToken(token: string): Promise<number | undefined> {
+    try {
+      const tokenData = this.passwordResetTokens.get(token);
+      
+      if (!tokenData) {
+        return undefined;
+      }
+      
+      // Check if token has expired
+      if (new Date() > tokenData.expiresAt) {
+        this.passwordResetTokens.delete(token); // Clean up expired token
+        return undefined;
+      }
+      
+      // Token is valid, return the user ID without consuming it
+      return tokenData.userId;
+    } catch (error) {
+      console.error("Error checking password reset token:", error);
+      return undefined;
+    }
+  }
+  
+  async comparePasswords(userId: number, password: string): Promise<boolean> {
+    try {
+      const user = await this.getUser(userId);
+      if (!user) return false;
+      
+      const isMatch = await bcrypt.compare(password, user.password);
+      return isMatch;
+    } catch (error) {
+      console.error("Error comparing passwords:", error);
       return false;
     }
   }

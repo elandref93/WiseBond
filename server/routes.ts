@@ -9,7 +9,8 @@ import {
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from 'zod-validation-error';
-import { sendCalculationEmail, sendVerificationEmail, sendWelcomeEmail } from "./email";
+import { sendCalculationEmail, sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } from "./email";
+import crypto from "crypto";
 import { generateBondRepaymentReport, generateAdditionalPaymentReport } from "./services/pdf/reportController";
 
 // Extend the session type to include userId
@@ -234,6 +235,179 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ message: "Failed to send OTP" });
       }
+    }
+  });
+
+  // Password reset - request
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+      
+      // Check if the user exists
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // For security reasons, don't reveal that the email doesn't exist
+        return res.status(200).json({ 
+          message: "If your email exists in our system, you will receive a password reset link shortly."
+        });
+      }
+      
+      // Generate a secure random token
+      const token = crypto.randomBytes(32).toString('hex');
+      
+      // Set token expiration to 1 hour from now
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 1);
+      
+      // Store the token
+      const userId = await storage.storePasswordResetToken(email, token, expiresAt);
+      
+      if (!userId) {
+        return res.status(500).json({ message: "Failed to process password reset request" });
+      }
+      
+      // Construct reset URL
+      const baseUrl = process.env.BASE_URL || `http://${req.headers.host}`;
+      const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+      
+      // Send password reset email
+      const emailResult = await sendPasswordResetEmail({
+        firstName: user.firstName,
+        email: user.email,
+        resetToken: token,
+        resetUrl: resetUrl
+      });
+      
+      // Log token for debugging in development
+      console.log(`[DEV ONLY] Password reset token for ${user.email}: ${token}`);
+      console.log(`[DEV ONLY] Reset URL: ${resetUrl}`);
+      
+      if (!emailResult.success) {
+        console.warn(`Failed to send password reset email to ${user.email}:`, emailResult.error);
+      }
+      
+      res.status(200).json({ 
+        message: "If your email exists in our system, you will receive a password reset link shortly."
+      });
+    } catch (error) {
+      console.error("Error requesting password reset:", error);
+      res.status(500).json({ message: "Failed to process password reset request" });
+    }
+  });
+
+  // Password reset - verify token and reset password
+  // API endpoint to validate a reset token (without consuming it)
+  app.get("/api/auth/validate-reset-token", async (req, res) => {
+    try {
+      const { token } = req.query;
+      
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ message: "Token is required" });
+      }
+      
+      // Get the token data without consuming it
+      const tokenData = await storage.checkPasswordResetToken(token);
+      
+      if (!tokenData) {
+        return res.status(400).json({ message: "Invalid or expired token" });
+      }
+      
+      res.status(200).json({ valid: true });
+    } catch (error) {
+      console.error("Error validating token:", error);
+      res.status(500).json({ message: "Failed to validate token" });
+    }
+  });
+
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: "Token and new password are required" });
+      }
+      
+      // Password complexity validation
+      if (newPassword.length < 8) {
+        return res.status(400).json({ message: "Password must be at least 8 characters" });
+      }
+      
+      if (!/[A-Z]/.test(newPassword)) {
+        return res.status(400).json({ message: "Password must contain at least one uppercase letter" });
+      }
+      
+      if (!/[a-z]/.test(newPassword)) {
+        return res.status(400).json({ message: "Password must contain at least one lowercase letter" });
+      }
+      
+      if (!/[0-9]/.test(newPassword)) {
+        return res.status(400).json({ message: "Password must contain at least one number" });
+      }
+      
+      if (!/[^A-Za-z0-9]/.test(newPassword)) {
+        return res.status(400).json({ message: "Password must contain at least one special character" });
+      }
+      
+      // Common password check
+      const commonPasswords = [
+        "password", "123456", "12345678", "qwerty", "abc123",
+        "welcome", "admin", "password123", "letmein", "monkey"
+      ];
+      
+      if (commonPasswords.some(common => 
+        newPassword.toLowerCase().includes(common.toLowerCase()))) {
+        return res.status(400).json({ 
+          message: "This password is too common and easy to guess" 
+        });
+      }
+      
+      // Validate the token
+      const userId = await storage.validatePasswordResetToken(token);
+      
+      if (!userId) {
+        return res.status(400).json({ message: "Invalid or expired password reset token" });
+      }
+      
+      // Get user to check if new password contains personal info
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check if password contains personal info
+      const personalInfo = [user.firstName, user.lastName, user.email.split('@')[0]];
+      if (personalInfo.some(info => 
+        info && info.length > 2 && newPassword.toLowerCase().includes(info.toLowerCase()))) {
+        return res.status(400).json({ 
+          message: "Password should not contain your name or email address" 
+        });
+      }
+      
+      // Check if the user has a previous password and it matches the new one
+      if (user.password) {
+        const isSamePassword = await storage.comparePasswords(userId, newPassword);
+        if (isSamePassword) {
+          return res.status(400).json({ 
+            message: "New password must be different from your current password" 
+          });
+        }
+      }
+      
+      // Update the user's password
+      const success = await storage.updateUserPassword(userId, newPassword);
+      
+      if (!success) {
+        return res.status(500).json({ message: "Failed to update password" });
+      }
+      
+      res.status(200).json({ message: "Password has been successfully reset" });
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      res.status(500).json({ message: "Failed to reset password" });
     }
   });
   
