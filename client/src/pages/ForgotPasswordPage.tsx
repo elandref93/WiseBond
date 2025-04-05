@@ -104,14 +104,7 @@ export default function ForgotPasswordPage() {
               If you don't see the email in your inbox, check your spam folder. The link will expire in 1 hour.
             </p>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button
-              onClick={() => setIsSubmitted(false)}
-              className="w-full"
-              variant="outline"
-            >
-              Try another email
-            </Button>
+          <CardFooter>
             <Button
               onClick={() => setLocation("/login")}
               className="w-full"
