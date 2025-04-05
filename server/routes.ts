@@ -322,6 +322,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to validate token" });
     }
   });
+  
+  // Automatically resend password reset email when token has expired
+  app.post("/api/auth/resend-reset-token", async (req, res) => {
+    try {
+      const { token } = req.body;
+      
+      if (!token) {
+        return res.status(400).json({ message: "Original token is required" });
+      }
+      
+      // Get the user from the expired token
+      // This is a special case where we'll try to extract user info from an expired token
+      const tokenInfo = await storage.getInfoFromExpiredToken(token);
+      
+      if (!tokenInfo || !tokenInfo.email) {
+        return res.status(400).json({ 
+          message: "Could not retrieve information from expired token" 
+        });
+      }
+      
+      // Get the user by email
+      const user = await storage.getUserByEmail(tokenInfo.email);
+      
+      if (!user) {
+        // For security, don't reveal that the user doesn't exist
+        return res.status(200).json({ 
+          message: "If your email exists in our system, you will receive a new password reset link shortly." 
+        });
+      }
+      
+      // Generate a new token
+      const newToken = crypto.randomBytes(32).toString('hex');
+      
+      // Set token expiration to 1 hour from now
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 1);
+      
+      // Store the new token
+      await storage.storePasswordResetToken(user.email, newToken, expiresAt);
+      
+      // Construct reset URL
+      const baseUrl = process.env.BASE_URL || `http://${req.headers.host}`;
+      const resetUrl = `${baseUrl}/reset-password?token=${newToken}`;
+      
+      // Send password reset email
+      const emailResult = await sendPasswordResetEmail({
+        firstName: user.firstName,
+        email: user.email,
+        resetToken: newToken,
+        resetUrl: resetUrl
+      });
+      
+      // Log token for debugging in development
+      console.log(`[DEV ONLY] New password reset token for ${user.email}: ${newToken}`);
+      console.log(`[DEV ONLY] New reset URL: ${resetUrl}`);
+      
+      if (!emailResult.success) {
+        console.warn(`Failed to send password reset email to ${user.email}:`, emailResult.error);
+      }
+      
+      res.status(200).json({ 
+        message: "A new password reset link has been sent to your email" 
+      });
+    } catch (error) {
+      console.error("Error resending reset token:", error);
+      res.status(500).json({ message: "Failed to resend password reset link" });
+    }
+  });
 
   app.post("/api/auth/reset-password", async (req, res) => {
     try {

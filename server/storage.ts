@@ -45,6 +45,7 @@ export interface IStorage {
   storePasswordResetToken(email: string, token: string, expiresAt: Date): Promise<number | undefined>; // Returns user ID if successful
   validatePasswordResetToken(token: string): Promise<number | undefined>; // Returns user ID if valid
   checkPasswordResetToken(token: string): Promise<number | undefined>; // Returns user ID if valid without consuming the token
+  getInfoFromExpiredToken(token: string): Promise<{ email: string } | undefined>; // Retrieve email from an expired token
   comparePasswords(userId: number, password: string): Promise<boolean>; // Compare if supplied password matches stored password
   
   // Budget management
@@ -502,6 +503,24 @@ export class MemStorage implements IStorage {
     
     // Token is valid, return the user ID without deleting it
     return tokenData.userId;
+  }
+  
+  async getInfoFromExpiredToken(token: string): Promise<{ email: string } | undefined> {
+    // First check if token exists
+    const tokenData = this.passwordResetTokens.get(token);
+    
+    if (!tokenData) {
+      // Token doesn't exist at all
+      return undefined;
+    }
+    
+    // Even if token is expired, we'll try to get the user info
+    const user = await this.getUser(tokenData.userId);
+    if (!user) {
+      return undefined;
+    }
+    
+    return { email: user.email };
   }
   
   async comparePasswords(userId: number, password: string): Promise<boolean> {
@@ -1037,6 +1056,29 @@ export class DatabaseStorage implements IStorage {
       return tokenData.userId;
     } catch (error) {
       console.error("Error checking password reset token:", error);
+      return undefined;
+    }
+  }
+  
+  async getInfoFromExpiredToken(token: string): Promise<{ email: string } | undefined> {
+    try {
+      // First check if token exists
+      const tokenData = this.passwordResetTokens.get(token);
+      
+      if (!tokenData) {
+        // Token doesn't exist at all
+        return undefined;
+      }
+      
+      // Even if token is expired, we'll try to get the user info
+      const user = await this.getUser(tokenData.userId);
+      if (!user) {
+        return undefined;
+      }
+      
+      return { email: user.email };
+    } catch (error) {
+      console.error("Error getting info from expired token:", error);
       return undefined;
     }
   }
