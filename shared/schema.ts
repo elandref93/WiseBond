@@ -83,14 +83,20 @@ export const updateProfileSchema = createInsertSchema(users)
       },
       { message: "Please enter a valid South African mobile number (e.g., 0821234567 or +27821234567)" }
     ),
-    // Email validation
-    email: z.string().email("Invalid email address"),
+    // Email validation with specific regex pattern
+    email: z.string().refine(
+      (val) => /^[A-Za-z0-9._%+-]+@([A-Za-z0-9-_]+\.)+[A-Za-z]{2,6}$/.test(val),
+      { message: "Invalid email address" }
+    ),
     // Monthly income can be null
     monthlyIncome: z.number().nullable().optional(),
   });
 
 export const loginSchema = z.object({
-  username: z.string().email("Please enter a valid email address"),
+  username: z.string().refine(
+    (val) => /^[A-Za-z0-9._%+-]+@([A-Za-z0-9-_]+\.)+[A-Za-z]{2,6}$/.test(val),
+    { message: "Please enter a valid email address" }
+  ),
   password: z.string().min(1, "Password is required"),
 });
 

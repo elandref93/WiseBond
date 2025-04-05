@@ -19,10 +19,9 @@ const formSchema = z.object({
       { message: "Name can only contain letters, spaces, hyphens and apostrophes" }
     ),
   email: z.string()
-    .email({ message: "Please enter a valid email address" })
     .refine(
-      (val) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val),
-      { message: "Please enter a valid email format" }
+      (val) => /^[A-Za-z0-9._%+-]+@([A-Za-z0-9-_]+\.)+[A-Za-z]{2,6}$/.test(val),
+      { message: "Please enter a valid email address" }
     ),
   phone: z.string().optional().refine(
     (val) => {
@@ -138,7 +137,25 @@ export default function Contact() {
                         <FormItem>
                           <FormLabel>Email Address</FormLabel>
                           <FormControl>
-                            <Input placeholder="your.email@example.com" {...field} />
+                            <Input 
+                              placeholder="your.email@example.com" 
+                              {...field} 
+                              className={form.formState.errors.email ? "border-red-500 focus:ring-red-500" : ""}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                // Live validation feedback
+                                const emailRegex = /^[A-Za-z0-9._%+-]+@([A-Za-z0-9-_]+\.)+[A-Za-z]{2,6}$/;
+                                const isValid = emailRegex.test(e.target.value);
+                                const emailInput = e.target as HTMLInputElement;
+                                if (e.target.value && !isValid) {
+                                  emailInput.classList.add("border-red-500");
+                                  emailInput.classList.add("bg-red-50");
+                                } else {
+                                  emailInput.classList.remove("border-red-500");
+                                  emailInput.classList.remove("bg-red-50");
+                                }
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
