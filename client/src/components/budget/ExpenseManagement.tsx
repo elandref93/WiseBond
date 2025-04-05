@@ -399,7 +399,12 @@ export default function ExpenseManagement() {
                   value={income ? formatCurrency(income, { symbol: '', decimal: '.', thousand: ',' }) : ''}
                   onChange={(e) => {
                     const value = e.target.value.replace(/[^\d.,]/g, '');
-                    setIncome(parseCurrency(value));
+                    // Allow the field to be completely empty
+                    if (value === '') {
+                      setIncome(0);
+                    } else {
+                      setIncome(parseCurrency(value));
+                    }
                   }}
                   onKeyDown={(e) => {
                     // Allow: backspace, delete, tab, escape, enter, decimal point, comma

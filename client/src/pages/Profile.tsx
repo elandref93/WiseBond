@@ -495,44 +495,6 @@ export default function Profile() {
                         Track and manage your monthly expenses to help with your home loan application.
                       </p>
                       
-                      <div className="mb-6">
-                        <div className="bg-gray-50 p-6 rounded-lg mb-6">
-                          <h3 className="text-lg font-medium mb-4">Monthly Income</h3>
-                          
-                          <FormField
-                            control={form.control}
-                            name="monthlyIncome"
-                            render={({ field }) => (
-                              <FormItem className="space-y-2">
-                                <div className="relative">
-                                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">R</div>
-                                  <Input 
-                                    type="text" 
-                                    className="pl-7 h-12 text-lg"
-                                    placeholder="Your income" 
-                                    value={field.value !== null && field.value !== undefined ? field.value.toString() : ''}
-                                    onChange={(e) => {
-                                      // Only allow digits and handle emptying the field properly
-                                      const sanitized = e.target.value.replace(/[^\d]/g, '');
-                                      if (sanitized === '') {
-                                        // Set to null explicitly when empty (matches DB null value)
-                                        field.onChange(null);
-                                      } else {
-                                        field.onChange(parseInt(sanitized));
-                                      }
-                                    }}
-                                  />
-                                </div>
-                                <p className="text-gray-500 text-sm">
-                                  Your gross monthly income before tax and deductions
-                                </p>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </div>
-                      
                       <ExpenseManagement />
                     </div>
                   )}

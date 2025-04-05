@@ -195,9 +195,16 @@ export class MemStorage implements IStorage {
     const user = this.users.get(id);
     if (!user) return undefined;
     
+    const updatesWithNulls = { ...updates };
+      
+    // If monthlyIncome is 0, set it to null in the database
+    if (updates.monthlyIncome === 0) {
+      updatesWithNulls.monthlyIncome = null;
+    }
+    
     const updatedUser = {
       ...user,
-      ...updates,
+      ...updatesWithNulls,
       updatedAt: new Date()
     };
     
@@ -554,9 +561,17 @@ export class DatabaseStorage implements IStorage {
 
   async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
     try {
+      // Handle monthly income explicitly to allow null values
+      const updatesWithNulls = { ...updates };
+      
+      // If monthlyIncome is 0, set it to null in the database
+      if (updates.monthlyIncome === 0) {
+        updatesWithNulls.monthlyIncome = null;
+      }
+      
       const [updatedUser] = await db.update(users)
         .set({
-          ...updates,
+          ...updatesWithNulls,
           updatedAt: new Date()
         })
         .where(eq(users.id, id))

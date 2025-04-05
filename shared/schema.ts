@@ -22,7 +22,7 @@ export const users = pgTable("users", {
   employmentSector: text("employment_sector"),
   jobTitle: text("job_title"),
   employmentDuration: text("employment_duration"), // Duration of employment in current position
-  monthlyIncome: integer("monthly_income"),
+  monthlyIncome: integer("monthly_income"),  // Can be null
   otpVerified: boolean("otp_verified").default(false),
   profileComplete: boolean("profile_complete").default(false),
   createdAt: timestamp("created_at").defaultNow(),
@@ -85,6 +85,8 @@ export const updateProfileSchema = createInsertSchema(users)
     ),
     // Email validation
     email: z.string().email("Invalid email address"),
+    // Monthly income can be null
+    monthlyIncome: z.number().nullable().optional(),
   });
 
 export const loginSchema = z.object({
