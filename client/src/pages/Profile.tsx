@@ -496,38 +496,36 @@ export default function Profile() {
                       </p>
                       
                       <div className="mb-6">
-                        <h3 className="text-lg font-medium mb-4">Income Information</h3>
-                        <div className="bg-gray-50 p-4 rounded-lg mb-6">
+                        <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                          <h3 className="text-lg font-medium mb-4">Monthly Income</h3>
+                          
                           <FormField
                             control={form.control}
                             name="monthlyIncome"
                             render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Monthly Income</FormLabel>
-                                <FormControl>
-                                  <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">R</span>
-                                    <Input 
-                                      type="text" 
-                                      className="pl-7"
-                                      placeholder="Your gross monthly income" 
-                                      value={field.value !== null && field.value !== undefined ? field.value.toString() : ''}
-                                      onChange={(e) => {
-                                        // Only allow digits and handle emptying the field properly
-                                        const sanitized = e.target.value.replace(/[^\d]/g, '');
-                                        if (sanitized === '') {
-                                          // Set to null explicitly when empty (matches DB null value)
-                                          field.onChange(null);
-                                        } else {
-                                          field.onChange(parseInt(sanitized));
-                                        }
-                                      }}
-                                    />
-                                  </div>
-                                </FormControl>
-                                <FormDescription>
+                              <FormItem className="space-y-2">
+                                <div className="relative">
+                                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">R</div>
+                                  <Input 
+                                    type="text" 
+                                    className="pl-7 h-12 text-lg"
+                                    placeholder="Your income" 
+                                    value={field.value !== null && field.value !== undefined ? field.value.toString() : ''}
+                                    onChange={(e) => {
+                                      // Only allow digits and handle emptying the field properly
+                                      const sanitized = e.target.value.replace(/[^\d]/g, '');
+                                      if (sanitized === '') {
+                                        // Set to null explicitly when empty (matches DB null value)
+                                        field.onChange(null);
+                                      } else {
+                                        field.onChange(parseInt(sanitized));
+                                      }
+                                    }}
+                                  />
+                                </div>
+                                <p className="text-gray-500 text-sm">
                                   Your gross monthly income before tax and deductions
-                                </FormDescription>
+                                </p>
                                 <FormMessage />
                               </FormItem>
                             )}
