@@ -348,26 +348,30 @@ export default function Calculators() {
                 </TabsContent>
 
                 <TabsContent value="additional">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="md:col-span-1">
-                      <AdditionalPaymentCalculator onCalculate={handleCalculationComplete} />
-                    </div>
-                    <div className="md:col-span-2">
-                      {calculationResults && calculationResults.type === 'additional' ? (
-                        <CalculationResults results={calculationResults} formValues={formValues} />
-                      ) : (
-                        <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
-                          <div className="text-center">
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">
-                              Calculate Additional Payment Benefits
-                            </h3>
-                            <p className="text-gray-500">
-                              See how making additional payments on your bond can
-                              save you time and money over the loan term.
-                            </p>
+                  <div className="flex flex-col">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                      <div className="md:col-span-3">
+                        <AdditionalPaymentCalculator onCalculate={handleCalculationComplete} />
+                      </div>
+                      <div className="md:col-span-9">
+                        {calculationResults && calculationResults.type === 'additional' ? (
+                          <div>
+                            <CalculationResults results={calculationResults} formValues={formValues} />
                           </div>
-                        </div>
-                      )}
+                        ) : (
+                          <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
+                            <div className="text-center">
+                              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                Calculate Additional Payment Benefits
+                              </h3>
+                              <p className="text-gray-500">
+                                See how making additional payments on your bond can
+                                save you time and money over the loan term.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </TabsContent>
