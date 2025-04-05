@@ -390,7 +390,7 @@ export default function Profile() {
                                  />
                               </FormControl>
                               <FormDescription>
-                                Enter a valid South African phone number (e.g., 0821234567 or +27821234567)
+                                Enter a valid South African mobile number
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -664,13 +664,14 @@ export default function Profile() {
                                   <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">R</span>
                                     <Input 
-                                      {...field} 
-                                      type="number" 
+                                      type="text" 
                                       className="pl-7"
                                       placeholder="Your gross monthly income" 
-                                      value={field.value === 0 ? '' : field.value}
+                                      value={field.value ? field.value.toString() : ''}
                                       onChange={(e) => {
-                                        const value = e.target.value === '' ? undefined : parseInt(e.target.value);
+                                        // Only allow digits
+                                        const sanitized = e.target.value.replace(/[^\d]/g, '');
+                                        const value = sanitized === '' ? undefined : parseInt(sanitized);
                                         field.onChange(value);
                                       }}
                                     />
