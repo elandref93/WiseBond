@@ -152,90 +152,124 @@ export default function AdditionalPaymentChart({
     { name: 'Principal', value: loanAmount, color: '#8884d8' },
     { name: 'Interest', value: totalInterestPaid, color: '#82ca9d' }
   ];
+
+  // Summary stats for display
+  const summaryStats = [
+    {
+      title: "Original Loan Term",
+      value: `${loanTerm} years`,
+      subtitle: "Standard repayment schedule"
+    },
+    {
+      title: "New Loan Term",
+      value: timeToPayOffText,
+      subtitle: `You'll save ${timeSavedText}`,
+      highlight: true
+    },
+    {
+      title: "Standard Payment",
+      value: formatCurrency(monthlyPayment),
+      subtitle: "Current monthly payment"
+    },
+    {
+      title: "Additional Payment",
+      value: formatCurrency(additionalPayment),
+      subtitle: "Extra amount per month"
+    },
+    {
+      title: "Total Interest Saved",
+      value: formatCurrency(moneySaved),
+      subtitle: "By making additional payments",
+      highlight: true
+    }
+  ];
   
   return (
-    <div className="w-full">
-      <h2 className="text-3xl font-bold mb-6 text-center">Additional Payment Impact</h2>
-        <Tabs defaultValue="comparison" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="comparison">Payment Comparison</TabsTrigger>
-            <TabsTrigger value="breakdown">Cost Breakdown</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="comparison" className="space-y-6">
-            <div className="h-[600px] mb-8 w-full max-w-full mx-auto">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={comparisonData}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" label={{ value: 'Years', position: 'insideBottomRight', offset: 0 }} />
-                  <YAxis tickFormatter={(value) => formatCurrency(value)} />
-                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="originalBalance"
-                    stroke="#8884d8"
-                    name="Standard Repayment"
-                    strokeWidth={2}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="additionalPaymentBalance"
-                    stroke="#82ca9d"
-                    name="With Additional Payment"
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-500">New Loan Term</p>
-                    <p className="text-2xl font-bold">{timeToPayOffText}</p>
-                    <p className="text-xs text-green-600 mt-1">
-                      {timeSaved > 0 ? `Save ${timeSavedText}` : ''}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-500">Total Interest Paid</p>
-                    <p className="text-2xl font-bold">{formatCurrency(totalInterestPaid)}</p>
-                    <p className="text-xs text-green-600 mt-1">
-                      {moneySaved > 0 ? `Save ${formatCurrency(moneySaved)}` : ''}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-500">Monthly + Additional</p>
-                    <p className="text-2xl font-bold">{formatCurrency(monthlyPayment + additionalPayment)}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      ({formatCurrency(monthlyPayment)} + {formatCurrency(additionalPayment)})
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="breakdown" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-full mx-auto">
-              <div>
-                <h3 className="font-medium text-center mb-4 text-lg">Standard Repayment</h3>
-                <div className="h-96">
+    <>
+      <h2 className="text-3xl font-bold mb-8 text-center">Additional Payment Impact</h2>
+      
+      {/* Summary Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        {summaryStats.map((stat, index) => (
+          <div 
+            key={index} 
+            className={`p-4 rounded-lg ${stat.highlight 
+              ? 'bg-green-50 border border-green-200'
+              : 'bg-gray-50 border border-gray-200'
+            }`}
+          >
+            <h3 className="text-sm font-medium text-gray-500">{stat.title}</h3>
+            <p className={`text-2xl font-bold ${stat.highlight ? 'text-green-600' : 'text-gray-800'}`}>
+              {stat.value}
+            </p>
+            <p className="text-xs mt-1 text-gray-500">{stat.subtitle}</p>
+          </div>
+        ))}
+      </div>
+      
+      <div className="flex flex-col space-y-8">
+        {/* Main Chart Section */}
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <h3 className="text-xl font-semibold mb-4">Loan Balance Comparison</h3>
+          <div className="h-[500px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={comparisonData}
+                margin={{ top: 10, right: 30, left: 30, bottom: 30 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis 
+                  dataKey="year" 
+                  label={{ 
+                    value: 'Years', 
+                    position: 'insideBottomRight', 
+                    offset: -10
+                  }} 
+                />
+                <YAxis 
+                  tickFormatter={(value) => formatCurrency(value)}
+                  label={{
+                    value: 'Remaining Balance',
+                    angle: -90,
+                    position: 'insideLeft',
+                    style: { textAnchor: 'middle' }
+                  }}
+                />
+                <Tooltip 
+                  formatter={(value) => formatCurrency(Number(value))}
+                  labelFormatter={(label) => `Year ${label}`}
+                />
+                <Legend verticalAlign="top" height={40} />
+                <Line
+                  type="monotone"
+                  dataKey="originalBalance"
+                  stroke="#8884d8"
+                  name="Standard Repayment"
+                  strokeWidth={3}
+                  dot={{r: 6}}
+                  activeDot={{r: 8}}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="additionalPaymentBalance"
+                  stroke="#82ca9d"
+                  name="With Additional Payment"
+                  strokeWidth={3}
+                  dot={{r: 6}}
+                  activeDot={{r: 8}}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        
+        {/* Interest Breakdown Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <h3 className="text-xl font-semibold mb-4 text-center">Standard Repayment</h3>
+            <div className="flex flex-col md:flex-row items-center">
+              <div className="w-full md:w-1/2">
+                <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -244,7 +278,7 @@ export default function AdditionalPaymentChart({
                         cy="50%"
                         labelLine={false}
                         label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={120}
+                        outerRadius={130}
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -256,15 +290,31 @@ export default function AdditionalPaymentChart({
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="text-center mt-4">
-                  <p className="text-sm text-gray-500">Total Cost</p>
-                  <p className="text-xl font-bold">{formatCurrency(loanAmount + totalOriginalInterest)}</p>
+              </div>
+              <div className="w-full md:w-1/2 flex flex-col justify-center">
+                <div className="space-y-4 p-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Principal Amount</p>
+                    <p className="text-xl font-bold">{formatCurrency(loanAmount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Total Interest</p>
+                    <p className="text-xl font-bold">{formatCurrency(totalOriginalInterest)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Total Cost</p>
+                    <p className="text-xl font-bold">{formatCurrency(loanAmount + totalOriginalInterest)}</p>
+                  </div>
                 </div>
               </div>
-              
-              <div>
-                <h3 className="font-medium text-center mb-4 text-lg">With Additional Payment</h3>
-                <div className="h-96">
+            </div>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <h3 className="text-xl font-semibold mb-4 text-center">With Additional Payment</h3>
+            <div className="flex flex-col md:flex-row items-center">
+              <div className="w-full md:w-1/2">
+                <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -273,7 +323,7 @@ export default function AdditionalPaymentChart({
                         cy="50%"
                         labelLine={false}
                         label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={120}
+                        outerRadius={130}
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -285,26 +335,41 @@ export default function AdditionalPaymentChart({
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="text-center mt-4">
-                  <p className="text-sm text-gray-500">Total Cost</p>
-                  <p className="text-xl font-bold">{formatCurrency(loanAmount + totalInterestPaid)}</p>
+              </div>
+              <div className="w-full md:w-1/2 flex flex-col justify-center">
+                <div className="space-y-4 p-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Principal Amount</p>
+                    <p className="text-xl font-bold">{formatCurrency(loanAmount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Total Interest</p>
+                    <p className="text-xl font-bold">{formatCurrency(totalInterestPaid)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Total Cost</p>
+                    <p className="text-xl font-bold">{formatCurrency(loanAmount + totalInterestPaid)}</p>
+                  </div>
                 </div>
               </div>
             </div>
-            
-            <Card className="mt-8 max-w-full mx-auto">
-              <CardContent className="py-8">
-                <div className="text-center">
-                  <p className="text-lg text-gray-600 mb-2">Total Savings</p>
-                  <p className="text-4xl font-bold text-green-600 mb-4">{formatCurrency(moneySaved)}</p>
-                  <p className="text-base text-gray-600">
-                    By paying an additional {formatCurrency(additionalPayment)} per month, you'll save {formatCurrency(moneySaved)} in interest and pay off your loan {timeSavedText} sooner.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
+        
+        {/* Summary Box */}
+        <div className="bg-green-50 p-8 rounded-lg border border-green-200">
+          <div className="text-center">
+            <h3 className="text-2xl font-bold text-green-600 mb-2">Your Savings Summary</h3>
+            <p className="text-3xl font-bold text-green-700 mb-4">
+              Save {formatCurrency(moneySaved)} in interest
+            </p>
+            <p className="text-lg text-gray-700">
+              By paying an additional {formatCurrency(additionalPayment)} per month on your R{formatCurrency(loanAmount).substring(1)} loan, 
+              you'll save {formatCurrency(moneySaved)} in interest and pay off your loan {timeSavedText} sooner.
+            </p>
+          </div>
+        </div>
       </div>
+    </>
   );
 }

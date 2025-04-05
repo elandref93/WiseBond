@@ -7,6 +7,7 @@ import BondsTransferCostsCalculator from "@/components/calculators/BondsTransfer
 import AdditionalPaymentCalculator from "@/components/calculators/AdditionalPaymentCalculator";
 import AmortizationCalculator from "@/components/calculators/AmortizationCalculator";
 import LoanComparisonSimulator from "@/components/calculators/LoanComparisonSimulator";
+import AdditionalPaymentChart from "@/components/calculators/charts/AdditionalPaymentChart";
 import CalculationResults from "@/components/calculators/CalculationResults";
 import { CalculationResult } from "@/lib/calculators";
 import { useQuery } from "@tanstack/react-query";
@@ -348,32 +349,48 @@ export default function Calculators() {
                 </TabsContent>
 
                 <TabsContent value="additional">
-                  <div className="flex flex-col">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-                      <div className="md:col-span-3">
-                        <AdditionalPaymentCalculator onCalculate={handleCalculationComplete} />
+                  {calculationResults && calculationResults.type === 'additional' ? (
+                    <div className="flex flex-col space-y-8">
+                      {/* Top section: Calculator form and basic results side by side */}
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-1">
+                          <AdditionalPaymentCalculator onCalculate={handleCalculationComplete} />
+                        </div>
+                        <div className="lg:col-span-2">
+                          <CalculationResults results={calculationResults} formValues={formValues} />
+                        </div>
                       </div>
-                      <div className="md:col-span-9">
-                        {calculationResults && calculationResults.type === 'additional' ? (
-                          <div>
-                            <CalculationResults results={calculationResults} formValues={formValues} />
-                          </div>
-                        ) : (
-                          <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
-                            <div className="text-center">
-                              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                Calculate Additional Payment Benefits
-                              </h3>
-                              <p className="text-gray-500">
-                                See how making additional payments on your bond can
-                                save you time and money over the loan term.
-                              </p>
-                            </div>
-                          </div>
-                        )}
+                      
+                      {/* Bottom section: Full-width chart area */}
+                      <div className="w-full bg-white p-6 rounded-xl shadow-sm">
+                        <AdditionalPaymentChart 
+                          loanAmount={calculationResults.loanAmount}
+                          interestRate={calculationResults.interestRate}
+                          loanTerm={calculationResults.loanTermYears}
+                          additionalPayment={calculationResults.additionalPayment}
+                        />
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                      <div className="lg:col-span-1">
+                        <AdditionalPaymentCalculator onCalculate={handleCalculationComplete} />
+                      </div>
+                      <div className="lg:col-span-2">
+                        <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
+                          <div className="text-center">
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                              Calculate Additional Payment Benefits
+                            </h3>
+                            <p className="text-gray-500">
+                              See how making additional payments on your bond can
+                              save you time and money over the loan term.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="amortisation">
