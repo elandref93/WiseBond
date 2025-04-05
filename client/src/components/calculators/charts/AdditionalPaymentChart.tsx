@@ -154,16 +154,16 @@ export default function AdditionalPaymentChart({
   ];
   
   return (
-    <div className="w-full bg-white p-6 rounded-lg shadow-sm">
-      <h2 className="text-2xl font-bold mb-6 text-center">Additional Payment Impact</h2>
-        <Tabs defaultValue="comparison">
-          <TabsList className="grid w-full grid-cols-2">
+    <div className="w-full">
+      <h2 className="text-3xl font-bold mb-6 text-center">Additional Payment Impact</h2>
+        <Tabs defaultValue="comparison" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="comparison">Payment Comparison</TabsTrigger>
             <TabsTrigger value="breakdown">Cost Breakdown</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="comparison" className="space-y-4">
-            <div className="h-[550px] mb-8 w-full max-w-7xl mx-auto">
+          <TabsContent value="comparison" className="space-y-6">
+            <div className="h-[600px] mb-8 w-full max-w-full mx-auto">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={comparisonData}
@@ -231,11 +231,11 @@ export default function AdditionalPaymentChart({
             </div>
           </TabsContent>
           
-          <TabsContent value="breakdown" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto">
+          <TabsContent value="breakdown" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-full mx-auto">
               <div>
                 <h3 className="font-medium text-center mb-4 text-lg">Standard Repayment</h3>
-                <div className="h-80">
+                <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -244,7 +244,7 @@ export default function AdditionalPaymentChart({
                         cy="50%"
                         labelLine={false}
                         label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={100}
+                        outerRadius={120}
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -264,7 +264,7 @@ export default function AdditionalPaymentChart({
               
               <div>
                 <h3 className="font-medium text-center mb-4 text-lg">With Additional Payment</h3>
-                <div className="h-80">
+                <div className="h-96">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -273,7 +273,7 @@ export default function AdditionalPaymentChart({
                         cy="50%"
                         labelLine={false}
                         label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={100}
+                        outerRadius={120}
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -292,12 +292,12 @@ export default function AdditionalPaymentChart({
               </div>
             </div>
             
-            <Card className="mt-6 max-w-7xl mx-auto">
-              <CardContent className="pt-6">
+            <Card className="mt-8 max-w-full mx-auto">
+              <CardContent className="py-8">
                 <div className="text-center">
-                  <p className="text-sm text-gray-500">Total Savings</p>
-                  <p className="text-3xl font-bold text-green-600">{formatCurrency(moneySaved)}</p>
-                  <p className="text-sm text-gray-500 mt-2">
+                  <p className="text-lg text-gray-600 mb-2">Total Savings</p>
+                  <p className="text-4xl font-bold text-green-600 mb-4">{formatCurrency(moneySaved)}</p>
+                  <p className="text-base text-gray-600">
                     By paying an additional {formatCurrency(additionalPayment)} per month, you'll save {formatCurrency(moneySaved)} in interest and pay off your loan {timeSavedText} sooner.
                   </p>
                 </div>
