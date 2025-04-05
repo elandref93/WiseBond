@@ -108,7 +108,7 @@ export default function Profile() {
         employmentSector: profileData.employmentSector || '',
         jobTitle: profileData.jobTitle || '',
         employmentDuration: profileData.employmentDuration || '',
-        monthlyIncome: profileData.monthlyIncome === null ? undefined : profileData.monthlyIncome,
+        monthlyIncome: profileData.monthlyIncome === null ? null : profileData.monthlyIncome,
         otpVerified: profileData.otpVerified || false,
         profileComplete: profileData.profileComplete || false
       };
@@ -665,12 +665,13 @@ export default function Profile() {
                                       type="text" 
                                       className="pl-7"
                                       placeholder="Your gross monthly income" 
-                                      value={field.value ? field.value.toString() : ''}
+                                      value={field.value !== null && field.value !== undefined ? field.value.toString() : ''}
                                       onChange={(e) => {
                                         // Only allow digits and handle emptying the field properly
                                         const sanitized = e.target.value.replace(/[^\d]/g, '');
                                         if (sanitized === '') {
-                                          field.onChange(undefined);
+                                          // Set to null explicitly when empty (matches DB null value)
+                                          field.onChange(null);
                                         } else {
                                           field.onChange(parseInt(sanitized));
                                         }
