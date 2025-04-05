@@ -4,17 +4,13 @@ import connectPg from "connect-pg-simple";
 import session from "express-session";
 import { Pool } from "@neondatabase/serverless";
 import bcrypt from 'bcrypt';
-import memorystore from 'memorystore';
+import createMemoryStore from 'memorystore';
 import { 
   users, type User, type InsertUser, type CalculationResult, type InsertCalculationResult, 
   type ContactSubmission, type InsertContactSubmission, type BudgetCategory, type InsertBudgetCategory,
   type Expense, type InsertExpense, type UpdateExpense, budgetCategories, expenses,
   calculationResults, contactSubmissions
 } from "@shared/schema";
-
-// Create session store factory once at module level
-const MemoryStore = memorystore(session);
-const PgSessionStore = connectPg(session);
 
 // Storage interface defining all the data operations needed by the application
 export interface IStorage {
@@ -53,6 +49,7 @@ export interface IStorage {
   updateExpense(id: number, userId: number, updates: UpdateExpense): Promise<Expense | undefined>;
   deleteExpense(id: number, userId: number): Promise<boolean>;
 }
+
 export class MemStorage implements IStorage {
   // In-memory storage using Maps
   private users: Map<number, User>;
@@ -83,6 +80,7 @@ export class MemStorage implements IStorage {
     this.otpStore = new Map();
     
     // Create a memory store for sessions
+    const MemoryStore = createMemoryStore(session);
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000 // Prune expired entries every 24h
     });
@@ -425,6 +423,7 @@ export class MemStorage implements IStorage {
     return this.expenses.delete(id);
   }
 }
+
 /**
  * PostgreSQL Database Storage Implementation
  * This class implements the IStorage interface using PostgreSQL.
@@ -435,6 +434,7 @@ export class DatabaseStorage implements IStorage {
   constructor() {
     // Create a PostgreSQL session store
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const PgSessionStore = connectPg(session);
     this.sessionStore = new PgSessionStore({ 
       pool, 
       createTableIfMissing: true,
@@ -612,15 +612,11 @@ export class DatabaseStorage implements IStorage {
    */
   private async initDefaultBudgetCategories() {
     try {
-      // Check if budget categories already exist
-      const existingCategories = await db.select().from(budgetCategories).where(eq(budgetCategories.isDefault, true));
-      
+      // Check if categories already exist
+      const existingCategories = await this.getBudgetCategories();
       if (existingCategories.length > 0) {
-        console.log(`Found ${existingCategories.length} existing default budget categories`);
-        return; // Default categories already exist, no need to create them again
+        return; // Categories already exist, no need to create defaults
       }
-      
-      console.log("Creating default budget categories...");
       
       const defaultCategories = [
         {
@@ -697,18 +693,19 @@ export class DatabaseStorage implements IStorage {
         }
       ];
       
-      // Insert all default categories at once
-      await db.insert(budgetCategories).values(
-        defaultCategories.map(category => ({
-          ...category,
+      // Insert default categories
+      for (const category of defaultCategories) {
+        await db.insert(budgetCategories).values({
+          name: category.name,
+          description: category.description,
+          isDefault: category.isDefault,
+          sortOrder: category.sortOrder,
           createdAt: new Date()
-        }))
-      );
-      
-      console.log(`Created ${defaultCategories.length} default budget categories`);
+        });
+      }
     } catch (error) {
       console.error("Error initializing default budget categories:", error);
-      throw error;
+      // Continue execution even if there's an error
     }
   }
 
@@ -757,7 +754,7 @@ export class DatabaseStorage implements IStorage {
       const userExpenses = await db.select()
         .from(expenses)
         .where(eq(expenses.userId, userId))
-        .orderBy(desc(expenses.createdAt));
+        .orderBy(expenses.createdAt);
       
       return userExpenses;
     } catch (error) {
@@ -776,7 +773,7 @@ export class DatabaseStorage implements IStorage {
             eq(expenses.categoryId, categoryId)
           )
         )
-        .orderBy(desc(expenses.createdAt));
+        .orderBy(expenses.createdAt);
       
       return categoryExpenses;
     } catch (error) {
@@ -803,6 +800,7 @@ export class DatabaseStorage implements IStorage {
       const now = new Date();
       const [expense] = await db.insert(expenses).values({
         ...insertExpense,
+        subcategoryId: insertExpense.subcategoryId || null,
         createdAt: now,
         updatedAt: now
       }).returning();
@@ -846,7 +844,7 @@ export class DatabaseStorage implements IStorage {
           )
         );
       
-      return result.count > 0;
+      return true;
     } catch (error) {
       console.error("Database error in deleteExpense:", error);
       return false;
@@ -854,5 +852,5 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Exporting the appropriate storage implementation
+// Use the DatabaseStorage implementation for production
 export const storage = new DatabaseStorage();

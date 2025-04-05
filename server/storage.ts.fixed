@@ -4,7 +4,7 @@ import connectPg from "connect-pg-simple";
 import session from "express-session";
 import { Pool } from "@neondatabase/serverless";
 import bcrypt from 'bcrypt';
-import memorystore from 'memorystore';
+import createMemoryStore from 'memorystore';
 import { 
   users, type User, type InsertUser, type CalculationResult, type InsertCalculationResult, 
   type ContactSubmission, type InsertContactSubmission, type BudgetCategory, type InsertBudgetCategory,
@@ -12,8 +12,8 @@ import {
   calculationResults, contactSubmissions
 } from "@shared/schema";
 
-// Create session store factory once at module level
-const MemoryStore = memorystore(session);
+// Create session store factories once at module level
+const MemoryStore = createMemoryStore(session);
 const PgSessionStore = connectPg(session);
 
 // Storage interface defining all the data operations needed by the application
@@ -53,6 +53,7 @@ export interface IStorage {
   updateExpense(id: number, userId: number, updates: UpdateExpense): Promise<Expense | undefined>;
   deleteExpense(id: number, userId: number): Promise<boolean>;
 }
+
 export class MemStorage implements IStorage {
   // In-memory storage using Maps
   private users: Map<number, User>;
@@ -425,6 +426,7 @@ export class MemStorage implements IStorage {
     return this.expenses.delete(id);
   }
 }
+
 /**
  * PostgreSQL Database Storage Implementation
  * This class implements the IStorage interface using PostgreSQL.
@@ -854,5 +856,4 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Exporting the appropriate storage implementation
 export const storage = new DatabaseStorage();
