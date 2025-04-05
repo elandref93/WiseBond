@@ -142,15 +142,21 @@ export default function AdditionalPaymentChart({
     };
   });
   
+  // Calculate percentages
+  const originalPrincipalPercent = Math.round((loanAmount / (loanAmount + totalOriginalInterest)) * 100);
+  const originalInterestPercent = Math.round((totalOriginalInterest / (loanAmount + totalOriginalInterest)) * 100);
+  const additionalPrincipalPercent = Math.round((loanAmount / (loanAmount + totalInterestPaid)) * 100);
+  const additionalInterestPercent = Math.round((totalInterestPaid / (loanAmount + totalInterestPaid)) * 100);
+
   // Pie chart data for interest vs principal
   const originalPieData = [
-    { name: 'Principal', value: loanAmount, color: '#8884d8' },
-    { name: 'Interest', value: totalOriginalInterest, color: '#82ca9d' }
+    { name: `Principal: ${originalPrincipalPercent}% (${formatCurrency(loanAmount)})`, value: loanAmount, color: '#8884d8' },
+    { name: `Interest: ${originalInterestPercent}% (${formatCurrency(totalOriginalInterest)})`, value: totalOriginalInterest, color: '#82ca9d' }
   ];
   
   const additionalPaymentPieData = [
-    { name: 'Principal', value: loanAmount, color: '#8884d8' },
-    { name: 'Interest', value: totalInterestPaid, color: '#82ca9d' }
+    { name: `Principal: ${additionalPrincipalPercent}% (${formatCurrency(loanAmount)})`, value: loanAmount, color: '#8884d8' },
+    { name: `Interest: ${additionalInterestPercent}% (${formatCurrency(totalInterestPaid)})`, value: totalInterestPaid, color: '#82ca9d' }
   ];
 
   // Summary stats for display
