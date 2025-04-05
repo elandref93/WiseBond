@@ -210,7 +210,7 @@ export default function AdditionalPaymentChart({
       <div className="flex flex-col space-y-8">
         {/* Main Chart Section */}
         <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h3 className="text-xl font-semibold mb-4">Loan Balance Comparison</h3>
+          <h3 className="text-xl font-semibold mb-4 text-center">Loan Balance Comparison</h3>
           <div className="h-[500px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
@@ -275,10 +275,10 @@ export default function AdditionalPaymentChart({
                       <Pie
                         data={originalPieData}
                         cx="50%"
-                        cy="50%"
-                        labelLine={false}
+                        cy="45%"
+                        labelLine={true}
                         label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={130}
+                        outerRadius={115}
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -320,10 +320,10 @@ export default function AdditionalPaymentChart({
                       <Pie
                         data={additionalPaymentPieData}
                         cx="50%"
-                        cy="50%"
-                        labelLine={false}
+                        cy="45%"
+                        labelLine={true}
                         label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={130}
+                        outerRadius={115}
                         fill="#8884d8"
                         dataKey="value"
                       >
