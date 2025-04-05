@@ -532,27 +532,27 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
       {loanDetails && (
         <div className="mt-8 space-y-8">
           {/* Chart Section */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
+          <div className="flex flex-col items-center">
+            <div className="flex items-center justify-between mb-3 w-full">
               <h4 className="text-sm font-medium text-gray-700">Loan Overview</h4>
-              <div className="flex items-center text-xs text-gray-500 space-x-3">
+              <div className="flex items-center text-xs text-gray-500 space-x-4">
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full mr-1"></div>
+                  <div className="w-3 h-3 bg-blue-500 rounded-full mr-1.5"></div>
                   <span>Principal</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
+                  <div className="w-3 h-3 bg-green-500 rounded-full mr-1.5"></div>
                   <span>Interest</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-yellow-400 rounded-full mr-1"></div>
+                  <div className="w-3 h-3 bg-yellow-400 rounded-full mr-1.5"></div>
                   <span>Balance</span>
                 </div>
               </div>
             </div>
             
             {/* Full-width chart */}
-            <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm w-full max-w-5xl mx-auto">
               <div className="h-[400px] w-full">
                 <AmortizationChart 
                   loanAmount={loanDetails.loanAmount} 
@@ -564,33 +564,33 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
           </div>
           
           {/* Yearly Breakdown Table */}
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Yearly Breakdown</h4>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 text-sm border border-gray-200 rounded-lg">
+          <div className="flex flex-col items-center">
+            <h4 className="text-sm font-medium text-gray-700 mb-3 self-start">Yearly Breakdown</h4>
+            <div className="overflow-x-auto w-full max-w-4xl mx-auto shadow-sm rounded-lg">
+              <table className="w-full divide-y divide-gray-200 text-sm border border-gray-200 rounded-lg">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
                       Year
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-5/12">
                       Principal Paid
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-5/12">
                       Interest Paid
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-5/12">
                       Remaining Balance
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {generateYearlyData().map((data) => (
-                    <tr key={data.year} className="hover:bg-gray-50">
-                      <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{data.year}</td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.totalPrincipalPaid)}</td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.totalInterestPaid)}</td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.balance)}</td>
+                    <tr key={data.year} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{data.year}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">{formatCurrency(data.totalPrincipalPaid)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">{formatCurrency(data.totalInterestPaid)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">{formatCurrency(data.balance)}</td>
                     </tr>
                   ))}
                 </tbody>
