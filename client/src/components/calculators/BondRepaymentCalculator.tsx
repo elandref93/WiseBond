@@ -552,8 +552,8 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
             </div>
             
             {/* Full-width chart */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm w-full max-w-5xl mx-auto">
-              <div className="h-[400px] w-full">
+            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm w-full max-w-7xl mx-auto">
+              <div className="h-[450px] w-full">
                 <AmortizationChart 
                   loanAmount={loanDetails.loanAmount} 
                   interestRate={loanDetails.interestRate} 
@@ -566,7 +566,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
           {/* Yearly Breakdown Table */}
           <div className="flex flex-col items-center">
             <h3 className="text-lg font-medium text-gray-800 mb-3 text-center w-full">Yearly Breakdown</h3>
-            <div className="overflow-x-auto w-full max-w-4xl mx-auto shadow-sm rounded-lg">
+            <div className="overflow-x-auto w-full max-w-7xl mx-auto shadow-sm rounded-lg">
               <table className="w-full divide-y divide-gray-200 text-sm border border-gray-200 rounded-lg">
                 <thead className="bg-gray-50">
                   <tr>
