@@ -389,9 +389,7 @@ export default function Profile() {
                                   }}
                                  />
                               </FormControl>
-                              <FormDescription>
-                                Enter a valid South African mobile number
-                              </FormDescription>
+
                               <FormMessage />
                             </FormItem>
                           )}
@@ -669,10 +667,13 @@ export default function Profile() {
                                       placeholder="Your gross monthly income" 
                                       value={field.value ? field.value.toString() : ''}
                                       onChange={(e) => {
-                                        // Only allow digits
+                                        // Only allow digits and handle emptying the field properly
                                         const sanitized = e.target.value.replace(/[^\d]/g, '');
-                                        const value = sanitized === '' ? undefined : parseInt(sanitized);
-                                        field.onChange(value);
+                                        if (sanitized === '') {
+                                          field.onChange(undefined);
+                                        } else {
+                                          field.onChange(parseInt(sanitized));
+                                        }
                                       }}
                                     />
                                   </div>
