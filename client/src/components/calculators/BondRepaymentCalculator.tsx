@@ -272,9 +272,9 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 mt-4">
-        {/* Left column - Form inputs */}
-        <div className="w-full lg:w-1/4 flex-shrink-0">
+      <div className="mt-4">
+        {/* Form inputs - removed narrow column sizing */}
+        <div className="w-full">
           <Form {...form}>
             <div className="space-y-5">
               {/* Property Value Field with Slider */}
