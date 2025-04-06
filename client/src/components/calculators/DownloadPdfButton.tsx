@@ -28,11 +28,11 @@ export default function DownloadPdfButton({
       console.log("Form values:", formValues);
       
       // For bond calculator
-      if (result.type === 'bond-repayment') {
+      if (result.type === 'bond') {
         await handleBondRepaymentDownload();
       } 
       // For additional payment calculator
-      else if (result.type === 'additional-payment') {
+      else if (result.type === 'additional') {
         await handleAdditionalPaymentDownload();
       }
       else {
