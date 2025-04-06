@@ -103,7 +103,8 @@ export function calculateBondRepayment(
   propertyValue: number,
   interestRate: number,
   loanTerm: number,
-  deposit: number
+  deposit: number,
+  includeBondFees: boolean = false
 ): CalculationResult {
   // Calculate bond amount after deposit
   const loanAmount = propertyValue - deposit;
@@ -119,28 +120,38 @@ export function calculateBondRepayment(
   const x = Math.pow(1 + monthlyRate, numberOfPayments);
   const monthlyRepayment = (loanAmount * x * monthlyRate) / (x - 1);
   
+  // Bond fees calculations (if enabled)
+  const initiationFee = includeBondFees ? 6037.50 + (loanAmount * 0.0023) : 0; // R6,037.50 + 0.23% of loan amount
+  const monthlyAdminFee = includeBondFees ? 69 : 0; // R69 per month
+  const totalAdminFees = monthlyAdminFee * numberOfPayments;
+  const totalFees = initiationFee + totalAdminFees;
+  
   // Calculate total repayment over the loan term
-  const totalRepayment = monthlyRepayment * numberOfPayments;
+  const totalRepayment = (monthlyRepayment * numberOfPayments) + (includeBondFees ? totalFees : 0);
   
   // Calculate total interest paid
-  const totalInterest = totalRepayment - loanAmount;
+  const totalInterest = totalRepayment - loanAmount - (includeBondFees ? totalFees : 0);
   
-  return {
+  // Calculate effective monthly payment with fees
+  const effectiveMonthlyPayment = monthlyRepayment + (includeBondFees ? monthlyAdminFee : 0);
+  
+  // Prepare results
+  const results: CalculationResult = {
     type: 'bond',
     loanAmount,
-    monthlyRepayment,
+    monthlyRepayment: effectiveMonthlyPayment,
     totalRepayment,
     totalInterest,
     displayResults: [
       {
         label: 'Monthly Repayment',
-        value: formatCurrency(monthlyRepayment),
+        value: formatCurrency(effectiveMonthlyPayment),
         tooltip: 'The amount you will need to pay each month for the duration of your home loan.'
       },
       {
         label: 'Total Repayment Amount',
         value: formatCurrency(totalRepayment),
-        tooltip: 'The total amount you will repay over the entire term of the loan, including interest.'
+        tooltip: 'The total amount you will repay over the entire term of the loan, including interest and fees if selected.'
       },
       {
         label: 'Total Interest Paid',
@@ -149,6 +160,35 @@ export function calculateBondRepayment(
       }
     ]
   };
+  
+  // Add fee information if bond fees are included
+  if (includeBondFees) {
+    results.bondInitiationFee = initiationFee;
+    results.monthlyAdminFee = monthlyAdminFee;
+    results.totalAdminFees = totalAdminFees;
+    results.totalFees = totalFees;
+    
+    // Add to display results
+    results.displayResults.push({
+      label: 'Bond Initiation Fee',
+      value: formatCurrency(initiationFee),
+      tooltip: 'One-time fee charged by the bank to set up your home loan.'
+    });
+    
+    results.displayResults.push({
+      label: 'Monthly Admin Fee',
+      value: formatCurrency(monthlyAdminFee),
+      tooltip: 'Monthly fee charged by the bank to administer your home loan.'
+    });
+    
+    results.displayResults.push({
+      label: 'Total Fees (over loan term)',
+      value: formatCurrency(totalFees),
+      tooltip: 'The total amount of fees you will pay over the entire term of the loan.'
+    });
+  }
+  
+  return results;
 }
 
 // Calculate how much a person can afford to borrow

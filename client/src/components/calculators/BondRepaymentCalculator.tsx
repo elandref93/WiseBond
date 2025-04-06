@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
 import { HomeIcon, InfoIcon, CalendarIcon, BanknoteIcon, PercentIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { 
+import {
   calculateBondRepayment, 
   formatCurrency, 
   parseCurrency, 
@@ -36,6 +37,7 @@ const formSchema = z.object({
   deposit: z.string().refine((val) => !isNaN(Number(val.replace(/[^0-9]/g, ""))), {
     message: "Deposit must be a number",
   }),
+  includeBondFees: z.boolean().default(false),
 });
 
 type BondRepaymentFormValues = z.infer<typeof formSchema>;
@@ -59,6 +61,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     interestRate: "11.25",
     loanTerm: "25",
     deposit: "100000",
+    includeBondFees: false,
   };
 
   const form = useForm<BondRepaymentFormValues>({
@@ -89,7 +92,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         const deposit = parseCurrency(formValues.deposit);
 
         // Calculate results
-        const results = calculateBondRepayment(propertyValue, interestRate, loanTerm, deposit);
+        const results = calculateBondRepayment(propertyValue, interestRate, loanTerm, deposit, formValues.includeBondFees);
         
         // Store loan details for chart
         setLoanDetails({
@@ -121,7 +124,8 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                 propertyValue: formValues.propertyValue || "",
                 interestRate: formValues.interestRate || "",
                 loanTerm: formValues.loanTerm || "",
-                deposit: formValues.deposit || ""
+                deposit: formValues.deposit || "",
+                includeBondFees: formValues.includeBondFees
               };
               setLastSavedValues(safeFormValues);
               
@@ -450,6 +454,30 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                       </div>
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Bond Fees Checkbox */}
+              <FormField
+                control={form.control}
+                name="includeBondFees"
+                render={({ field }) => (
+                  <FormItem className="mt-4 flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm font-medium">
+                        Include Bond Fees and Costs
+                      </FormLabel>
+                      <FormDescription className="text-xs text-gray-500">
+                        Add standard bond initiation and monthly admin fees to your repayment calculation
+                      </FormDescription>
+                    </div>
                   </FormItem>
                 )}
               />
