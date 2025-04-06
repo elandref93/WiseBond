@@ -51,6 +51,9 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     loanAmount: number;
     interestRate: number;
     loanTerm: number;
+    propertyValue: number;
+    deposit: number;
+    depositPercentage: number;
   } | null>(null);
   const { user } = useAuth();
   const [lastSavedValues, setLastSavedValues] = useState<Partial<BondRepaymentFormValues> | null>(null);
@@ -99,10 +102,11 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         
         // If including bond fees, add the costs to the loan amount
         if (formValues.includeBondFees) {
-          // Calculate additional financing costs (same as getAdditionalFinancingAmount)
-          const transferDuty = Math.round(loanAmount * 0.08);
-          const transferAttorneyFees = Math.round(loanAmount * 0.015);
-          const bondRegistrationFee = Math.round(loanAmount * 0.012);
+          // Calculate additional financing costs based on the pre-fee loan amount
+          const baseLoanAmount = propertyValue - deposit;
+          const transferDuty = Math.round(baseLoanAmount * 0.08);
+          const transferAttorneyFees = Math.round(baseLoanAmount * 0.015);
+          const bondRegistrationFee = Math.round(baseLoanAmount * 0.012);
           const deedsOfficeFee = 1500;
           
           loanAmount += transferDuty + transferAttorneyFees + bondRegistrationFee + deedsOfficeFee;
@@ -112,7 +116,10 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         setLoanDetails({
           loanAmount: loanAmount,
           interestRate,
-          loanTerm
+          loanTerm,
+          propertyValue,
+          deposit,
+          depositPercentage: (deposit / propertyValue) * 100
         });
         
         // Pass results and form values back to parent component
@@ -235,10 +242,13 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     const includeBondFees = form.watch("includeBondFees");
     if (!loanDetails || !includeBondFees) return null;
     
-    // Approximate values for a R3M property (from image example)
-    const transferDuty = Math.round(loanDetails.loanAmount * 0.08); // Approximate transfer duty percentage
-    const transferAttorneyFees = Math.round(loanDetails.loanAmount * 0.015); // Approximate attorney fees
-    const bondRegistrationFee = Math.round(loanDetails.loanAmount * 0.012); // Approximate bond registration
+    // We need to use the base loan amount before fees are added to calculate transfer costs
+    const baseLoanAmount = loanDetails.propertyValue - loanDetails.deposit;
+    
+    // Approximate values based on the property example
+    const transferDuty = Math.round(baseLoanAmount * 0.08); // Approximate transfer duty percentage
+    const transferAttorneyFees = Math.round(baseLoanAmount * 0.015); // Approximate attorney fees
+    const bondRegistrationFee = Math.round(baseLoanAmount * 0.012); // Approximate bond registration
     const deedsOfficeFee = 1500; // Fixed fee
     
     const totalCosts = transferDuty + transferAttorneyFees + bondRegistrationFee + deedsOfficeFee;
@@ -250,9 +260,12 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     const includeBondFees = form.watch("includeBondFees");
     if (!loanDetails || !includeBondFees) return 0;
     
-    const transferDuty = Math.round(loanDetails.loanAmount * 0.08);
-    const transferAttorneyFees = Math.round(loanDetails.loanAmount * 0.015);
-    const bondRegistrationFee = Math.round(loanDetails.loanAmount * 0.012);
+    // Use base loan amount for calculation
+    const baseLoanAmount = loanDetails.propertyValue - loanDetails.deposit;
+    
+    const transferDuty = Math.round(baseLoanAmount * 0.08);
+    const transferAttorneyFees = Math.round(baseLoanAmount * 0.015);
+    const bondRegistrationFee = Math.round(baseLoanAmount * 0.012);
     const deedsOfficeFee = 1500;
     
     return transferDuty + transferAttorneyFees + bondRegistrationFee + deedsOfficeFee;
@@ -548,7 +561,120 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         <div>
           {loanDetails ? (
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Calculation Results</h4>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-medium text-gray-700">Calculation Results</h4>
+                
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => {
+                      if (loanDetails) {
+                        const fullResults = {
+                          type: "bond",
+                          results: {
+                            monthlyPayment: calculateMonthlyPayment(),
+                            totalRepayment: calculateTotalRepayment(),
+                            totalInterest: calculateTotalInterest(),
+                            transferCosts: calculateTotalTransferCosts() || "R0",
+                          },
+                          input: {
+                            propertyValue: formatCurrency(loanDetails.propertyValue),
+                            deposit: formatCurrency(loanDetails.deposit),
+                            interestRate: `${loanDetails.interestRate}%`,
+                            loanTerm: `${loanDetails.loanTerm} years`,
+                            includeBondFees: form.watch("includeBondFees"),
+                          }
+                        };
+                        
+                        // Send email with results
+                        if (user) {
+                          apiRequest("/api/email-results", {
+                            method: "POST",
+                            body: JSON.stringify({
+                              calculationType: "bond",
+                              calculationData: fullResults,
+                            })
+                          });
+                        } else {
+                          // Show sign-in prompt for non-logged-in users
+                          window.location.href = "/auth?redirect=calculators";
+                        }
+                      }
+                    }}
+                    className="flex items-center justify-center space-x-1 py-1 px-3 text-sm bg-white border rounded hover:bg-gray-50"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="4" width="20" height="16" rx="2" />
+                      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                    </svg>
+                    <span>Email Results</span>
+                  </button>
+                  
+                  <button 
+                    onClick={() => {
+                      // Handle share functionality
+                      if (navigator.share) {
+                        navigator.share({
+                          title: 'WiseBond Bond Repayment Calculation',
+                          text: `Monthly Payment: ${calculateMonthlyPayment()}\nTotal Repayment: ${calculateTotalRepayment()}\nTotal Interest: ${calculateTotalInterest()}`,
+                          url: window.location.href,
+                        });
+                      }
+                    }}
+                    className="flex items-center justify-center space-x-1 py-1 px-3 text-sm bg-white border rounded hover:bg-gray-50"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="18" cy="5" r="3" />
+                      <circle cx="6" cy="12" r="3" />
+                      <circle cx="18" cy="19" r="3" />
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                    </svg>
+                    <span>Share</span>
+                  </button>
+                  
+                  <button 
+                    onClick={() => {
+                      // Generate and download PDF
+                      if (user) {
+                        apiRequest("/api/generate-pdf", {
+                          method: "POST",
+                          body: JSON.stringify({
+                            calculationType: "bond",
+                            propertyValue: loanDetails.propertyValue,
+                            deposit: loanDetails.deposit,
+                            loanAmount: loanDetails.loanAmount,
+                            interestRate: loanDetails.interestRate,
+                            loanTerm: loanDetails.loanTerm,
+                            includeBondFees: form.watch("includeBondFees"),
+                          })
+                        })
+                        .then(response => response.blob())
+                        .then(blob => {
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = 'bond-repayment-calculation.pdf';
+                          document.body.appendChild(a);
+                          a.click();
+                          window.URL.revokeObjectURL(url);
+                        });
+                      } else {
+                        // Show sign-in prompt for non-logged-in users
+                        window.location.href = "/auth?redirect=calculators";
+                      }
+                    }}
+                    className="flex items-center justify-center space-x-1 py-1 px-3 text-sm bg-white border rounded hover:bg-gray-50"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <path d="M12 18v-6" />
+                      <path d="M8 15l4 4 4-4" />
+                    </svg>
+                    <span>Download PDF</span>
+                  </button>
+                </div>
+              </div>
               
               <div className="grid grid-cols-1 gap-4">
                 <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
