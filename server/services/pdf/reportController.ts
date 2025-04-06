@@ -16,6 +16,13 @@ import * as fs from 'fs';
  */
 export async function generateBondRepaymentReport(req: Request, res: Response) {
   try {
+    // Check if user is authenticated (should be enforced by middleware, but double-check)
+    if (!req.session.userId) {
+      return res.status(401).json({ 
+        message: 'You must be logged in to generate a PDF report.' 
+      });
+    }
+    
     const { 
       propertyValue, 
       interestRate, 
@@ -108,6 +115,13 @@ export async function generateBondRepaymentReport(req: Request, res: Response) {
  */
 export async function generateAdditionalPaymentReport(req: Request, res: Response) {
   try {
+    // Check if user is authenticated (should be enforced by middleware, but double-check)
+    if (!req.session.userId) {
+      return res.status(401).json({ 
+        message: 'You must be logged in to generate a PDF report.' 
+      });
+    }
+    
     console.log("Received additional payment report request:", req.body);
     
     const { 
