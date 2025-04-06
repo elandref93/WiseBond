@@ -22,8 +22,7 @@ export async function generateBondRepaymentReport(req: Request, res: Response) {
       loanTerm, 
       deposit, 
       calculationResult,
-      includeDetails,
-      includeCosts
+      includeDetails
     } = req.body;
     
     if (!propertyValue || !interestRate || !loanTerm) {
@@ -54,54 +53,8 @@ export async function generateBondRepaymentReport(req: Request, res: Response) {
         ? parseFloat(deposit.replace(/[^0-9.]/g, ''))
         : (deposit || 0);
       
-      // Calculate transfer and bond registration costs if checkbox is checked
-      let transferCosts = 0;
-      let bondRegistrationCosts = 0;
-      let transferDuty = 0;
-      let deedsOfficeFee = 0;
-
-      if (includeCosts) {
-        // Calculate transfer duty based on South African rates
-        if (numPropertyValue <= 1000000) {
-          transferDuty = 0; // No transfer duty below R1,000,000
-        } else if (numPropertyValue <= 1375000) {
-          transferDuty = (numPropertyValue - 1000000) * 0.03;
-        } else if (numPropertyValue <= 1925000) {
-          transferDuty = 11250 + (numPropertyValue - 1375000) * 0.06;
-        } else if (numPropertyValue <= 2475000) {
-          transferDuty = 44250 + (numPropertyValue - 1925000) * 0.08;
-        } else if (numPropertyValue <= 11000000) {
-          transferDuty = 88250 + (numPropertyValue - 2475000) * 0.11;
-        } else {
-          transferDuty = 1026000 + (numPropertyValue - 11000000) * 0.13;
-        }
-
-        // Calculate attorney fees (approximate)
-        const transferAttorneyFee = numPropertyValue * 0.015;
-        
-        // Bond registration fees (approximate)
-        bondRegistrationCosts = numPropertyValue * 0.012;
-        
-        // Deeds office fee (approximate flat rate)
-        deedsOfficeFee = 1500;
-        
-        // Total transfer costs
-        transferCosts = transferDuty + transferAttorneyFee + deedsOfficeFee;
-      }
-
-      // Calculate the result with or without additional costs
-      result = calculateBondRepayment(
-        numPropertyValue, 
-        numInterestRate, 
-        numLoanTerm, 
-        numDeposit,
-        includeCosts ? { 
-          transferCosts,
-          bondRegistrationCosts,
-          transferDuty,
-          deedsOfficeFee
-        } : undefined
-      );
+      // Calculate the result
+      result = calculateBondRepayment(numPropertyValue, numInterestRate, numLoanTerm, numDeposit);
     }
     
     // Original input data for the report
@@ -109,8 +62,7 @@ export async function generateBondRepaymentReport(req: Request, res: Response) {
       propertyValue,
       interestRate,
       loanTerm,
-      deposit,
-      includeCosts
+      deposit
     };
     
     // Generate PDF

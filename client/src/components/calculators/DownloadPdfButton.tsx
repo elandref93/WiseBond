@@ -40,7 +40,6 @@ export default function DownloadPdfButton({
             interestRate: formValues?.interestRate,
             loanTerm: formValues?.loanTerm,
             deposit: formValues?.deposit,
-            includeCosts: formValues?.includeCosts,
             calculationResult: result
           }),
         });

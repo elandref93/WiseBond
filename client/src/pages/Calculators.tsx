@@ -56,9 +56,9 @@ export default function Calculators() {
         </div>
       </div>
 
-      {/* Calculators Section - FULL WIDTH */}
-      <div className="py-12 px-0">
-        <div className="w-full">
+      {/* Calculators Section */}
+      <div className="py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">
             Our Financial Calculators
           </h2>
@@ -248,9 +248,9 @@ export default function Calculators() {
 
           </div>
 
-          {/* Calculator Detail Section - No width constraints */}
-          <div id="calculator-detail" className="mt-16 bg-white overflow-hidden shadow rounded-lg w-full">
-            <div className="px-0 py-5 w-full">
+          {/* Calculator Detail Section */}
+          <div id="calculator-detail" className="mt-16 bg-white overflow-hidden shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <div className="bg-gray-100 rounded-lg p-2 mb-8">
                   <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 bg-transparent p-0">
@@ -266,35 +266,18 @@ export default function Calculators() {
 
                 <TabsContent value="bond">
                   <div className="flex flex-col md:flex-row gap-8">
-                    <div className="w-full md:w-1/3">
+                    <div className="w-full">
                       <BondRepaymentCalculator onCalculate={handleCalculationComplete} />
-                    </div>
-                    <div className="w-full md:w-2/3">
-                      {calculationResults && calculationResults.type === 'bond' ? (
-                        <CalculationResults results={calculationResults} formValues={formValues} />
-                      ) : (
-                        <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
-                          <div className="text-center">
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">
-                              Calculate Your Bond Repayments
-                            </h3>
-                            <p className="text-gray-500">
-                              Fill in the property details to see your monthly repayments,
-                              total repayment amount, and total interest paid over the loan term.
-                            </p>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </TabsContent>
 
                 <TabsContent value="affordability">
-                  <div className="flex flex-col md:flex-row gap-8">
-                    <div className="w-full md:w-1/3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-1">
                       <AffordabilityCalculator onCalculate={handleCalculationComplete} />
                     </div>
-                    <div className="w-full md:w-2/3">
+                    <div className="md:col-span-2">
                       {calculationResults && calculationResults.type === 'affordability' ? (
                         <CalculationResults results={calculationResults} />
                       ) : (
@@ -315,11 +298,11 @@ export default function Calculators() {
                 </TabsContent>
 
                 <TabsContent value="deposit">
-                  <div className="flex flex-col md:flex-row gap-8">
-                    <div className="w-full md:w-1/3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-1">
                       <DepositSavingsCalculator onCalculate={handleCalculationComplete} />
                     </div>
-                    <div className="w-full md:w-2/3">
+                    <div className="md:col-span-2">
                       {calculationResults && calculationResults.type === 'deposit' ? (
                         <CalculationResults results={calculationResults} />
                       ) : (
@@ -341,11 +324,11 @@ export default function Calculators() {
                 </TabsContent>
 
                 <TabsContent value="transfer">
-                  <div className="flex flex-col md:flex-row gap-8">
-                    <div className="w-full md:w-1/3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-1">
                       <BondsTransferCostsCalculator onCalculate={handleCalculationComplete} />
                     </div>
-                    <div className="w-full md:w-2/3">
+                    <div className="md:col-span-2">
                       {calculationResults && calculationResults.type === 'transfer' ? (
                         <CalculationResults results={calculationResults} />
                       ) : (
@@ -367,33 +350,33 @@ export default function Calculators() {
 
                 <TabsContent value="additional">
                   {calculationResults && calculationResults.type === 'additional' ? (
-                    <div className="space-y-8">
+                    <div className="flex flex-col space-y-8">
                       {/* Top section: Calculator form and basic results side by side */}
-                      <div className="flex flex-col md:flex-row gap-8">
-                        <div className="w-full md:w-1/3 bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-1">
                           <AdditionalPaymentCalculator onCalculate={handleCalculationComplete} />
                         </div>
-                        <div className="w-full md:w-2/3">
+                        <div className="lg:col-span-2">
                           <CalculationResults results={calculationResults} formValues={formValues} />
                         </div>
                       </div>
                       
-                      {/* Completely unlinked chart that uses more screen space */}
-                      <div className="w-full -mx-8">
+                      {/* Bottom section: Full-width chart area */}
+                      <div className="w-full bg-white p-6 rounded-xl shadow-sm">
                         <AdditionalPaymentChart 
-                          loanAmount={calculationResults.loanAmount || 0}
-                          interestRate={calculationResults.interestRate || 0}
-                          loanTerm={calculationResults.loanTermYears || 0}
-                          additionalPayment={calculationResults.additionalPayment || 0}
+                          loanAmount={calculationResults.loanAmount}
+                          interestRate={calculationResults.interestRate}
+                          loanTerm={calculationResults.loanTermYears}
+                          additionalPayment={calculationResults.additionalPayment}
                         />
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-col md:flex-row gap-8">
-                      <div className="w-full md:w-1/3 bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                      <div className="lg:col-span-1">
                         <AdditionalPaymentCalculator onCalculate={handleCalculationComplete} />
                       </div>
-                      <div className="w-full md:w-2/3">
+                      <div className="lg:col-span-2">
                         <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
                           <div className="text-center">
                             <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -411,24 +394,14 @@ export default function Calculators() {
                 </TabsContent>
 
                 <TabsContent value="amortisation">
-                  {calculationResults && calculationResults.type === 'amortisation' ? (
-                    <div className="space-y-8">
-                      {/* Top section: Calculator form and basic results side by side */}
-                      <div className="flex flex-col md:flex-row gap-8">
-                        <div className="w-full md:w-1/3 bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                          <AmortizationCalculator onCalculate={handleCalculationComplete} />
-                        </div>
-                        <div className="w-full md:w-2/3">
-                          <CalculationResults results={calculationResults} formValues={formValues} />
-                        </div>
-                      </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-1">
+                      <AmortizationCalculator onCalculate={handleCalculationComplete} />
                     </div>
-                  ) : (
-                    <div className="flex flex-col md:flex-row gap-8">
-                      <div className="w-full md:w-1/3">
-                        <AmortizationCalculator onCalculate={handleCalculationComplete} />
-                      </div>
-                      <div className="w-full md:w-2/3">
+                    <div className="md:col-span-2">
+                      {calculationResults && calculationResults.type === 'amortisation' ? (
+                        <CalculationResults results={calculationResults} formValues={formValues} />
+                      ) : (
                         <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
                           <div className="text-center">
                             <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -440,9 +413,9 @@ export default function Calculators() {
                             </p>
                           </div>
                         </div>
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="comparison">
