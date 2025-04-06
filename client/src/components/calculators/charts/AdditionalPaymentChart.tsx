@@ -191,7 +191,7 @@ export default function AdditionalPaymentChart({
   ];
   
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-8 -mx-4 sm:-mx-8 px-4 sm:px-8">
       <h2 className="text-3xl font-bold mb-8 text-center">Additional Payment Impact</h2>
       
       {/* Summary Stats Cards */}
@@ -213,10 +213,10 @@ export default function AdditionalPaymentChart({
         ))}
       </div>
       
-      {/* Main Chart Section - Full Width */}
+      {/* Main Chart Section - Full Width with expanded margins */}
       <div className="w-full bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
         <h3 className="text-xl font-semibold mb-4">Loan Balance Comparison</h3>
-        <div className="h-[500px]">
+        <div className="h-[500px] -mx-4">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={comparisonData}

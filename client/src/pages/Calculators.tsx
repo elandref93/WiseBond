@@ -248,9 +248,9 @@ export default function Calculators() {
 
           </div>
 
-          {/* Calculator Detail Section */}
-          <div id="calculator-detail" className="mt-16 bg-white overflow-hidden shadow rounded-lg max-w-full">
-            <div className="px-4 py-5 sm:p-6 w-full">
+          {/* Calculator Detail Section - No width constraints */}
+          <div id="calculator-detail" className="mt-16 bg-white overflow-hidden shadow rounded-lg w-full">
+            <div className="px-0 py-5 w-full">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <div className="bg-gray-100 rounded-lg p-2 mb-8">
                   <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 bg-transparent p-0">
@@ -378,16 +378,14 @@ export default function Calculators() {
                         </div>
                       </div>
                       
-                      {/* Bottom section: Full-width chart area with enhanced width */}
-                      <div className="w-full overflow-x-auto">
-                        <div className="min-w-full">
-                          <AdditionalPaymentChart 
-                            loanAmount={calculationResults.loanAmount || 0}
-                            interestRate={calculationResults.interestRate || 0}
-                            loanTerm={calculationResults.loanTermYears || 0}
-                            additionalPayment={calculationResults.additionalPayment || 0}
-                          />
-                        </div>
+                      {/* Completely unlinked chart that uses more screen space */}
+                      <div className="w-full -mx-8">
+                        <AdditionalPaymentChart 
+                          loanAmount={calculationResults.loanAmount || 0}
+                          interestRate={calculationResults.interestRate || 0}
+                          loanTerm={calculationResults.loanTermYears || 0}
+                          additionalPayment={calculationResults.additionalPayment || 0}
+                        />
                       </div>
                     </div>
                   ) : (
