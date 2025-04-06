@@ -90,7 +90,7 @@ export default function CalculationResults({ results, formValues }: CalculationR
                       </Tooltip>
                     </TooltipProvider>
                   ) : (
-                    <div className="w-5 h-5" /> {/* Empty space to maintain layout */}
+                    <div className="w-5 h-5"></div>
                   )}
                 </div>
               </CardContent>
