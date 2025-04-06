@@ -94,9 +94,23 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         // Calculate results
         const results = calculateBondRepayment(propertyValue, interestRate, loanTerm, deposit, formValues.includeBondFees);
         
+        // Calculate loan amount
+        let loanAmount = propertyValue - deposit;
+        
+        // If including bond fees, add the costs to the loan amount
+        if (formValues.includeBondFees) {
+          // Calculate additional financing costs (same as getAdditionalFinancingAmount)
+          const transferDuty = Math.round(loanAmount * 0.08);
+          const transferAttorneyFees = Math.round(loanAmount * 0.015);
+          const bondRegistrationFee = Math.round(loanAmount * 0.012);
+          const deedsOfficeFee = 1500;
+          
+          loanAmount += transferDuty + transferAttorneyFees + bondRegistrationFee + deedsOfficeFee;
+        }
+        
         // Store loan details for chart
         setLoanDetails({
-          loanAmount: propertyValue - deposit,
+          loanAmount: loanAmount,
           interestRate,
           loanTerm
         });
@@ -197,14 +211,9 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     const x = Math.pow(1 + monthlyRate, numberOfPayments);
     const monthlyPayment = (loanDetails.loanAmount * x * monthlyRate) / (x - 1);
     
-    // Add bond fees if checkbox is checked
-    const includeBondFees = form.watch("includeBondFees");
-    let totalRepayment = monthlyPayment * numberOfPayments;
-    
-    if (includeBondFees) {
-      const initiationFee = 6037.50 + (loanDetails.loanAmount * 0.0023);
-      totalRepayment += initiationFee;
-    }
+    // The transfer and registration costs are already included in the loan amount
+    // when the checkbox is checked, so no need to add them again
+    const totalRepayment = monthlyPayment * numberOfPayments;
     
     return formatCurrency(totalRepayment);
   };
@@ -221,30 +230,32 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     return formatCurrency(monthlyPayment * numberOfPayments - loanDetails.loanAmount);
   };
   
-  // Calculate bond initiation fee
-  const calculateInitiationFee = () => {
+  // Calculate total transfer and bond registration costs - to be included in financing
+  const calculateTotalTransferCosts = () => {
     const includeBondFees = form.watch("includeBondFees");
     if (!loanDetails || !includeBondFees) return null;
     
-    const initiationFee = 6037.50 + (loanDetails.loanAmount * 0.0023);
-    return formatCurrency(initiationFee);
+    // Approximate values for a R3M property (from image example)
+    const transferDuty = Math.round(loanDetails.loanAmount * 0.08); // Approximate transfer duty percentage
+    const transferAttorneyFees = Math.round(loanDetails.loanAmount * 0.015); // Approximate attorney fees
+    const bondRegistrationFee = Math.round(loanDetails.loanAmount * 0.012); // Approximate bond registration
+    const deedsOfficeFee = 1500; // Fixed fee
+    
+    const totalCosts = transferDuty + transferAttorneyFees + bondRegistrationFee + deedsOfficeFee;
+    return formatCurrency(totalCosts);
   };
   
-  // Calculate monthly admin fee
-  const calculateMonthlyAdminFee = () => {
+  // Return the actual additional amount for calculations
+  const getAdditionalFinancingAmount = () => {
     const includeBondFees = form.watch("includeBondFees");
-    if (!loanDetails || !includeBondFees) return null;
+    if (!loanDetails || !includeBondFees) return 0;
     
-    return "R69/month";
-  };
-  
-  // Calculate total fees - only includes the initiation fee, no monthly admin fee
-  const calculateTotalFees = () => {
-    const includeBondFees = form.watch("includeBondFees");
-    if (!loanDetails || !includeBondFees) return null;
+    const transferDuty = Math.round(loanDetails.loanAmount * 0.08);
+    const transferAttorneyFees = Math.round(loanDetails.loanAmount * 0.015);
+    const bondRegistrationFee = Math.round(loanDetails.loanAmount * 0.012);
+    const deedsOfficeFee = 1500;
     
-    const initiationFee = 6037.50 + (loanDetails.loanAmount * 0.0023);
-    return formatCurrency(initiationFee);
+    return transferDuty + transferAttorneyFees + bondRegistrationFee + deedsOfficeFee;
   };
 
   // Generate yearly amortization data for table
@@ -510,7 +521,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                         Include Bond Fees and Costs
                       </FormLabel>
                       <FormDescription className="text-xs text-gray-500">
-                        Add one-time initiation fee (R6,037.50 + 0.23% of loan amount) to total costs
+                        Include transfer duty, attorney fees, bond registration fee, and deeds office fee in financing
                       </FormDescription>
                     </div>
                   </FormItem>
@@ -576,13 +587,13 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                   </div>
                 </div>
                 
-                {/* Bond Fee Tile - Only show when includeBondFees is checked */}
-                {form.watch("includeBondFees") && calculateTotalFees() && (
+                {/* Transfer and Registration Costs Tile - Only show when includeBondFees is checked */}
+                {form.watch("includeBondFees") && calculateTotalTransferCosts() && (
                   <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-sm text-gray-500 mb-1">Total Bond Fees & Costs</div>
-                        <div className="text-2xl font-bold">{calculateTotalFees()}</div>
+                        <div className="text-sm text-gray-500 mb-1">Transfer & Registration Costs</div>
+                        <div className="text-2xl font-bold">{calculateTotalTransferCosts()}</div>
                       </div>
                       <div className="bg-purple-100 p-3 rounded-full">
                         <BanknoteIcon className="h-6 w-6 text-purple-600" />
