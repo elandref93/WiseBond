@@ -297,238 +297,233 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         </div>
       </div>
 
-      {/* Two column layout for inputs and basic results */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-        {/* Left column - Form inputs */}
-        <div>
-          <Form {...form}>
-            <div className="space-y-5">
-              {/* Property Value Field with Slider */}
-              <FormField
-                control={form.control}
-                name="propertyValue"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <FormLabel className="text-sm font-medium">Property Value</FormLabel>
-                      <FinancialTermTooltip
-                        term="market value"
-                        definition={financialTerms["market value"]}
-                        showIcon={true}
-                        iconClass="h-4 w-4 text-gray-400"
-                      />
-                    </div>
-                    <FormControl>
-                      <div className="space-y-2">
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-gray-500 sm:text-sm">R</span>
-                          </div>
-                          <Input
-                            {...field}
-                            className="pl-8"
-                            onChange={(e) => {
-                              // Keep only digits by removing any non-numeric characters
-                              const numericValue = handleCurrencyInput(e.target.value);
-                              field.onChange(numericValue);
-                            }}
-                          />
+      {/* Single container for form and results */}
+      <div className="w-full mt-4">
+        <Form {...form}>
+          <div className="space-y-5">
+            {/* Property Value Field with Slider */}
+            <FormField
+              control={form.control}
+              name="propertyValue"
+              render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <FormLabel className="text-sm font-medium">Property Value</FormLabel>
+                    <FinancialTermTooltip
+                      term="market value"
+                      definition={financialTerms["market value"]}
+                      showIcon={true}
+                      iconClass="h-4 w-4 text-gray-400"
+                    />
+                  </div>
+                  <FormControl>
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span className="text-gray-500 sm:text-sm">R</span>
                         </div>
-                        <div className="flex items-center">
-                          <span className="text-xs text-gray-500 mr-1">R500,000</span>
-                          <Slider
-                            defaultValue={[currentPropertyValue]}
-                            min={500000}
-                            max={20000000}
-                            step={100000}
-                            onValueChange={handlePropertyValueSliderChange}
-                            className="flex-grow mx-2"
-                          />
-                          <span className="text-xs text-gray-500 ml-1">R20M</span>
+                        <Input
+                          {...field}
+                          className="pl-8"
+                          onChange={(e) => {
+                            // Keep only digits by removing any non-numeric characters
+                            const numericValue = handleCurrencyInput(e.target.value);
+                            field.onChange(numericValue);
+                          }}
+                        />
+                      </div>
+                      <div className="flex items-center">
+                        <span className="text-xs text-gray-500 mr-1">R500,000</span>
+                        <Slider
+                          defaultValue={[currentPropertyValue]}
+                          min={500000}
+                          max={20000000}
+                          step={100000}
+                          onValueChange={handlePropertyValueSliderChange}
+                          className="flex-grow mx-2"
+                        />
+                        <span className="text-xs text-gray-500 ml-1">R20M</span>
+                      </div>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Interest Rate Field with Slider */}
+            <FormField
+              control={form.control}
+              name="interestRate"
+              render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <FormLabel className="text-sm font-medium">Interest Rate (%)</FormLabel>
+                    <FinancialTermTooltip
+                      term="interest rate"
+                      definition={financialTerms["interest rate"]}
+                      showIcon={true}
+                      iconClass="h-4 w-4 text-gray-400"
+                    />
+                  </div>
+                  <FormControl>
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          type="text"
+                          className="pl-3"
+                          onChange={(e) => {
+                            // Validate interest rate input
+                            const value = e.target.value.replace(/[^\d.]/g, '');
+                            if (!value || !isNaN(Number(value))) {
+                              field.onChange(value);
+                            }
+                          }}
+                        />
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          <span className="text-gray-500 sm:text-sm">%</span>
                         </div>
                       </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Interest Rate Field with Slider */}
-              <FormField
-                control={form.control}
-                name="interestRate"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <FormLabel className="text-sm font-medium">Interest Rate (%)</FormLabel>
-                      <FinancialTermTooltip
-                        term="interest rate"
-                        definition={financialTerms["interest rate"]}
-                        showIcon={true}
-                        iconClass="h-4 w-4 text-gray-400"
-                      />
-                    </div>
-                    <FormControl>
-                      <div className="space-y-2">
-                        <div className="relative">
-                          <Input
-                            {...field}
-                            type="text"
-                            className="pl-3"
-                            onChange={(e) => {
-                              // Validate interest rate input
-                              const value = e.target.value.replace(/[^\d.]/g, '');
-                              if (!value || !isNaN(Number(value))) {
-                                field.onChange(value);
-                              }
-                            }}
-                          />
-                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <span className="text-gray-500 sm:text-sm">%</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center">
-                          <span className="text-xs text-gray-500 mr-1">5%</span>
-                          <Slider
-                            defaultValue={[currentInterestRate]}
-                            min={5}
-                            max={20}
-                            step={0.25}
-                            onValueChange={handleInterestRateSliderChange}
-                            className="flex-grow mx-2"
-                          />
-                          <span className="text-xs text-gray-500 ml-1">20%</span>
-                        </div>
+                      <div className="flex items-center">
+                        <span className="text-xs text-gray-500 mr-1">5%</span>
+                        <Slider
+                          defaultValue={[currentInterestRate]}
+                          min={5}
+                          max={20}
+                          step={0.25}
+                          onValueChange={handleInterestRateSliderChange}
+                          className="flex-grow mx-2"
+                        />
+                        <span className="text-xs text-gray-500 ml-1">20%</span>
                       </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Loan Term Field */}
-              <FormField
-                control={form.control}
-                name="loanTerm"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <FormLabel className="text-sm font-medium">Loan Term</FormLabel>
-                      <FinancialTermTooltip
-                        term="amortization"
-                        definition={financialTerms["amortization"]}
-                        showIcon={true}
-                        iconClass="h-4 w-4 text-gray-400"
-                      />
                     </div>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select loan term" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="10">10 years</SelectItem>
-                        <SelectItem value="15">15 years</SelectItem>
-                        <SelectItem value="20">20 years</SelectItem>
-                        <SelectItem value="25">25 years</SelectItem>
-                        <SelectItem value="30">30 years</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              {/* Deposit Field with Slider */}
-              <FormField
-                control={form.control}
-                name="deposit"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <FormLabel className="text-sm font-medium">Deposit</FormLabel>
-                      <FinancialTermTooltip
-                        term="deposit"
-                        definition={financialTerms["deposit"]}
-                        showIcon={true}
-                        iconClass="h-4 w-4 text-gray-400"
-                      />
-                    </div>
+            {/* Loan Term Field */}
+            <FormField
+              control={form.control}
+              name="loanTerm"
+              render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <FormLabel className="text-sm font-medium">Loan Term</FormLabel>
+                    <FinancialTermTooltip
+                      term="amortization"
+                      definition={financialTerms["amortization"]}
+                      showIcon={true}
+                      iconClass="h-4 w-4 text-gray-400"
+                    />
+                  </div>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
-                      <div className="space-y-2">
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-gray-500 sm:text-sm">R</span>
-                          </div>
-                          <Input
-                            {...field}
-                            className="pl-8"
-                            onChange={(e) => {
-                              const numericValue = handleCurrencyInput(e.target.value);
-                              field.onChange(numericValue);
-                            }}
-                          />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select loan term" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="10">10 years</SelectItem>
+                      <SelectItem value="15">15 years</SelectItem>
+                      <SelectItem value="20">20 years</SelectItem>
+                      <SelectItem value="25">25 years</SelectItem>
+                      <SelectItem value="30">30 years</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Deposit Field with Slider */}
+            <FormField
+              control={form.control}
+              name="deposit"
+              render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <FormLabel className="text-sm font-medium">Deposit</FormLabel>
+                    <FinancialTermTooltip
+                      term="deposit"
+                      definition={financialTerms["deposit"]}
+                      showIcon={true}
+                      iconClass="h-4 w-4 text-gray-400"
+                    />
+                  </div>
+                  <FormControl>
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span className="text-gray-500 sm:text-sm">R</span>
                         </div>
-                        <div className="flex items-center">
-                          <span className="text-xs text-gray-500 mr-1">R0</span>
-                          <Slider
-                            defaultValue={[currentDeposit]}
-                            min={0}
-                            max={Math.min(5000000, currentPropertyValue * 0.5)}
-                            step={10000}
-                            onValueChange={handleDepositSliderChange}
-                            className="flex-grow mx-2"
-                          />
-                          <span className="text-xs text-gray-500 ml-1">{displayMaxDeposit}</span>
-                        </div>
+                        <Input
+                          {...field}
+                          className="pl-8"
+                          onChange={(e) => {
+                            const numericValue = handleCurrencyInput(e.target.value);
+                            field.onChange(numericValue);
+                          }}
+                        />
                       </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Include Transfer and Registration Costs Checkbox */}
-              <FormField
-                control={form.control}
-                name="includeCosts"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4 pt-4 border-t">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="text-sm font-medium">
-                        Include transfer and bond registration costs
-                      </FormLabel>
-                      <p className="text-xs text-gray-500">
-                        Add the costs of transferring the property and registering the bond to the loan amount
-                      </p>
+                      <div className="flex items-center">
+                        <span className="text-xs text-gray-500 mr-1">R0</span>
+                        <Slider
+                          defaultValue={[currentDeposit]}
+                          min={0}
+                          max={Math.min(5000000, currentPropertyValue * 0.5)}
+                          step={10000}
+                          onValueChange={handleDepositSliderChange}
+                          className="flex-grow mx-2"
+                        />
+                        <span className="text-xs text-gray-500 ml-1">{displayMaxDeposit}</span>
+                      </div>
                     </div>
-                  </FormItem>
-                )}
-              />
-            </div>
-          </Form>
-          
-          <div className="mt-4 border-t pt-4">
-            <p className="text-xs text-gray-500 mb-2">
-              Results update automatically as you adjust values
-            </p>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Include Transfer and Registration Costs Checkbox */}
+            <FormField
+              control={form.control}
+              name="includeCosts"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4 pt-4 border-t">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel className="text-sm font-medium">
+                      Include transfer and bond registration costs
+                    </FormLabel>
+                    <p className="text-xs text-gray-500">
+                      Add the costs of transferring the property and registering the bond to the loan amount
+                    </p>
+                  </div>
+                </FormItem>
+              )}
+            />
           </div>
-        </div>
-
-        {/* Right column - Basic Results placeholder */}
-        <div>
+        </Form>
+        
+        <div className="mt-6 mb-8">
+          <p className="text-xs text-gray-500">
+            Results update automatically as you adjust values
+          </p>
+          
+          {/* No results placeholder */}
           {!loanDetails && (
-            <div className="border rounded-lg p-8 text-center bg-gray-50 flex flex-col items-center justify-center h-full">
+            <div className="border rounded-lg p-8 text-center bg-gray-50 flex flex-col items-center justify-center mt-6">
               <div className="text-gray-400 mb-4">
                 <HomeIcon className="h-12 w-12 mx-auto" />
               </div>
