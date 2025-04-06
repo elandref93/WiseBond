@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
-import { HomeIcon, InfoIcon, CalendarIcon, BanknoteIcon, PercentIcon } from "lucide-react";
+import { HomeIcon, InfoIcon, CalendarIcon, BanknoteIcon, PercentIcon, CreditCardIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   calculateBondRepayment, 
@@ -590,6 +590,54 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                     </div>
                   </div>
                 </div>
+                
+                {/* Additional costs breakdown tile - only shown when checkbox is selected */}
+                {form.watch("includeCosts") && (
+                  <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow mt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <div className="text-sm text-gray-500 mb-1">Additional Costs Breakdown</div>
+                        <div className="text-xl font-bold">{formatCurrency(loanDetails && loanDetails.loanAmount - (currentPropertyValue - currentDeposit))}</div>
+                      </div>
+                      <div className="bg-amber-100 p-3 rounded-full">
+                        <CreditCardIcon className="h-6 w-6 text-amber-600" />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm border-t pt-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Transfer Duty:</span>
+                        <span className="font-medium">
+                          {formatCurrency(
+                            currentPropertyValue <= 1000000 
+                              ? 0 
+                              : currentPropertyValue <= 1375000
+                              ? (currentPropertyValue - 1000000) * 0.03
+                              : currentPropertyValue <= 1925000
+                              ? 11250 + (currentPropertyValue - 1375000) * 0.06
+                              : currentPropertyValue <= 2475000
+                              ? 44250 + (currentPropertyValue - 1925000) * 0.08
+                              : currentPropertyValue <= 11000000
+                              ? 88250 + (currentPropertyValue - 2475000) * 0.11
+                              : 1026000 + (currentPropertyValue - 11000000) * 0.13
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Transfer Attorney Fees:</span>
+                        <span className="font-medium">{formatCurrency(currentPropertyValue * 0.015)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Bond Registration Fee:</span>
+                        <span className="font-medium">{formatCurrency(currentPropertyValue * 0.012)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Deeds Office Fee:</span>
+                        <span className="font-medium">{formatCurrency(1500)}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
