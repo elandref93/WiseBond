@@ -265,9 +265,26 @@ export default function Calculators() {
                 </div>
 
                 <TabsContent value="bond">
-                  <div className="flex flex-col md:flex-row gap-8">
-                    <div className="w-full">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-1">
                       <BondRepaymentCalculator onCalculate={handleCalculationComplete} />
+                    </div>
+                    <div className="md:col-span-2">
+                      {calculationResults && calculationResults.type === 'bond' ? (
+                        <CalculationResults results={calculationResults} formValues={formValues} />
+                      ) : (
+                        <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
+                          <div className="text-center">
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                              Calculate Your Bond Repayments
+                            </h3>
+                            <p className="text-gray-500">
+                              Fill in the property details to see your monthly repayments,
+                              total repayment amount, and total interest paid over the loan term.
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </TabsContent>
