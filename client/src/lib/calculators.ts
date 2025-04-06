@@ -158,11 +158,15 @@ export function calculateBondRepayment(
   // Add additional costs if they are included
   let transferCosts = 0;
   let bondRegistrationCosts = 0;
+  let transferDuty = 0;
+  let deedsOfficeFee = 0;
   let totalCosts = 0;
   
   if (additionalCosts) {
     transferCosts = additionalCosts.transferCosts;
     bondRegistrationCosts = additionalCosts.bondRegistrationCosts;
+    transferDuty = additionalCosts.transferDuty;
+    deedsOfficeFee = additionalCosts.deedsOfficeFee;
     totalCosts = transferCosts + bondRegistrationCosts;
     loanAmount += totalCosts;
   }
@@ -215,7 +219,17 @@ export function calculateBondRepayment(
     result.includesAdditionalCosts = true;
     result.transferCosts = transferCosts;
     result.bondRegistrationCosts = bondRegistrationCosts;
+    result.transferDuty = transferDuty;
+    result.deedsOfficeFee = deedsOfficeFee;
     result.totalAdditionalCosts = totalCosts;
+    
+    // Store additional costs as a structured object for email and PDF generation
+    result.additionalCosts = {
+      transferCosts,
+      bondRegistrationCosts,
+      transferDuty,
+      deedsOfficeFee
+    };
     
     // Add a breakdown of the costs to the display results
     result.displayResults.push({
