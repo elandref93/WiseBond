@@ -634,8 +634,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Generate PDF reports
-  app.post("/api/reports/bond-repayment", generateBondRepaymentReport);
-  app.post("/api/reports/additional-payment", generateAdditionalPaymentReport);
+  app.post("/api/reports/bond-repayment", isAuthenticated, generateBondRepaymentReport);
+  app.post("/api/reports/additional-payment", isAuthenticated, generateAdditionalPaymentReport);
 
   // Budget Management Routes
   // Budget Categories

@@ -3,6 +3,7 @@ import { CalculationResult } from "@/lib/calculators";
 import { Button } from "@/components/ui/button";
 import { FileDown, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DownloadPdfButtonProps {
   result: CalculationResult;
@@ -19,11 +20,23 @@ export default function DownloadPdfButton({
 }: DownloadPdfButtonProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const handleDownload = async () => {
     setLoading(true);
     
     try {
+      // Check if user is authenticated first
+      if (!user) {
+        toast({
+          title: "Login Required",
+          description: "Please log in to download PDF reports. Your calculation data will be saved.",
+          variant: "default",
+        });
+        window.location.href = "/auth?redirect=calculators";
+        return;
+      }
+      
       console.log("Download requested for calculation type:", result.type);
       console.log("Form values:", formValues);
       
@@ -45,6 +58,17 @@ export default function DownloadPdfButton({
       }
     } catch (error) {
       console.error("Error downloading PDF:", error);
+      
+      // Handle 401 Unauthorized errors specifically
+      if (error instanceof Error && error.message.includes("401")) {
+        toast({
+          title: "Session Expired",
+          description: "Your session has expired. Please log in again to download PDFs.",
+          variant: "destructive",
+        });
+        window.location.href = "/auth?redirect=calculators";
+        return;
+      }
       
       // More detailed error feedback for debugging
       if (error instanceof Error) {
