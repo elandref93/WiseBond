@@ -560,6 +560,65 @@ function renderBondRepaymentTemplate(
         </div>
       `;
     }
+    
+    // Add additional costs breakdown if includeCosts is true
+    if (inputData.includeCosts) {
+      // Calculate costs based on property value for PDF
+      const propertyValue = parseFloat(inputData.propertyValue);
+      
+      // Calculate transfer duty
+      let transferDuty = 0;
+      if (propertyValue <= 1000000) {
+        transferDuty = 0; // No transfer duty below R1,000,000
+      } else if (propertyValue <= 1375000) {
+        transferDuty = (propertyValue - 1000000) * 0.03;
+      } else if (propertyValue <= 1925000) {
+        transferDuty = 11250 + (propertyValue - 1375000) * 0.06;
+      } else if (propertyValue <= 2475000) {
+        transferDuty = 44250 + (propertyValue - 1925000) * 0.08;
+      } else if (propertyValue <= 11000000) {
+        transferDuty = 88250 + (propertyValue - 2475000) * 0.11;
+      } else {
+        transferDuty = 1026000 + (propertyValue - 11000000) * 0.13;
+      }
+      
+      // Calculate other fees
+      const transferAttorneyFee = propertyValue * 0.015;
+      const bondRegistrationFee = propertyValue * 0.012;
+      const deedsOfficeFee = 1500;
+      const totalAdditionalCosts = transferDuty + transferAttorneyFee + bondRegistrationFee + deedsOfficeFee;
+      
+      inputDetailsHtml += `
+        <div style="border-top: 1px solid #eee; margin-top: 10px; padding-top: 10px;">
+          <div style="font-size: 13px; font-weight: 600; color: #333; margin-bottom: 5px;">Additional Costs Breakdown:</div>
+          
+          <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 3px 5px;">
+            <span style="color: #666;">Transfer Duty:</span>
+            <span style="font-weight: 500;">R ${transferDuty.toLocaleString('en-ZA', {maximumFractionDigits: 0})}</span>
+          </div>
+          
+          <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 3px 5px;">
+            <span style="color: #666;">Transfer Attorney Fees:</span>
+            <span style="font-weight: 500;">R ${transferAttorneyFee.toLocaleString('en-ZA', {maximumFractionDigits: 0})}</span>
+          </div>
+          
+          <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 3px 5px;">
+            <span style="color: #666;">Bond Registration Fee:</span>
+            <span style="font-weight: 500;">R ${bondRegistrationFee.toLocaleString('en-ZA', {maximumFractionDigits: 0})}</span>
+          </div>
+          
+          <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 3px 5px;">
+            <span style="color: #666;">Deeds Office Fee:</span>
+            <span style="font-weight: 500;">R ${deedsOfficeFee.toLocaleString('en-ZA', {maximumFractionDigits: 0})}</span>
+          </div>
+          
+          <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 5px; border-top: 1px dashed #eee; margin-top: 5px; padding-top: 5px;">
+            <span style="color: #333; font-weight: 600;">Total Additional Costs:</span>
+            <span style="font-weight: 600; color: hsl(26, 79%, 51%);">R ${totalAdditionalCosts.toLocaleString('en-ZA', {maximumFractionDigits: 0})}</span>
+          </div>
+        </div>
+      `;
+    }
   }
   html = html.replace('{{inputDetails}}', inputDetailsHtml);
   
