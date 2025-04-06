@@ -28,11 +28,11 @@ export default function DownloadPdfButton({
       console.log("Form values:", formValues);
       
       // For bond calculator
-      if (result.type === 'bond') {
+      if (result.type === 'bond-repayment') {
         await handleBondRepaymentDownload();
       } 
       // For additional payment calculator
-      else if (result.type === 'additional') {
+      else if (result.type === 'additional-payment') {
         await handleAdditionalPaymentDownload();
       }
       else {
@@ -69,7 +69,13 @@ export default function DownloadPdfButton({
 
   const handleBondRepaymentDownload = async () => {
     // Log request details for debugging
-    const requestUrl = '/api/reports/bond-repayment';
+    // Make sure we use the same origin as the current page
+    const baseUrl = window.location.origin;
+    const requestUrl = `${baseUrl}/api/reports/bond-repayment`;
+    
+    console.log("Using base URL:", baseUrl);
+    console.log("Full request URL:", requestUrl);
+    
     const requestData = {
       propertyValue: formValues?.propertyValue,
       interestRate: formValues?.interestRate,
@@ -130,6 +136,13 @@ export default function DownloadPdfButton({
   };
 
   const handleAdditionalPaymentDownload = async () => {
+    // Make sure we use the same origin as the current page
+    const baseUrl = window.location.origin;
+    const requestUrl = `${baseUrl}/api/reports/additional-payment`;
+    
+    console.log("Using base URL:", baseUrl);
+    console.log("Full request URL:", requestUrl);
+    
     console.log("Sending additional payment PDF request with data:", {
       loanAmount: formValues?.loanAmount,
       interestRate: formValues?.interestRate,
@@ -138,7 +151,7 @@ export default function DownloadPdfButton({
       calculationResult: result
     });
     
-    const response = await fetch('/api/reports/additional-payment', {
+    const response = await fetch(requestUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
