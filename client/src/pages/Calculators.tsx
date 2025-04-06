@@ -56,9 +56,9 @@ export default function Calculators() {
         </div>
       </div>
 
-      {/* Calculators Section */}
-      <div className="py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      {/* Calculators Section - FULL WIDTH */}
+      <div className="py-12 px-0">
+        <div className="w-full">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">
             Our Financial Calculators
           </h2>
