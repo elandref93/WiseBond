@@ -1,5 +1,4 @@
 import { formatCurrency, CalculationResult } from "@/lib/calculators";
-import { Card, CardContent } from "@/components/ui/card";
 import { format, addYears } from "date-fns";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from "recharts";
 
@@ -224,14 +223,6 @@ export default function AmortizationResults({ results }: AmortizationResultsProp
             </tbody>
           </table>
         </div>
-      </div>
-      
-      <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
-        <p>
-          This amortization schedule is an estimate based on the information provided. 
-          Actual amounts may vary based on the exact terms of your loan, payment dates,
-          and any changes in your interest rate over the term of the loan.
-        </p>
       </div>
     </div>
   );

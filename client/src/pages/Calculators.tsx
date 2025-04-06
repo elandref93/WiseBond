@@ -367,10 +367,10 @@ export default function Calculators() {
 
                 <TabsContent value="additional">
                   {calculationResults && calculationResults.type === 'additional' ? (
-                    <div className="flex flex-col space-y-8">
+                    <div className="space-y-8">
                       {/* Top section: Calculator form and basic results side by side */}
                       <div className="flex flex-col md:flex-row gap-8">
-                        <div className="w-full md:w-1/3">
+                        <div className="w-full md:w-1/3 bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
                           <AdditionalPaymentCalculator onCalculate={handleCalculationComplete} />
                         </div>
                         <div className="w-full md:w-2/3">
@@ -378,8 +378,8 @@ export default function Calculators() {
                         </div>
                       </div>
                       
-                      {/* Bottom section: Full-width chart area */}
-                      <div className="w-full bg-white p-6 rounded-xl shadow-sm">
+                      {/* Bottom section: Full-width chart area - No container padding/margins */}
+                      <div className="w-full">
                         <AdditionalPaymentChart 
                           loanAmount={calculationResults.loanAmount || 0}
                           interestRate={calculationResults.interestRate || 0}
@@ -390,7 +390,7 @@ export default function Calculators() {
                     </div>
                   ) : (
                     <div className="flex flex-col md:flex-row gap-8">
-                      <div className="w-full md:w-1/3">
+                      <div className="w-full md:w-1/3 bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
                         <AdditionalPaymentCalculator onCalculate={handleCalculationComplete} />
                       </div>
                       <div className="w-full md:w-2/3">

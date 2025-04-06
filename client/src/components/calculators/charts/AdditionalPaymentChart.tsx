@@ -191,7 +191,7 @@ export default function AdditionalPaymentChart({
   ];
   
   return (
-    <>
+    <div className="w-full space-y-8">
       <h2 className="text-3xl font-bold mb-8 text-center">Additional Payment Impact</h2>
       
       {/* Summary Stats Cards */}
@@ -199,9 +199,9 @@ export default function AdditionalPaymentChart({
         {summaryStats.map((stat, index) => (
           <div 
             key={index} 
-            className={`p-4 rounded-lg ${stat.highlight 
+            className={`p-4 rounded-lg shadow-sm ${stat.highlight 
               ? 'bg-green-50 border border-green-200'
-              : 'bg-gray-50 border border-gray-200'
+              : 'bg-white border border-gray-200'
             }`}
           >
             <h3 className="text-sm font-medium text-gray-500">{stat.title}</h3>
@@ -213,171 +213,165 @@ export default function AdditionalPaymentChart({
         ))}
       </div>
       
-      <div className="flex flex-col space-y-8">
-        {/* Main Chart Section */}
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h3 className="text-xl font-semibold mb-4 text-center">Loan Balance Comparison</h3>
-          <div className="h-[500px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={comparisonData}
-                margin={{ top: 10, right: 30, left: 30, bottom: 30 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="year" 
-                  label={{ 
-                    value: 'Years', 
-                    position: 'insideBottomRight', 
-                    offset: -10
-                  }} 
-                />
-                <YAxis 
-                  tickFormatter={(value) => formatCurrency(value)}
-                  label={{
-                    value: 'Remaining Balance',
-                    angle: -90,
-                    position: 'insideLeft',
-                    style: { textAnchor: 'middle' }
-                  }}
-                />
-                <Tooltip 
-                  formatter={(value) => formatCurrency(Number(value))}
-                  labelFormatter={(label) => `Year ${label}`}
-                />
-                <Legend verticalAlign="top" height={40} />
-                <Line
-                  type="monotone"
-                  dataKey="originalBalance"
-                  stroke="#8884d8"
-                  name="Standard Repayment"
-                  strokeWidth={3}
-                  dot={{r: 6}}
-                  activeDot={{r: 8}}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="additionalPaymentBalance"
-                  stroke="#82ca9d"
-                  name="With Additional Payment"
-                  strokeWidth={3}
-                  dot={{r: 6}}
-                  activeDot={{r: 8}}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+      {/* Main Chart Section - Full Width */}
+      <div className="w-full bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+        <h3 className="text-xl font-semibold mb-4">Loan Balance Comparison</h3>
+        <div className="h-[500px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={comparisonData}
+              margin={{ top: 10, right: 30, left: 50, bottom: 30 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis 
+                dataKey="year" 
+                label={{ 
+                  value: 'Years', 
+                  position: 'insideBottomRight', 
+                  offset: -10
+                }} 
+              />
+              <YAxis 
+                tickFormatter={(value) => formatCurrency(value)}
+                label={{
+                  value: 'Remaining Balance',
+                  angle: -90,
+                  position: 'insideLeft',
+                  style: { textAnchor: 'middle' }
+                }}
+              />
+              <Tooltip 
+                formatter={(value) => formatCurrency(Number(value))}
+                labelFormatter={(label) => `Year ${label}`}
+              />
+              <Legend verticalAlign="top" height={40} />
+              <Line
+                type="monotone"
+                dataKey="originalBalance"
+                stroke="#8884d8"
+                name="Standard Repayment"
+                strokeWidth={3}
+                dot={{r: 6}}
+                activeDot={{r: 8}}
+              />
+              <Line
+                type="monotone"
+                dataKey="additionalPaymentBalance"
+                stroke="#82ca9d"
+                name="With Additional Payment"
+                strokeWidth={3}
+                dot={{r: 6}}
+                activeDot={{r: 8}}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
-        
-        {/* Interest Breakdown Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <h3 className="text-xl font-semibold mb-4 text-center">Standard Repayment</h3>
-            <div className="flex flex-col md:flex-row items-center">
-              <div className="w-full md:w-1/2">
-                <div className="h-[350px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={originalPieData}
-                        cx="50%"
-                        cy="40%"
-                        labelLine={false}
-                        label={false}
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {originalPieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                      <Legend layout="horizontal" verticalAlign="bottom" align="center" />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="w-full md:w-1/2 flex flex-col justify-center">
-                <div className="space-y-4 p-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Principal Amount</p>
-                    <p className="text-xl font-bold">{formatCurrency(loanAmount)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Total Interest</p>
-                    <p className="text-xl font-bold">{formatCurrency(totalOriginalInterest)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Total Cost</p>
-                    <p className="text-xl font-bold">{formatCurrency(loanAmount + totalOriginalInterest)}</p>
-                  </div>
-                </div>
-              </div>
+      </div>
+      
+      {/* Interest Breakdown Section - Full Width */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+          <h3 className="text-xl font-semibold mb-4">Standard Repayment</h3>
+          <div className="flex flex-col md:flex-row items-center">
+            <div className="w-full md:w-1/2 h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={originalPieData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={false}
+                    outerRadius={130}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {originalPieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                  <Legend layout="horizontal" verticalAlign="bottom" align="center" />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
-          </div>
-          
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <h3 className="text-xl font-semibold mb-4 text-center">With Additional Payment</h3>
-            <div className="flex flex-col md:flex-row items-center">
-              <div className="w-full md:w-1/2">
-                <div className="h-[350px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={additionalPaymentPieData}
-                        cx="50%"
-                        cy="40%"
-                        labelLine={false}
-                        label={false}
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {additionalPaymentPieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                      <Legend layout="horizontal" verticalAlign="bottom" align="center" />
-                    </PieChart>
-                  </ResponsiveContainer>
+            <div className="w-full md:w-1/2 flex flex-col justify-center">
+              <div className="space-y-4 p-4">
+                <div className="p-3 border border-gray-100 rounded bg-gray-50">
+                  <p className="text-sm text-gray-500">Principal Amount</p>
+                  <p className="text-xl font-bold">{formatCurrency(loanAmount)}</p>
                 </div>
-              </div>
-              <div className="w-full md:w-1/2 flex flex-col justify-center">
-                <div className="space-y-4 p-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Principal Amount</p>
-                    <p className="text-xl font-bold">{formatCurrency(loanAmount)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Total Interest</p>
-                    <p className="text-xl font-bold">{formatCurrency(totalInterestPaid)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Total Cost</p>
-                    <p className="text-xl font-bold">{formatCurrency(loanAmount + totalInterestPaid)}</p>
-                  </div>
+                <div className="p-3 border border-gray-100 rounded bg-gray-50">
+                  <p className="text-sm text-gray-500">Total Interest</p>
+                  <p className="text-xl font-bold">{formatCurrency(totalOriginalInterest)}</p>
+                </div>
+                <div className="p-3 border border-gray-100 rounded bg-gray-50">
+                  <p className="text-sm text-gray-500">Total Cost</p>
+                  <p className="text-xl font-bold">{formatCurrency(loanAmount + totalOriginalInterest)}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
         
-        {/* Summary Box */}
-        <div className="bg-green-50 p-8 rounded-lg border border-green-200">
-          <div className="text-center">
-            <h3 className="text-2xl font-bold text-green-600 mb-2">Your Savings Summary</h3>
-            <p className="text-3xl font-bold text-green-700 mb-4">
-              Save {formatCurrency(moneySaved)} in interest
-            </p>
-            <p className="text-lg text-gray-700">
-              By paying an additional {formatCurrency(additionalPayment)} per month on your R{formatCurrency(loanAmount).substring(1)} loan, 
-              you'll save {formatCurrency(moneySaved)} in interest and pay off your loan {timeSavedText} sooner.
-            </p>
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+          <h3 className="text-xl font-semibold mb-4">With Additional Payment</h3>
+          <div className="flex flex-col md:flex-row items-center">
+            <div className="w-full md:w-1/2 h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={additionalPaymentPieData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={false}
+                    outerRadius={130}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {additionalPaymentPieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                  <Legend layout="horizontal" verticalAlign="bottom" align="center" />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="w-full md:w-1/2 flex flex-col justify-center">
+              <div className="space-y-4 p-4">
+                <div className="p-3 border border-gray-100 rounded bg-gray-50">
+                  <p className="text-sm text-gray-500">Principal Amount</p>
+                  <p className="text-xl font-bold">{formatCurrency(loanAmount)}</p>
+                </div>
+                <div className="p-3 border border-gray-100 rounded bg-gray-50">
+                  <p className="text-sm text-gray-500">Total Interest</p>
+                  <p className="text-xl font-bold">{formatCurrency(totalInterestPaid)}</p>
+                </div>
+                <div className="p-3 border border-gray-100 rounded bg-gray-50">
+                  <p className="text-sm text-gray-500">Total Cost</p>
+                  <p className="text-xl font-bold">{formatCurrency(loanAmount + totalInterestPaid)}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </>
+      
+      {/* Summary Box - Full Width */}
+      <div className="w-full bg-green-50 p-8 rounded-lg border border-green-200 shadow-sm">
+        <div className="text-center">
+          <h3 className="text-2xl font-bold text-green-600 mb-2">Your Savings Summary</h3>
+          <p className="text-3xl font-bold text-green-700 mb-4">
+            Save {formatCurrency(moneySaved)} in interest
+          </p>
+          <p className="text-lg text-gray-700">
+            By paying an additional {formatCurrency(additionalPayment)} per month on your R{formatCurrency(loanAmount).substring(1)} loan, 
+            you'll save {formatCurrency(moneySaved)} in interest and pay off your loan {timeSavedText} sooner.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
