@@ -126,14 +126,14 @@ export function calculateBondRepayment(
   const totalAdminFees = monthlyAdminFee * numberOfPayments;
   const totalFees = initiationFee + totalAdminFees;
   
-  // Calculate total repayment over the loan term
-  const totalRepayment = monthlyRepayment * numberOfPayments;
+  // Calculate total repayment over the loan term including fees if selected
+  const totalRepayment = (monthlyRepayment * numberOfPayments) + (includeBondFees ? totalFees : 0);
   
   // Calculate total interest paid
-  const totalInterest = totalRepayment - loanAmount;
+  const totalInterest = (monthlyRepayment * numberOfPayments) - loanAmount;
   
-  // The monthly payment remains unaffected by the initiation fee since it's a once-off cost
-  const effectiveMonthlyPayment = monthlyRepayment;
+  // Calculate effective monthly payment (include monthly admin fee if selected)
+  const effectiveMonthlyPayment = monthlyRepayment + (includeBondFees ? monthlyAdminFee : 0);
   
   // Prepare results
   const results: CalculationResult = {

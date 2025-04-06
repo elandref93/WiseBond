@@ -185,7 +185,12 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     const x = Math.pow(1 + monthlyRate, numberOfPayments);
     const monthlyPayment = (loanDetails.loanAmount * x * monthlyRate) / (x - 1);
     
-    return formatCurrency(monthlyPayment);
+    // Add monthly admin fee if the "Include Bond Fees" checkbox is checked
+    const includeBondFees = form.watch("includeBondFees");
+    const monthlyAdminFee = includeBondFees ? 69 : 0;
+    const totalMonthlyPayment = monthlyPayment + monthlyAdminFee;
+    
+    return formatCurrency(totalMonthlyPayment);
   };
   
   // Calculate total repayment
@@ -197,7 +202,18 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     const x = Math.pow(1 + monthlyRate, numberOfPayments);
     const monthlyPayment = (loanDetails.loanAmount * x * monthlyRate) / (x - 1);
     
-    return formatCurrency(monthlyPayment * numberOfPayments);
+    // Add bond fees if checkbox is checked
+    const includeBondFees = form.watch("includeBondFees");
+    let totalRepayment = monthlyPayment * numberOfPayments;
+    
+    if (includeBondFees) {
+      const initiationFee = 6037.50 + (loanDetails.loanAmount * 0.0023);
+      const monthlyAdminFee = 69;
+      const totalFees = initiationFee + (monthlyAdminFee * numberOfPayments);
+      totalRepayment += totalFees;
+    }
+    
+    return formatCurrency(totalRepayment);
   };
   
   // Calculate total interest
@@ -505,7 +521,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                         Include Bond Fees and Costs
                       </FormLabel>
                       <FormDescription className="text-xs text-gray-500">
-                        Show once-off initiation fee (R6,037.50 + 0.23% of loan) and monthly admin fees (R69/month)
+                        Include R69/month admin fee in repayments and add one-time initiation fee (R6,037.50 + 0.23% of loan) to total costs
                       </FormDescription>
                     </div>
                   </FormItem>
@@ -571,44 +587,16 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                   </div>
                 </div>
                 
-                {/* Bond Fee Tiles - Only show when includeBondFees is checked */}
-                {form.watch("includeBondFees") && calculateInitiationFee() && (
-                  <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm text-gray-500 mb-1">Bond Initiation Fee (once-off)</div>
-                        <div className="text-2xl font-bold">{calculateInitiationFee()}</div>
-                      </div>
-                      <div className="bg-amber-100 p-3 rounded-full">
-                        <HomeIcon className="h-6 w-6 text-amber-600" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {form.watch("includeBondFees") && calculateMonthlyAdminFee() && (
-                  <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm text-gray-500 mb-1">Monthly Admin Fee (recurring)</div>
-                        <div className="text-2xl font-bold">{calculateMonthlyAdminFee()}</div>
-                      </div>
-                      <div className="bg-purple-100 p-3 rounded-full">
-                        <BanknoteIcon className="h-6 w-6 text-purple-600" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
+                {/* Bond Fee Tile - Only show when includeBondFees is checked */}
                 {form.watch("includeBondFees") && calculateTotalFees() && (
                   <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-sm text-gray-500 mb-1">Total Fees (over loan term)</div>
+                        <div className="text-sm text-gray-500 mb-1">Total Bond Fees & Costs</div>
                         <div className="text-2xl font-bold">{calculateTotalFees()}</div>
                       </div>
-                      <div className="bg-pink-100 p-3 rounded-full">
-                        <PercentIcon className="h-6 w-6 text-pink-600" />
+                      <div className="bg-purple-100 p-3 rounded-full">
+                        <BanknoteIcon className="h-6 w-6 text-purple-600" />
                       </div>
                     </div>
                   </div>
