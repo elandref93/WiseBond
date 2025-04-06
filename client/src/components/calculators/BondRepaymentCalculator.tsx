@@ -7,8 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
-import { HomeIcon, InfoIcon, CalendarIcon, BanknoteIcon, PercentIcon, CreditCardIcon } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { HomeIcon, InfoIcon } from "lucide-react";
 import { 
   calculateBondRepayment, 
   formatCurrency, 
@@ -51,6 +50,10 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     loanAmount: number;
     interestRate: number;
     loanTerm: number;
+    transferDuty?: number;
+    transferCosts?: number;
+    bondRegistrationCosts?: number;
+    deedsOfficeFee?: number;
   } | null>(null);
   const { user } = useAuth();
   const [lastSavedValues, setLastSavedValues] = useState<Partial<BondRepaymentFormValues> | null>(null);
@@ -148,7 +151,11 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         setLoanDetails({
           loanAmount: propertyValue - deposit + (includeCosts ? totalAdditionalCosts : 0),
           interestRate,
-          loanTerm
+          loanTerm,
+          transferDuty: includeCosts ? transferDuty : undefined,
+          transferCosts: includeCosts ? transferCosts : undefined,
+          bondRegistrationCosts: includeCosts ? bondRegistrationCosts : undefined,
+          deedsOfficeFee: includeCosts ? deedsOfficeFee : undefined
         });
         
         // Pass results and form values back to parent component
@@ -225,42 +232,6 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   const displayPropertyValue = displayCurrencyValue(currentPropertyValue);
   const displayDeposit = displayCurrencyValue(currentDeposit);
   const displayMaxDeposit = displayCurrencyValue(Math.min(5000000, currentPropertyValue * 0.5));
-
-  // Calculate monthly payment
-  const calculateMonthlyPayment = () => {
-    if (!loanDetails) return "R0";
-    
-    const monthlyRate = loanDetails.interestRate / 100 / 12;
-    const numberOfPayments = loanDetails.loanTerm * 12;
-    const x = Math.pow(1 + monthlyRate, numberOfPayments);
-    const monthlyPayment = (loanDetails.loanAmount * x * monthlyRate) / (x - 1);
-    
-    return formatCurrency(monthlyPayment);
-  };
-  
-  // Calculate total repayment
-  const calculateTotalRepayment = () => {
-    if (!loanDetails) return "R0";
-    
-    const monthlyRate = loanDetails.interestRate / 100 / 12;
-    const numberOfPayments = loanDetails.loanTerm * 12;
-    const x = Math.pow(1 + monthlyRate, numberOfPayments);
-    const monthlyPayment = (loanDetails.loanAmount * x * monthlyRate) / (x - 1);
-    
-    return formatCurrency(monthlyPayment * numberOfPayments);
-  };
-  
-  // Calculate total interest
-  const calculateTotalInterest = () => {
-    if (!loanDetails) return "R0";
-    
-    const monthlyRate = loanDetails.interestRate / 100 / 12;
-    const numberOfPayments = loanDetails.loanTerm * 12;
-    const x = Math.pow(1 + monthlyRate, numberOfPayments);
-    const monthlyPayment = (loanDetails.loanAmount * x * monthlyRate) / (x - 1);
-    
-    return formatCurrency(monthlyPayment * numberOfPayments - loanDetails.loanAmount);
-  };
 
   // Generate yearly amortization data for table
   const generateYearlyData = () => {
@@ -400,7 +371,18 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                     <FormControl>
                       <div className="space-y-2">
                         <div className="relative">
-                          <Input {...field} className="pr-8" />
+                          <Input
+                            {...field}
+                            type="text"
+                            className="pl-3"
+                            onChange={(e) => {
+                              // Validate interest rate input
+                              const value = e.target.value.replace(/[^\d.]/g, '');
+                              if (!value || !isNaN(Number(value))) {
+                                field.onChange(value);
+                              }
+                            }}
+                          />
                           <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                             <span className="text-gray-500 sm:text-sm">%</span>
                           </div>
@@ -449,6 +431,8 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        <SelectItem value="10">10 years</SelectItem>
+                        <SelectItem value="15">15 years</SelectItem>
                         <SelectItem value="20">20 years</SelectItem>
                         <SelectItem value="25">25 years</SelectItem>
                         <SelectItem value="30">30 years</SelectItem>
@@ -484,7 +468,6 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                             {...field}
                             className="pl-8"
                             onChange={(e) => {
-                              // Keep only digits by removing any non-numeric characters
                               const numericValue = handleCurrencyInput(e.target.value);
                               field.onChange(numericValue);
                             }}
@@ -494,6 +477,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                           <span className="text-xs text-gray-500 mr-1">R0</span>
                           <Slider
                             defaultValue={[currentDeposit]}
+                            min={0}
                             max={Math.min(5000000, currentPropertyValue * 0.5)}
                             step={10000}
                             onValueChange={handleDepositSliderChange}
@@ -538,109 +522,12 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
             <p className="text-xs text-gray-500 mb-2">
               Results update automatically as you adjust values
             </p>
-            
-            {loanDetails && (
-              <div className="text-sm">
-                <p className="text-xs text-gray-600 font-medium">This is an estimate based on the information provided. Actual amounts may vary.</p>
-                <a href="#" className="text-xs text-blue-600 hover:underline">Learn more about how these calculations work</a>
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Right column - Basic Results section */}
+        {/* Right column - Basic Results placeholder */}
         <div>
-          {loanDetails ? (
-            <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Calculation Results</h4>
-              
-              <div className="grid grid-cols-1 gap-4">
-                <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm text-gray-500 mb-1">Monthly Repayment</div>
-                      <div className="text-2xl font-bold">{calculateMonthlyPayment()}</div>
-                    </div>
-                    <div className="bg-primary/10 p-3 rounded-full">
-                      <CalendarIcon className="h-6 w-6 text-primary" />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm text-gray-500 mb-1">Total Repayment Amount</div>
-                      <div className="text-2xl font-bold">{calculateTotalRepayment()}</div>
-                    </div>
-                    <div className="bg-green-100 p-3 rounded-full">
-                      <BanknoteIcon className="h-6 w-6 text-green-600" />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm text-gray-500 mb-1">Total Interest Paid</div>
-                      <div className="text-2xl font-bold">{calculateTotalInterest()}</div>
-                    </div>
-                    <div className="bg-blue-100 p-3 rounded-full">
-                      <PercentIcon className="h-6 w-6 text-blue-600" />
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Additional costs breakdown tile - only shown when checkbox is selected */}
-                {form.watch("includeCosts") && (
-                  <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow mt-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <div className="text-sm text-gray-500 mb-1">Additional Costs Breakdown</div>
-                        <div className="text-xl font-bold">{formatCurrency(loanDetails && loanDetails.loanAmount - (currentPropertyValue - currentDeposit))}</div>
-                      </div>
-                      <div className="bg-amber-100 p-3 rounded-full">
-                        <CreditCardIcon className="h-6 w-6 text-amber-600" />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm border-t pt-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Transfer Duty:</span>
-                        <span className="font-medium">
-                          {formatCurrency(
-                            currentPropertyValue <= 1000000 
-                              ? 0 
-                              : currentPropertyValue <= 1375000
-                              ? (currentPropertyValue - 1000000) * 0.03
-                              : currentPropertyValue <= 1925000
-                              ? 11250 + (currentPropertyValue - 1375000) * 0.06
-                              : currentPropertyValue <= 2475000
-                              ? 44250 + (currentPropertyValue - 1925000) * 0.08
-                              : currentPropertyValue <= 11000000
-                              ? 88250 + (currentPropertyValue - 2475000) * 0.11
-                              : 1026000 + (currentPropertyValue - 11000000) * 0.13
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Transfer Attorney Fees:</span>
-                        <span className="font-medium">{formatCurrency(currentPropertyValue * 0.015)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Bond Registration Fee:</span>
-                        <span className="font-medium">{formatCurrency(currentPropertyValue * 0.012)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Deeds Office Fee:</span>
-                        <span className="font-medium">{formatCurrency(1500)}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
+          {!loanDetails && (
             <div className="border rounded-lg p-8 text-center bg-gray-50 flex flex-col items-center justify-center h-full">
               <div className="text-gray-400 mb-4">
                 <HomeIcon className="h-12 w-12 mx-auto" />
@@ -680,11 +567,13 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
             {/* Full-width chart */}
             <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm w-full max-w-7xl mx-auto">
               <div className="h-[450px] w-full">
-                <AmortizationChart 
-                  loanAmount={loanDetails.loanAmount} 
-                  interestRate={loanDetails.interestRate} 
-                  loanTerm={loanDetails.loanTerm} 
-                />
+                {loanDetails && (
+                  <AmortizationChart 
+                    loanAmount={loanDetails.loanAmount} 
+                    interestRate={loanDetails.interestRate} 
+                    loanTerm={loanDetails.loanTerm} 
+                  />
+                )}
               </div>
             </div>
           </div>

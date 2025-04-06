@@ -53,7 +53,7 @@ export default function CalculationResults({ results, formValues }: CalculationR
 
   // Default rendering for other calculator types
   return (
-    <div className="mt-8 px-4">
+    <div className="w-full">
       <div className="p-6 bg-gray-50 rounded-lg border border-gray-100">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-900">
@@ -71,23 +71,27 @@ export default function CalculationResults({ results, formValues }: CalculationR
           {results.displayResults.map((result, index) => (
             <Card key={index} className="bg-white shadow-sm">
               <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-500">{result.label}</div>
-                  {result.tooltip && (
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">{result.label}</div>
+                    <div className="text-2xl font-bold text-secondary-500">
+                      {result.value}
+                    </div>
+                  </div>
+                  {result.tooltip ? (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <HelpCircle className="h-4 w-4 text-gray-400" />
+                          <HelpCircle className="h-5 w-5 text-gray-400 mt-1" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>{result.tooltip}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
+                  ) : (
+                    <div className="w-5 h-5" /> {/* Empty space to maintain layout */}
                   )}
-                </div>
-                <div className="text-2xl font-bold text-secondary-500">
-                  {result.value}
                 </div>
               </CardContent>
             </Card>
