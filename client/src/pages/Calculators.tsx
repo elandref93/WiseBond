@@ -249,8 +249,8 @@ export default function Calculators() {
           </div>
 
           {/* Calculator Detail Section */}
-          <div id="calculator-detail" className="mt-16 bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
+          <div id="calculator-detail" className="mt-16 bg-white overflow-hidden shadow rounded-lg max-w-full">
+            <div className="px-4 py-5 sm:p-6 w-full">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <div className="bg-gray-100 rounded-lg p-2 mb-8">
                   <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 bg-transparent p-0">
@@ -378,14 +378,16 @@ export default function Calculators() {
                         </div>
                       </div>
                       
-                      {/* Bottom section: Full-width chart area - No container padding/margins */}
-                      <div className="w-full">
-                        <AdditionalPaymentChart 
-                          loanAmount={calculationResults.loanAmount || 0}
-                          interestRate={calculationResults.interestRate || 0}
-                          loanTerm={calculationResults.loanTermYears || 0}
-                          additionalPayment={calculationResults.additionalPayment || 0}
-                        />
+                      {/* Bottom section: Full-width chart area with enhanced width */}
+                      <div className="w-full overflow-x-auto">
+                        <div className="min-w-full">
+                          <AdditionalPaymentChart 
+                            loanAmount={calculationResults.loanAmount || 0}
+                            interestRate={calculationResults.interestRate || 0}
+                            loanTerm={calculationResults.loanTermYears || 0}
+                            additionalPayment={calculationResults.additionalPayment || 0}
+                          />
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -411,14 +413,24 @@ export default function Calculators() {
                 </TabsContent>
 
                 <TabsContent value="amortisation">
-                  <div className="flex flex-col md:flex-row gap-8">
-                    <div className="w-full md:w-1/3">
-                      <AmortizationCalculator onCalculate={handleCalculationComplete} />
+                  {calculationResults && calculationResults.type === 'amortisation' ? (
+                    <div className="space-y-8">
+                      {/* Top section: Calculator form and basic results side by side */}
+                      <div className="flex flex-col md:flex-row gap-8">
+                        <div className="w-full md:w-1/3 bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                          <AmortizationCalculator onCalculate={handleCalculationComplete} />
+                        </div>
+                        <div className="w-full md:w-2/3">
+                          <CalculationResults results={calculationResults} formValues={formValues} />
+                        </div>
+                      </div>
                     </div>
-                    <div className="w-full md:w-2/3">
-                      {calculationResults && calculationResults.type === 'amortisation' ? (
-                        <CalculationResults results={calculationResults} formValues={formValues} />
-                      ) : (
+                  ) : (
+                    <div className="flex flex-col md:flex-row gap-8">
+                      <div className="w-full md:w-1/3">
+                        <AmortizationCalculator onCalculate={handleCalculationComplete} />
+                      </div>
+                      <div className="w-full md:w-2/3">
                         <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
                           <div className="text-center">
                             <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -430,9 +442,9 @@ export default function Calculators() {
                             </p>
                           </div>
                         </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="comparison">
