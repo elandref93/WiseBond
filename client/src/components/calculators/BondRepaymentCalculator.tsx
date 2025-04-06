@@ -211,6 +211,36 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     
     return formatCurrency(monthlyPayment * numberOfPayments - loanDetails.loanAmount);
   };
+  
+  // Calculate bond initiation fee
+  const calculateInitiationFee = () => {
+    const includeBondFees = form.watch("includeBondFees");
+    if (!loanDetails || !includeBondFees) return null;
+    
+    const initiationFee = 6037.50 + (loanDetails.loanAmount * 0.0023);
+    return formatCurrency(initiationFee);
+  };
+  
+  // Calculate monthly admin fee
+  const calculateMonthlyAdminFee = () => {
+    const includeBondFees = form.watch("includeBondFees");
+    if (!loanDetails || !includeBondFees) return null;
+    
+    return "R69/month";
+  };
+  
+  // Calculate total fees
+  const calculateTotalFees = () => {
+    const includeBondFees = form.watch("includeBondFees");
+    if (!loanDetails || !includeBondFees) return null;
+    
+    const initiationFee = 6037.50 + (loanDetails.loanAmount * 0.0023);
+    const monthlyAdminFee = 69;
+    const numberOfPayments = loanDetails.loanTerm * 12;
+    const totalFees = initiationFee + (monthlyAdminFee * numberOfPayments);
+    
+    return formatCurrency(totalFees);
+  };
 
   // Generate yearly amortization data for table
   const generateYearlyData = () => {
@@ -540,6 +570,49 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                     </div>
                   </div>
                 </div>
+                
+                {/* Bond Fee Tiles - Only show when includeBondFees is checked */}
+                {form.watch("includeBondFees") && calculateInitiationFee() && (
+                  <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm text-gray-500 mb-1">Bond Initiation Fee (once-off)</div>
+                        <div className="text-2xl font-bold">{calculateInitiationFee()}</div>
+                      </div>
+                      <div className="bg-amber-100 p-3 rounded-full">
+                        <HomeIcon className="h-6 w-6 text-amber-600" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {form.watch("includeBondFees") && calculateMonthlyAdminFee() && (
+                  <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm text-gray-500 mb-1">Monthly Admin Fee (recurring)</div>
+                        <div className="text-2xl font-bold">{calculateMonthlyAdminFee()}</div>
+                      </div>
+                      <div className="bg-purple-100 p-3 rounded-full">
+                        <BanknoteIcon className="h-6 w-6 text-purple-600" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {form.watch("includeBondFees") && calculateTotalFees() && (
+                  <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm text-gray-500 mb-1">Total Fees (over loan term)</div>
+                        <div className="text-2xl font-bold">{calculateTotalFees()}</div>
+                      </div>
+                      <div className="bg-pink-100 p-3 rounded-full">
+                        <PercentIcon className="h-6 w-6 text-pink-600" />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
