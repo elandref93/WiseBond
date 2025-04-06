@@ -176,7 +176,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   const displayDeposit = displayCurrencyValue(currentDeposit);
   const displayMaxDeposit = displayCurrencyValue(Math.min(5000000, currentPropertyValue * 0.5));
 
-  // Calculate monthly payment
+  // Calculate monthly payment - no monthly admin fee
   const calculateMonthlyPayment = () => {
     if (!loanDetails) return "R0";
     
@@ -185,12 +185,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     const x = Math.pow(1 + monthlyRate, numberOfPayments);
     const monthlyPayment = (loanDetails.loanAmount * x * monthlyRate) / (x - 1);
     
-    // Add monthly admin fee if the "Include Bond Fees" checkbox is checked
-    const includeBondFees = form.watch("includeBondFees");
-    const monthlyAdminFee = includeBondFees ? 69 : 0;
-    const totalMonthlyPayment = monthlyPayment + monthlyAdminFee;
-    
-    return formatCurrency(totalMonthlyPayment);
+    return formatCurrency(monthlyPayment);
   };
   
   // Calculate total repayment
@@ -208,9 +203,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     
     if (includeBondFees) {
       const initiationFee = 6037.50 + (loanDetails.loanAmount * 0.0023);
-      const monthlyAdminFee = 69;
-      const totalFees = initiationFee + (monthlyAdminFee * numberOfPayments);
-      totalRepayment += totalFees;
+      totalRepayment += initiationFee;
     }
     
     return formatCurrency(totalRepayment);
@@ -245,17 +238,13 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     return "R69/month";
   };
   
-  // Calculate total fees
+  // Calculate total fees - only includes the initiation fee, no monthly admin fee
   const calculateTotalFees = () => {
     const includeBondFees = form.watch("includeBondFees");
     if (!loanDetails || !includeBondFees) return null;
     
     const initiationFee = 6037.50 + (loanDetails.loanAmount * 0.0023);
-    const monthlyAdminFee = 69;
-    const numberOfPayments = loanDetails.loanTerm * 12;
-    const totalFees = initiationFee + (monthlyAdminFee * numberOfPayments);
-    
-    return formatCurrency(totalFees);
+    return formatCurrency(initiationFee);
   };
 
   // Generate yearly amortization data for table
@@ -521,7 +510,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                         Include Bond Fees and Costs
                       </FormLabel>
                       <FormDescription className="text-xs text-gray-500">
-                        Include R69/month admin fee in repayments and add one-time initiation fee (R6,037.50 + 0.23% of loan) to total costs
+                        Add one-time initiation fee (R6,037.50 + 0.23% of loan amount) to total costs
                       </FormDescription>
                     </div>
                   </FormItem>
