@@ -6,6 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
 import { HomeIcon, InfoIcon, CalendarIcon, BanknoteIcon, PercentIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
@@ -36,6 +37,7 @@ const formSchema = z.object({
   deposit: z.string().refine((val) => !isNaN(Number(val.replace(/[^0-9]/g, ""))), {
     message: "Deposit must be a number",
   }),
+  includeCosts: z.boolean().default(false),
 });
 
 type BondRepaymentFormValues = z.infer<typeof formSchema>;
@@ -59,6 +61,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     interestRate: "11.25",
     loanTerm: "25",
     deposit: "100000",
+    includeCosts: false,
   };
 
   const form = useForm<BondRepaymentFormValues>({
@@ -87,13 +90,63 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         const interestRate = Number(formValues.interestRate);
         const loanTerm = Number(formValues.loanTerm);
         const deposit = parseCurrency(formValues.deposit);
+        const includeCosts = formValues.includeCosts || false;
 
-        // Calculate results
-        const results = calculateBondRepayment(propertyValue, interestRate, loanTerm, deposit);
+        // Calculate transfer and bond registration costs if checkbox is checked
+        let transferCosts = 0;
+        let bondRegistrationCosts = 0;
+        let transferDuty = 0;
+        let deedsOfficeFee = 0;
+
+        if (includeCosts) {
+          // Calculate transfer duty based on South African rates
+          if (propertyValue <= 1000000) {
+            transferDuty = 0; // No transfer duty below R1,000,000
+          } else if (propertyValue <= 1375000) {
+            transferDuty = (propertyValue - 1000000) * 0.03;
+          } else if (propertyValue <= 1925000) {
+            transferDuty = 11250 + (propertyValue - 1375000) * 0.06;
+          } else if (propertyValue <= 2475000) {
+            transferDuty = 44250 + (propertyValue - 1925000) * 0.08;
+          } else if (propertyValue <= 11000000) {
+            transferDuty = 88250 + (propertyValue - 2475000) * 0.11;
+          } else {
+            transferDuty = 1026000 + (propertyValue - 11000000) * 0.13;
+          }
+
+          // Calculate attorney fees (approximate)
+          const transferAttorneyFee = propertyValue * 0.015;
+          
+          // Bond registration fees (approximate)
+          bondRegistrationCosts = propertyValue * 0.012;
+          
+          // Deeds office fee (approximate flat rate)
+          deedsOfficeFee = 1500;
+          
+          // Total transfer costs
+          transferCosts = transferDuty + transferAttorneyFee + deedsOfficeFee;
+        }
+
+        // Total costs to add to the loan amount
+        const totalAdditionalCosts = includeCosts ? transferCosts + bondRegistrationCosts : 0;
+
+        // Calculate results with or without additional costs
+        const results = calculateBondRepayment(
+          propertyValue, 
+          interestRate, 
+          loanTerm, 
+          deposit,
+          includeCosts ? { 
+            transferCosts,
+            bondRegistrationCosts,
+            transferDuty,
+            deedsOfficeFee
+          } : undefined
+        );
         
-        // Store loan details for chart
+        // Store loan details for chart (including additional costs if selected)
         setLoanDetails({
-          loanAmount: propertyValue - deposit,
+          loanAmount: propertyValue - deposit + (includeCosts ? totalAdditionalCosts : 0),
           interestRate,
           loanTerm
         });
@@ -121,7 +174,8 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                 propertyValue: formValues.propertyValue || "",
                 interestRate: formValues.interestRate || "",
                 loanTerm: formValues.loanTerm || "",
-                deposit: formValues.deposit || ""
+                deposit: formValues.deposit || "",
+                includeCosts: formValues.includeCosts || false
               };
               setLastSavedValues(safeFormValues);
               
@@ -450,6 +504,30 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                       </div>
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Include Transfer and Registration Costs Checkbox */}
+              <FormField
+                control={form.control}
+                name="includeCosts"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4 pt-4 border-t">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm font-medium">
+                        Include transfer and bond registration costs
+                      </FormLabel>
+                      <p className="text-xs text-gray-500">
+                        Add the costs of transferring the property and registering the bond to the loan amount
+                      </p>
+                    </div>
                   </FormItem>
                 )}
               />

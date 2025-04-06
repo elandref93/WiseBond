@@ -8,6 +8,45 @@ export interface CalculationResult {
     value: string;
     tooltip?: string;
   }[];
+  // Bond calculator specific properties
+  loanAmount?: number;
+  monthlyRepayment?: number;
+  totalRepayment?: number;
+  totalInterest?: number;
+  includesAdditionalCosts?: boolean;
+  transferCosts?: number;
+  bondRegistrationCosts?: number;
+  totalAdditionalCosts?: number;
+  // Affordability calculator specific properties
+  disposableIncome?: number;
+  maxAllowedForHousing?: number;
+  availableAfterExistingDebt?: number;
+  availableForLoan?: number;
+  maxLoanAmount?: number;
+  recommendedPropertyPrice?: number;
+  // Deposit savings calculator specific properties
+  depositAmount?: number;
+  monthsToSave?: number;
+  yearsToSave?: number;
+  remainingMonths?: number;
+  totalContributions?: number;
+  totalAccumulated?: number;
+  interestEarned?: number;
+  // Additional payment calculator specific properties
+  originalLoanTerm?: number;
+  originalMonthlyPayment?: number;
+  newLoanTerm?: number;
+  additionalPayment?: number;
+  timeSaved?: number;
+  interestSaved?: number;
+  // Transfer costs calculator specific properties
+  purchasePrice?: number;
+  transferDuty?: number;
+  deedsOfficeFee?: number;
+  transferAttorneyFee?: number;
+  bondRegistrationFee?: number;
+  totalCosts?: number;
+  // Allow any other properties for flexibility
   [key: string]: any;
 }
 
@@ -99,14 +138,34 @@ export function displayCurrencyValue(value: string | number): string {
 }
 
 // Calculate the monthly repayment amount for a bond
+interface AdditionalCosts {
+  transferCosts: number;
+  bondRegistrationCosts: number;
+  transferDuty: number;
+  deedsOfficeFee: number;
+}
+
 export function calculateBondRepayment(
   propertyValue: number,
   interestRate: number,
   loanTerm: number,
-  deposit: number
+  deposit: number,
+  additionalCosts?: AdditionalCosts
 ): CalculationResult {
   // Calculate bond amount after deposit
-  const loanAmount = propertyValue - deposit;
+  let loanAmount = propertyValue - deposit;
+  
+  // Add additional costs if they are included
+  let transferCosts = 0;
+  let bondRegistrationCosts = 0;
+  let totalCosts = 0;
+  
+  if (additionalCosts) {
+    transferCosts = additionalCosts.transferCosts;
+    bondRegistrationCosts = additionalCosts.bondRegistrationCosts;
+    totalCosts = transferCosts + bondRegistrationCosts;
+    loanAmount += totalCosts;
+  }
   
   // Monthly interest rate
   const monthlyRate = interestRate / 100 / 12;
@@ -125,7 +184,8 @@ export function calculateBondRepayment(
   // Calculate total interest paid
   const totalInterest = totalRepayment - loanAmount;
   
-  return {
+  // Prepare the result
+  const result: CalculationResult = {
     type: 'bond',
     loanAmount,
     monthlyRepayment,
@@ -149,6 +209,29 @@ export function calculateBondRepayment(
       }
     ]
   };
+  
+  // Add additional cost breakdown if included
+  if (additionalCosts) {
+    result.includesAdditionalCosts = true;
+    result.transferCosts = transferCosts;
+    result.bondRegistrationCosts = bondRegistrationCosts;
+    result.totalAdditionalCosts = totalCosts;
+    
+    // Add a breakdown of the costs to the display results
+    result.displayResults.push({
+      label: 'Transfer Costs Included',
+      value: formatCurrency(transferCosts),
+      tooltip: 'The costs of transferring the property, including transfer duty and attorney fees.'
+    });
+    
+    result.displayResults.push({
+      label: 'Bond Registration Costs Included',
+      value: formatCurrency(bondRegistrationCosts),
+      tooltip: 'The costs of registering the bond with the Deeds Office.'
+    });
+  }
+  
+  return result;
 }
 
 // Calculate how much a person can afford to borrow
