@@ -265,11 +265,11 @@ export default function Calculators() {
                 </div>
 
                 <TabsContent value="bond">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="md:col-span-1">
+                  <div className="flex flex-col md:flex-row gap-8">
+                    <div className="w-full md:w-1/3">
                       <BondRepaymentCalculator onCalculate={handleCalculationComplete} />
                     </div>
-                    <div className="md:col-span-2">
+                    <div className="w-full md:w-2/3">
                       {calculationResults && calculationResults.type === 'bond' ? (
                         <CalculationResults results={calculationResults} formValues={formValues} />
                       ) : (
@@ -290,11 +290,11 @@ export default function Calculators() {
                 </TabsContent>
 
                 <TabsContent value="affordability">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="md:col-span-1">
+                  <div className="flex flex-col md:flex-row gap-8">
+                    <div className="w-full md:w-1/3">
                       <AffordabilityCalculator onCalculate={handleCalculationComplete} />
                     </div>
-                    <div className="md:col-span-2">
+                    <div className="w-full md:w-2/3">
                       {calculationResults && calculationResults.type === 'affordability' ? (
                         <CalculationResults results={calculationResults} />
                       ) : (
@@ -315,11 +315,11 @@ export default function Calculators() {
                 </TabsContent>
 
                 <TabsContent value="deposit">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="md:col-span-1">
+                  <div className="flex flex-col md:flex-row gap-8">
+                    <div className="w-full md:w-1/3">
                       <DepositSavingsCalculator onCalculate={handleCalculationComplete} />
                     </div>
-                    <div className="md:col-span-2">
+                    <div className="w-full md:w-2/3">
                       {calculationResults && calculationResults.type === 'deposit' ? (
                         <CalculationResults results={calculationResults} />
                       ) : (
@@ -341,11 +341,11 @@ export default function Calculators() {
                 </TabsContent>
 
                 <TabsContent value="transfer">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="md:col-span-1">
+                  <div className="flex flex-col md:flex-row gap-8">
+                    <div className="w-full md:w-1/3">
                       <BondsTransferCostsCalculator onCalculate={handleCalculationComplete} />
                     </div>
-                    <div className="md:col-span-2">
+                    <div className="w-full md:w-2/3">
                       {calculationResults && calculationResults.type === 'transfer' ? (
                         <CalculationResults results={calculationResults} />
                       ) : (
@@ -369,11 +369,11 @@ export default function Calculators() {
                   {calculationResults && calculationResults.type === 'additional' ? (
                     <div className="flex flex-col space-y-8">
                       {/* Top section: Calculator form and basic results side by side */}
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div className="lg:col-span-1">
+                      <div className="flex flex-col md:flex-row gap-8">
+                        <div className="w-full md:w-1/3">
                           <AdditionalPaymentCalculator onCalculate={handleCalculationComplete} />
                         </div>
-                        <div className="lg:col-span-2">
+                        <div className="w-full md:w-2/3">
                           <CalculationResults results={calculationResults} formValues={formValues} />
                         </div>
                       </div>
@@ -381,19 +381,19 @@ export default function Calculators() {
                       {/* Bottom section: Full-width chart area */}
                       <div className="w-full bg-white p-6 rounded-xl shadow-sm">
                         <AdditionalPaymentChart 
-                          loanAmount={calculationResults.loanAmount}
-                          interestRate={calculationResults.interestRate}
-                          loanTerm={calculationResults.loanTermYears}
-                          additionalPayment={calculationResults.additionalPayment}
+                          loanAmount={calculationResults.loanAmount || 0}
+                          interestRate={calculationResults.interestRate || 0}
+                          loanTerm={calculationResults.loanTermYears || 0}
+                          additionalPayment={calculationResults.additionalPayment || 0}
                         />
                       </div>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                      <div className="lg:col-span-1">
+                    <div className="flex flex-col md:flex-row gap-8">
+                      <div className="w-full md:w-1/3">
                         <AdditionalPaymentCalculator onCalculate={handleCalculationComplete} />
                       </div>
-                      <div className="lg:col-span-2">
+                      <div className="w-full md:w-2/3">
                         <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
                           <div className="text-center">
                             <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -411,11 +411,11 @@ export default function Calculators() {
                 </TabsContent>
 
                 <TabsContent value="amortisation">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="md:col-span-1">
+                  <div className="flex flex-col md:flex-row gap-8">
+                    <div className="w-full md:w-1/3">
                       <AmortizationCalculator onCalculate={handleCalculationComplete} />
                     </div>
-                    <div className="md:col-span-2">
+                    <div className="w-full md:w-2/3">
                       {calculationResults && calculationResults.type === 'amortisation' ? (
                         <CalculationResults results={calculationResults} formValues={formValues} />
                       ) : (
