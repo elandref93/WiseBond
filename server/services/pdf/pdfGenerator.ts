@@ -560,6 +560,28 @@ function renderBondRepaymentTemplate(
         </div>
       `;
     }
+    
+    // Add bond fees option
+    if (inputData.includeBondFees !== undefined) {
+      const includeBondFeesValue = inputData.includeBondFees === true || inputData.includeBondFees === 'true';
+      inputDetailsHtml += `
+        <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 5px;">
+          <span style="color: #666;">Bond Fees Included:</span>
+          <span style="font-weight: 500;">${includeBondFeesValue ? 'Yes' : 'No'}</span>
+        </div>
+      `;
+      
+      // If bond fees are included, add details about what's included
+      if (includeBondFeesValue) {
+        inputDetailsHtml += `
+          <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 5px; grid-column: span 2;">
+            <span style="color: #666; font-style: italic; max-width: 100%;">
+              Includes transfer duty, attorney fees, bond registration fee, and deeds office fee
+            </span>
+          </div>
+        `;
+      }
+    }
   }
   html = html.replace('{{inputDetails}}', inputDetailsHtml);
   

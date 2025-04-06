@@ -22,7 +22,8 @@ export async function generateBondRepaymentReport(req: Request, res: Response) {
       loanTerm, 
       deposit, 
       calculationResult,
-      includeDetails
+      includeDetails,
+      includeBondFees
     } = req.body;
     
     if (!propertyValue || !interestRate || !loanTerm) {
@@ -53,8 +54,11 @@ export async function generateBondRepaymentReport(req: Request, res: Response) {
         ? parseFloat(deposit.replace(/[^0-9.]/g, ''))
         : (deposit || 0);
       
+      // Convert includeBondFees to boolean
+      const shouldIncludeBondFees = includeBondFees === true || includeBondFees === 'true';
+      
       // Calculate the result
-      result = calculateBondRepayment(numPropertyValue, numInterestRate, numLoanTerm, numDeposit);
+      result = calculateBondRepayment(numPropertyValue, numInterestRate, numLoanTerm, numDeposit, shouldIncludeBondFees);
     }
     
     // Original input data for the report
@@ -62,7 +66,8 @@ export async function generateBondRepaymentReport(req: Request, res: Response) {
       propertyValue,
       interestRate,
       loanTerm,
-      deposit
+      deposit,
+      includeBondFees
     };
     
     // Generate PDF

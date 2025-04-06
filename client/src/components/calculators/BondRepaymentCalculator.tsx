@@ -636,16 +636,24 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                     onClick={() => {
                       // Generate and download PDF
                       if (user) {
-                        apiRequest("/api/generate-pdf", {
+                        fetch("/api/reports/bond-repayment", {
                           method: "POST",
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
                           body: JSON.stringify({
-                            calculationType: "bond",
                             propertyValue: loanDetails.propertyValue,
                             deposit: loanDetails.deposit,
-                            loanAmount: loanDetails.loanAmount,
                             interestRate: loanDetails.interestRate,
                             loanTerm: loanDetails.loanTerm,
                             includeBondFees: form.watch("includeBondFees"),
+                            calculationResult: {
+                              type: "bond",
+                              monthlyPayment: calculateMonthlyPayment(),
+                              totalRepayment: calculateTotalRepayment(),
+                              totalInterest: calculateTotalInterest(),
+                              transferCosts: calculateTotalTransferCosts() || "R0"
+                            }
                           })
                         })
                         .then(response => response.blob())
