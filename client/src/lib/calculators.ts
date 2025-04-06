@@ -127,13 +127,13 @@ export function calculateBondRepayment(
   const totalFees = initiationFee + totalAdminFees;
   
   // Calculate total repayment over the loan term
-  const totalRepayment = (monthlyRepayment * numberOfPayments) + (includeBondFees ? totalFees : 0);
+  const totalRepayment = monthlyRepayment * numberOfPayments;
   
   // Calculate total interest paid
-  const totalInterest = totalRepayment - loanAmount - (includeBondFees ? totalFees : 0);
+  const totalInterest = totalRepayment - loanAmount;
   
-  // Calculate effective monthly payment with fees
-  const effectiveMonthlyPayment = monthlyRepayment + (includeBondFees ? monthlyAdminFee : 0);
+  // The monthly payment remains unaffected by the initiation fee since it's a once-off cost
+  const effectiveMonthlyPayment = monthlyRepayment;
   
   // Prepare results
   const results: CalculationResult = {
@@ -170,21 +170,21 @@ export function calculateBondRepayment(
     
     // Add to display results
     results.displayResults.push({
-      label: 'Bond Initiation Fee',
+      label: 'Bond Initiation Fee (once-off)',
       value: formatCurrency(initiationFee),
-      tooltip: 'One-time fee charged by the bank to set up your home loan.'
+      tooltip: 'One-time fee charged by the bank to set up your home loan. This is paid only once at the start of the loan.'
     });
     
     results.displayResults.push({
-      label: 'Monthly Admin Fee',
-      value: formatCurrency(monthlyAdminFee),
-      tooltip: 'Monthly fee charged by the bank to administer your home loan.'
+      label: 'Monthly Admin Fee (recurring)',
+      value: formatCurrency(monthlyAdminFee) + '/month',
+      tooltip: 'Monthly fee charged by the bank to administer your home loan. This fee is recurring throughout the loan term.'
     });
     
     results.displayResults.push({
       label: 'Total Fees (over loan term)',
       value: formatCurrency(totalFees),
-      tooltip: 'The total amount of fees you will pay over the entire term of the loan.'
+      tooltip: 'The total amount of fees you will pay over the entire term of the loan, including both the initiation fee and the monthly admin fees.'
     });
   }
   

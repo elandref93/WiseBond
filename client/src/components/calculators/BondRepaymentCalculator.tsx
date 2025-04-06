@@ -475,7 +475,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                         Include Bond Fees and Costs
                       </FormLabel>
                       <FormDescription className="text-xs text-gray-500">
-                        Add standard bond initiation and monthly admin fees to your repayment calculation
+                        Show once-off initiation fee (R6,037.50 + 0.23% of loan) and monthly admin fees (R69/month)
                       </FormDescription>
                     </div>
                   </FormItem>
