@@ -49,6 +49,7 @@ export function loadGoogleMapsApi(): Promise<void> {
 
     // Create script element
     const script = document.createElement('script');
+    // Securely use API key without logging it
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
     script.async = true;
     script.defer = true;
@@ -119,9 +120,9 @@ export function resetGoogleMapsError(): void {
  * Helper to find a specific address component by type
  */
 export function findAddressComponent(
-  components: google.maps.GeocoderAddressComponent[],
+  components: google.maps.AddressComponent[],
   type: string
-): google.maps.GeocoderAddressComponent | undefined {
+): google.maps.AddressComponent | undefined {
   return components.find(component => component.types.includes(type));
 }
 

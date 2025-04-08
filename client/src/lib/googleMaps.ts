@@ -64,13 +64,18 @@ export function loadGoogleMapsApi(): Promise<void> {
       
       // Create script element
       const script = document.createElement('script');
-      // Get API key from environment variable (set by Key Vault via server)
+      // Get API key from environment variable (set by server)
       const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
       
       if (!apiKey) {
-        console.error('Google Maps API key not found. Please check Azure Key Vault configuration.');
+        const error = new Error('Google Maps API key not found. Please check environment configuration.');
+        state.error = error;
+        state.loadingState = 'error';
+        reject(error);
+        return;
       }
       
+      // Securely use API key without logging it
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=googleMapsCallback`;
       script.async = true;
       script.defer = true;
