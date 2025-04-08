@@ -12,6 +12,8 @@ import { fromZodError } from 'zod-validation-error';
 import { sendCalculationEmail, sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } from "./email";
 import crypto from "crypto";
 import { generateBondRepaymentReport, generateAdditionalPaymentReport } from "./services/pdf/reportController";
+import { getPrimeRateHandler } from "./services/primeRate/primeRateController";
+import { initPrimeRateService } from "./services/primeRate/primeRateService";
 
 // Extend the session type to include userId
 declare module 'express-session' {
@@ -786,6 +788,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       res.status(500).json({ message: "Failed to delete expense" });
     }
+  });
+
+  // Prime Rate API
+  app.get("/api/prime-rate", getPrimeRateHandler);
+
+  // Initialize prime rate service
+  initPrimeRateService().catch(error => {
+    console.error("Failed to initialize prime rate service:", error);
   });
 
   const httpServer = createServer(app);

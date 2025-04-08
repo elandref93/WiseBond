@@ -9,6 +9,7 @@ import AmortizationCalculator from "@/components/calculators/AmortizationCalcula
 import LoanComparisonSimulator from "@/components/calculators/LoanComparisonSimulator";
 import AdditionalPaymentChart from "@/components/calculators/charts/AdditionalPaymentChart";
 import CalculationResults from "@/components/calculators/CalculationResults";
+import PrimeRateIndicator from "@/components/calculators/PrimeRateIndicator";
 import { CalculationResult } from "@/lib/calculators";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -253,6 +254,10 @@ export default function Calculators() {
             <div className="px-4 py-5 sm:p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <div className="bg-gray-100 rounded-lg p-2 mb-8">
+                  <div className="flex flex-col md:flex-row justify-between items-center mb-4 px-4 py-2">
+                    <h3 className="text-lg font-semibold mb-2 md:mb-0">Choose a calculator</h3>
+                    <PrimeRateIndicator />
+                  </div>
                   <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 bg-transparent p-0">
                     <TabsTrigger className="px-4 py-2 rounded-md border-2 border-gray-200 hover:border-primary hover:bg-primary/5 transition-all data-[state=active]:border-primary data-[state=active]:bg-white data-[state=active]:shadow-md" value="bond">Repayments</TabsTrigger>
                     <TabsTrigger className="px-4 py-2 rounded-md border-2 border-gray-200 hover:border-primary hover:bg-primary/5 transition-all data-[state=active]:border-primary data-[state=active]:bg-white data-[state=active]:shadow-md" value="affordability">Affordability</TabsTrigger>
@@ -446,8 +451,11 @@ export default function Calculators() {
                     
                     <div className="mt-8 bg-gray-50 p-6 rounded-lg">
                       <h3 className="text-lg font-medium mb-4">Understanding Interest Rates in South Africa</h3>
+                      <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mb-4">
+                        <PrimeRateIndicator />
+                      </div>
                       <p className="text-gray-600 mb-4">
-                        Home loan interest rates in South Africa are typically expressed in relation to the prime rate, which is the benchmark rate that banks use to determine interest rates for loans. The current prime rate is 11.25%.
+                        Home loan interest rates in South Africa are typically expressed in relation to the prime rate, which is the benchmark rate that banks use to determine interest rates for loans.
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                         <div className="border rounded-lg p-4 bg-white">
