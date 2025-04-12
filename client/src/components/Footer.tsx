@@ -20,34 +20,30 @@ export default function Footer() {
               best possible home loan rates from multiple banks.
             </p>
             <div className="flex space-x-6">
-              <a
-                href="#"
-                className="text-gray-400 hover:text-gray-500"
+              <span
+                className="text-gray-400 hover:text-gray-500 cursor-pointer"
                 aria-label="Facebook"
               >
                 <Facebook size={24} />
-              </a>
-              <a
-                href="#"
-                className="text-gray-400 hover:text-gray-500"
+              </span>
+              <span
+                className="text-gray-400 hover:text-gray-500 cursor-pointer"
                 aria-label="Instagram"
               >
                 <Instagram size={24} />
-              </a>
-              <a
-                href="#"
-                className="text-gray-400 hover:text-gray-500"
+              </span>
+              <span
+                className="text-gray-400 hover:text-gray-500 cursor-pointer"
                 aria-label="Twitter"
               >
                 <Twitter size={24} />
-              </a>
-              <a
-                href="#"
-                className="text-gray-400 hover:text-gray-500"
+              </span>
+              <span
+                className="text-gray-400 hover:text-gray-500 cursor-pointer"
                 aria-label="LinkedIn"
               >
                 <Linkedin size={24} />
-              </a>
+              </span>
             </div>
           </div>
           <div className="mt-12 grid grid-cols-2 gap-8 xl:mt-0 xl:col-span-2">
@@ -165,12 +161,11 @@ export default function Footer() {
                 </h3>
                 <ul role="list" className="mt-4 space-y-4">
                   <li>
-                    <a
-                      href="#"
-                      className="text-base text-gray-500 hover:text-gray-900"
+                    <span
+                      className="text-base text-gray-500 hover:text-gray-900 cursor-pointer"
                     >
                       Privacy
-                    </a>
+                    </span>
                   </li>
                   <li>
                     <a
