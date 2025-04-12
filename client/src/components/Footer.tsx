@@ -115,9 +115,9 @@ export default function Footer() {
                   </li>
                   <li>
                     <Link href="/about">
-                      <a className="text-base text-gray-500 hover:text-gray-900">
+                      <span className="text-base text-gray-500 hover:text-gray-900 cursor-pointer">
                         Blog
-                      </a>
+                      </span>
                     </Link>
                   </li>
                 </ul>
@@ -131,30 +131,30 @@ export default function Footer() {
                 <ul role="list" className="mt-4 space-y-4">
                   <li>
                     <Link href="/about">
-                      <a className="text-base text-gray-500 hover:text-gray-900">
+                      <span className="text-base text-gray-500 hover:text-gray-900 cursor-pointer">
                         About Us
-                      </a>
+                      </span>
                     </Link>
                   </li>
                   <li>
                     <Link href="/about">
-                      <a className="text-base text-gray-500 hover:text-gray-900">
+                      <span className="text-base text-gray-500 hover:text-gray-900 cursor-pointer">
                         Careers
-                      </a>
+                      </span>
                     </Link>
                   </li>
                   <li>
                     <Link href="/about">
-                      <a className="text-base text-gray-500 hover:text-gray-900">
+                      <span className="text-base text-gray-500 hover:text-gray-900 cursor-pointer">
                         Partners
-                      </a>
+                      </span>
                     </Link>
                   </li>
                   <li>
                     <Link href="/contact">
-                      <a className="text-base text-gray-500 hover:text-gray-900">
+                      <span className="text-base text-gray-500 hover:text-gray-900 cursor-pointer">
                         Contact
-                      </a>
+                      </span>
                     </Link>
                   </li>
                 </ul>
