@@ -168,28 +168,25 @@ export default function Footer() {
                     </span>
                   </li>
                   <li>
-                    <a
-                      href="#"
-                      className="text-base text-gray-500 hover:text-gray-900"
+                    <span
+                      className="text-base text-gray-500 hover:text-gray-900 cursor-pointer"
                     >
                       Terms
-                    </a>
+                    </span>
                   </li>
                   <li>
-                    <a
-                      href="#"
-                      className="text-base text-gray-500 hover:text-gray-900"
+                    <span
+                      className="text-base text-gray-500 hover:text-gray-900 cursor-pointer"
                     >
                       Cookie Policy
-                    </a>
+                    </span>
                   </li>
                   <li>
-                    <a
-                      href="#"
-                      className="text-base text-gray-500 hover:text-gray-900"
+                    <span
+                      className="text-base text-gray-500 hover:text-gray-900 cursor-pointer"
                     >
                       POPIA Compliance
-                    </a>
+                    </span>
                   </li>
                 </ul>
               </div>
