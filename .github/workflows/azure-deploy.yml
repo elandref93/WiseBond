@@ -1,0 +1,149 @@
+name: Deploy to Azure Web App
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build application
+        run: npm run build
+        
+      - name: Create deployment package
+        run: |
+          # Create a .deployment file to customize Azure's deployment
+          echo "[config]" > .deployment
+          echo "SCM_DO_BUILD_DURING_DEPLOYMENT=false" >> .deployment
+          
+          # Create a minimal deployment package
+          mkdir -p deploy
+          cp -r dist deploy/
+          cp package.json deploy/
+          cp package-lock.json deploy/
+          cp .deployment deploy/
+          
+          # Create a simple web.config for Azure
+          cat > deploy/web.config <<EOL
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <system.webServer>
+              <handlers>
+                <add name="iisnode" path="dist/index.js" verb="*" modules="iisnode" />
+              </handlers>
+              <rewrite>
+                <rules>
+                  <rule name="HTTP/S to HTTPS redirect" stopProcessing="true">
+                    <match url="(.*)" />
+                    <conditions>
+                      <add input="{HTTPS}" pattern="off" ignoreCase="true" />
+                    </conditions>
+                    <action type="Redirect" url="https://{HTTP_HOST}/{R:1}" redirectType="Permanent" />
+                  </rule>
+                  <rule name="nodejs">
+                    <match url="/*" />
+                    <action type="Rewrite" url="dist/index.js" />
+                  </rule>
+                </rules>
+              </rewrite>
+              <security>
+                <requestFiltering>
+                  <hiddenSegments>
+                    <add segment="node_modules" />
+                  </hiddenSegments>
+                </requestFiltering>
+              </security>
+            </system.webServer>
+          </configuration>
+          EOL
+          
+          # Create a .gitignore for deployment
+          cat > deploy/.gitignore <<EOL
+          # Logs
+          logs
+          *.log
+          npm-debug.log*
+          
+          # Runtime data
+          pids
+          *.pid
+          *.seed
+          
+          # Directory for instrumented libs
+          lib-cov
+          
+          # Coverage directory
+          coverage
+          
+          # nyc test coverage
+          .nyc_output
+          
+          # Dependency directories
+          node_modules
+          
+          # Optional npm cache directory
+          .npm
+          
+          # Optional REPL history
+          .node_repl_history
+          
+          # dotenv environment variables file
+          .env
+          .env.local
+          .env.*.local
+          
+          # Development files
+          .git
+          .github
+          .vscode
+          client
+          server
+          shared
+          attached_assets
+          generated-icon.png
+          *.test.js
+          *.spec.js
+          test-*.js
+          *.md
+          EOL
+          
+          cd deploy
+          npm ci --only=production --omit=dev
+          rm -rf node_modules/.bin
+          rm -rf node_modules/*/test
+          rm -rf node_modules/*/tests
+          rm -rf node_modules/*/docs
+          rm -rf node_modules/*/examples
+          rm -rf node_modules/*/.github
+          find node_modules -name "*.md" -type f -delete
+          find node_modules -name "*.txt" -type f -delete
+          find node_modules -name "*.map" -type f -delete
+          cd ..
+          
+          # Create a ZIP file for deployment
+          cd deploy
+          zip -r ../deployment.zip .
+          cd ..
+      
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'your-app-name' # Replace with your Azure Web App name
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: './deployment.zip'
