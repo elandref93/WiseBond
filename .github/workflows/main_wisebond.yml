@@ -77,6 +77,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'WiseBond'
-          slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_YOUR_PROFILE_ID }}
           package: .
