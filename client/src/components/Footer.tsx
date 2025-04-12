@@ -59,30 +59,30 @@ export default function Footer() {
                 <ul role="list" className="mt-4 space-y-4">
                   <li>
                     <Link href="/services">
-                      <a className="text-base text-gray-500 hover:text-gray-900">
+                      <span className="text-base text-gray-500 hover:text-gray-900 cursor-pointer">
                         Home Loans
-                      </a>
+                      </span>
                     </Link>
                   </li>
                   <li>
                     <Link href="/services">
-                      <a className="text-base text-gray-500 hover:text-gray-900">
+                      <span className="text-base text-gray-500 hover:text-gray-900 cursor-pointer">
                         Building Loans
-                      </a>
+                      </span>
                     </Link>
                   </li>
                   <li>
                     <Link href="/services">
-                      <a className="text-base text-gray-500 hover:text-gray-900">
+                      <span className="text-base text-gray-500 hover:text-gray-900 cursor-pointer">
                         Home Loan Refinancing
-                      </a>
+                      </span>
                     </Link>
                   </li>
                   <li>
                     <Link href="/services">
-                      <a className="text-base text-gray-500 hover:text-gray-900">
+                      <span className="text-base text-gray-500 hover:text-gray-900 cursor-pointer">
                         FLISP Subsidies
-                      </a>
+                      </span>
                     </Link>
                   </li>
                 </ul>
@@ -94,23 +94,23 @@ export default function Footer() {
                 <ul role="list" className="mt-4 space-y-4">
                   <li>
                     <Link href="/calculators">
-                      <a className="text-base text-gray-500 hover:text-gray-900">
+                      <span className="text-base text-gray-500 hover:text-gray-900 cursor-pointer">
                         Calculators
-                      </a>
+                      </span>
                     </Link>
                   </li>
                   <li>
                     <Link href="/services">
-                      <a className="text-base text-gray-500 hover:text-gray-900">
+                      <span className="text-base text-gray-500 hover:text-gray-900 cursor-pointer">
                         Property Guides
-                      </a>
+                      </span>
                     </Link>
                   </li>
                   <li>
                     <Link href="/faq">
-                      <a className="text-base text-gray-500 hover:text-gray-900">
+                      <span className="text-base text-gray-500 hover:text-gray-900 cursor-pointer">
                         FAQ
-                      </a>
+                      </span>
                     </Link>
                   </li>
                   <li>
