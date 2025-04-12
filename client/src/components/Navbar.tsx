@@ -56,92 +56,92 @@ export default function Navbar() {
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link href="/">
-                <a
+                <span
                   className={`${
                     isActive("/")
                       ? "border-primary-500 text-gray-900"
                       : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium cursor-pointer`}
                 >
                   Home
-                </a>
+                </span>
               </Link>
               <Link href="/about">
-                <a
+                <span
                   className={`${
                     isActive("/about")
                       ? "border-primary-500 text-gray-900"
                       : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium cursor-pointer`}
                 >
                   About Us
-                </a>
+                </span>
               </Link>
               <Link href="/services">
-                <a
+                <span
                   className={`${
                     isActive("/services")
                       ? "border-primary-500 text-gray-900"
                       : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium cursor-pointer`}
                 >
                   Services
-                </a>
+                </span>
               </Link>
               <Link href="/calculators">
-                <a
+                <span
                   className={`${
                     isActive("/calculators")
                       ? "border-primary-500 text-gray-900"
                       : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium cursor-pointer`}
                 >
                   Calculators
-                </a>
+                </span>
               </Link>
               <Link href="/determinator">
-                <a
+                <span
                   className={`${
                     isActive("/determinator")
                       ? "border-primary-500 text-gray-900"
                       : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium cursor-pointer`}
                 >
                   Find My Loan
-                </a>
+                </span>
               </Link>
               <Link href="/loan-eligibility">
-                <a
+                <span
                   className={`${
                     isActive("/loan-eligibility")
                       ? "border-primary-500 text-gray-900"
                       : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium cursor-pointer`}
                 >
                   Loan Eligibility
-                </a>
+                </span>
               </Link>
               <Link href="/faq">
-                <a
+                <span
                   className={`${
                     isActive("/faq")
                       ? "border-primary-500 text-gray-900"
                       : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium cursor-pointer`}
                 >
                   FAQ
-                </a>
+                </span>
               </Link>
               <Link href="/contact">
-                <a
+                <span
                   className={`${
                     isActive("/contact")
                       ? "border-primary-500 text-gray-900"
                       : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                  } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium cursor-pointer`}
                 >
                   Contact
-                </a>
+                </span>
               </Link>
             </div>
           </div>
@@ -206,92 +206,92 @@ export default function Navbar() {
         <div className="sm:hidden">
           <div className="pt-2 pb-3 space-y-1">
             <Link href="/">
-              <a
+              <span
                 className={`${
                   isActive("/")
                     ? "bg-primary-50 border-primary-500 text-primary-700"
                     : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
-                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium cursor-pointer`}
               >
                 Home
-              </a>
+              </span>
             </Link>
             <Link href="/about">
-              <a
+              <span
                 className={`${
                   isActive("/about")
                     ? "bg-primary-50 border-primary-500 text-primary-700"
                     : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
-                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium cursor-pointer`}
               >
                 About Us
-              </a>
+              </span>
             </Link>
             <Link href="/services">
-              <a
+              <span
                 className={`${
                   isActive("/services")
                     ? "bg-primary-50 border-primary-500 text-primary-700"
                     : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
-                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium cursor-pointer`}
               >
                 Services
-              </a>
+              </span>
             </Link>
             <Link href="/calculators">
-              <a
+              <span
                 className={`${
                   isActive("/calculators")
                     ? "bg-primary-50 border-primary-500 text-primary-700"
                     : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
-                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium cursor-pointer`}
               >
                 Calculators
-              </a>
+              </span>
             </Link>
             <Link href="/determinator">
-              <a
+              <span
                 className={`${
                   isActive("/determinator")
                     ? "bg-primary-50 border-primary-500 text-primary-700"
                     : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
-                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium cursor-pointer`}
               >
                 Find My Loan
-              </a>
+              </span>
             </Link>
             <Link href="/loan-eligibility">
-              <a
+              <span
                 className={`${
                   isActive("/loan-eligibility")
                     ? "bg-primary-50 border-primary-500 text-primary-700"
                     : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
-                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium cursor-pointer`}
               >
                 Loan Eligibility
-              </a>
+              </span>
             </Link>
             <Link href="/faq">
-              <a
+              <span
                 className={`${
                   isActive("/faq")
                     ? "bg-primary-50 border-primary-500 text-primary-700"
                     : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
-                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium cursor-pointer`}
               >
                 FAQ
-              </a>
+              </span>
             </Link>
             <Link href="/contact">
-              <a
+              <span
                 className={`${
                   isActive("/contact")
                     ? "bg-primary-50 border-primary-500 text-primary-700"
                     : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
-                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
+                } block pl-3 pr-4 py-2 border-l-4 text-base font-medium cursor-pointer`}
               >
                 Contact
-              </a>
+              </span>
             </Link>
           </div>
           <div className="pt-4 pb-3 border-t border-gray-200">
