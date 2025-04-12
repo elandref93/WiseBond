@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - WiseBond
+name: Build and deploy Node.js app to Azure Web App - wisebond
 
 on:
   push:
@@ -12,8 +12,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read #This is required for actions/checkout
 
     steps:
       - uses: actions/checkout@v4
@@ -22,80 +20,26 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
-          cache: 'npm'
 
-      - name: Install dependencies and build
+      - name: Install dependencies
         run: |
-          npm ci
-          npm run build --if-present
+          npm install
 
-      - name: Create optimized deployment package
+      - name: Prepare deployment package
         run: |
-          # Create a minimal deployment package
-          mkdir -p deploy
-          cp -r dist deploy/
-          cp package.json deploy/
-          cp package-lock.json deploy/
-          
-          # Create a web.config for Azure
-          cat > deploy/web.config <<EOL
-          <?xml version="1.0" encoding="utf-8"?>
-          <configuration>
-            <system.webServer>
-              <handlers>
-                <add name="iisnode" path="dist/index.js" verb="*" modules="iisnode" />
-              </handlers>
-              <rewrite>
-                <rules>
-                  <rule name="HTTP/S to HTTPS redirect" stopProcessing="true">
-                    <match url="(.*)" />
-                    <conditions>
-                      <add input="{HTTPS}" pattern="off" ignoreCase="true" />
-                    </conditions>
-                    <action type="Redirect" url="https://{HTTP_HOST}/{R:1}" redirectType="Permanent" />
-                  </rule>
-                  <rule name="nodejs">
-                    <match url="/*" />
-                    <action type="Rewrite" url="dist/index.js" />
-                  </rule>
-                </rules>
-              </rewrite>
-              <security>
-                <requestFiltering>
-                  <hiddenSegments>
-                    <add segment="node_modules" />
-                  </hiddenSegments>
-                </requestFiltering>
-              </security>
-            </system.webServer>
-          </configuration>
-          EOL
-          
-          # Install only production dependencies
-          cd deploy
-          npm ci --only=production --omit=dev
-          
-          # Remove unnecessary files to reduce package size
-          rm -rf node_modules/.bin
-          rm -rf node_modules/*/test
-          rm -rf node_modules/*/tests
-          rm -rf node_modules/*/docs
-          rm -rf node_modules/*/examples
-          rm -rf node_modules/*/.github
-          find node_modules -name "*.md" -type f -delete
-          find node_modules -name "*.map" -type f -delete
-          cd ..
-          
-          # Create a smaller ZIP file for deployment
-          cd deploy
-          zip -rq ../optimized-release.zip .
-          cd ..
+          chmod +x scripts/prepare-deployment.sh
+          ./scripts/prepare-deployment.sh
+
+      - name: Zip deployment package
+        run: |
+          cd deployment
+          zip -r ../deployment.zip .
 
       - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: node-app
-          path: optimized-release.zip
+          path: deployment.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -103,27 +47,22 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
 
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: node-app
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Unzip artifact
+        run: |
+          unzip deployment.zip
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
+        uses: azure/webapps-deploy@v2
         with:
-          app-name: 'WiseBond'
+          app-name: 'wisebond'
           slot-name: 'Production'
-          package: optimized-release.zip
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_YOUR_PROFILE_ID }}
+          package: .

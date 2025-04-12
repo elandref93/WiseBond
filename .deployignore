@@ -1,0 +1,78 @@
+# Development files
+node_modules/
+*.log
+.git/
+.github/
+.vscode/
+.idea/
+
+# Test files
+test-*.js
+test-*.ts
+**/tests/
+**/test/
+**/specs/
+**/__tests__/
+**/__mocks__/
+jest.config.*
+
+# Build artifacts
+**/dist/
+**/build/
+**/.cache/
+**/.output/
+
+# Config files not needed in production
+.nvmrc
+.eslintrc*
+.prettierrc*
+.editorconfig
+.gitignore
+tsconfig.json
+postcss.config.js
+tailwind.config.*
+vite.config.*
+*.config.ts
+*.config.js
+!next.config.js
+!svelte.config.js
+
+# Documentation
+*.md
+LICENSE
+docs/
+
+# Temporary files
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+*.swp
+*.bak
+
+# Scripts not needed in production
+scripts/
+*.sh
+update-dependencies.js
+set-test-env.js
+generate-side-by-side.js
+
+# Environment variable examples/templates
+.env.example
+.env.local.example
+.env.development
+
+# Assets not needed in production
+attached_assets/
+**/*.psd
+**/*.ai
+**/*.sketch
+**/*.fig
+
+# Other unnecessary files
+.npmrc
+.yarnrc
+package-lock.json
+yarn.lock
+README.md
+CHANGELOG.md
