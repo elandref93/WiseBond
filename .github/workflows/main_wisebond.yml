@@ -21,9 +21,12 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: Install dependencies
+      - name: Install dependencies and update package-lock.json
         run: |
-          npm install
+          # First clean up any lock file issues
+          rm -f package-lock.json
+          # Then perform a clean install which will generate a new package-lock.json
+          npm install --no-audit --legacy-peer-deps
 
       - name: Prepare deployment package
         run: |
@@ -60,9 +63,9 @@ jobs:
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@v3
         with:
-          app-name: 'wisebond'
+          app-name: 'WiseBond'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_YOUR_PROFILE_ID }}
           package: .

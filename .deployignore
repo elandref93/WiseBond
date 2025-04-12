@@ -72,7 +72,8 @@ attached_assets/
 # Other unnecessary files
 .npmrc
 .yarnrc
-package-lock.json
+# We now include package-lock.json for dependency tracking
+# package-lock.json
 yarn.lock
 README.md
 CHANGELOG.md

@@ -97,7 +97,7 @@ function copyFilesToOutput(files) {
 }
 
 /**
- * Prepares production-ready package.json
+ * Prepares production-ready package.json and updates package-lock.json
  */
 function preparePackageJson() {
   if (!fs.existsSync('package.json')) {
@@ -124,7 +124,15 @@ function preparePackageJson() {
     JSON.stringify(packageJson, null, 2)
   );
   
-  console.log('Prepared production package.json');
+  // Handle package-lock.json if it exists
+  if (fs.existsSync('package-lock.json')) {
+    console.log('Copying package-lock.json to deployment directory');
+    fs.copyFileSync('package-lock.json', path.join(OUTPUT_DIR, 'package-lock.json'));
+  } else {
+    console.warn('Warning: package-lock.json not found');
+  }
+  
+  console.log('Prepared production package.json and synchronized package-lock.json');
 }
 
 /**
