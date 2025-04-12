@@ -38,7 +38,9 @@ vite.config.*
 !svelte.config.js
 
 # Documentation
-*.md
+# Include AZURE-DEPLOYMENT.md but exclude other markdown files
+README.md
+CHANGELOG.md
 LICENSE
 docs/
 
@@ -52,7 +54,7 @@ Thumbs.db
 
 # Scripts not needed in production
 scripts/
-*.sh
+# Include startup.sh but exclude other shell scripts
 update-dependencies.js
 set-test-env.js
 generate-side-by-side.js
@@ -75,5 +77,3 @@ attached_assets/
 # We now include package-lock.json for dependency tracking
 # package-lock.json
 yarn.lock
-README.md
-CHANGELOG.md
