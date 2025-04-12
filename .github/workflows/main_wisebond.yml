@@ -27,9 +27,7 @@ jobs:
 
       - name: Install dependencies and update package-lock.json
         run: |
-          # First clean up any lock file issues
           rm -f package-lock.json
-          # Then perform a clean install which will generate a new package-lock.json
           npm install --no-audit --legacy-peer-deps
 
       - name: Prepare deployment package
