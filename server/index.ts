@@ -50,7 +50,8 @@ app.use((req, res, next) => {
     'MAILGUN_API_KEY', 
     'MAILGUN_DOMAIN', 
     'MAILGUN_FROM_EMAIL',
-    'GOOGLE_MAPS_API_KEY'
+    'GOOGLE_MAPS_API_KEY',
+    'DATABASE_URL'
   ];
   
   console.log('Available environment variables:');
@@ -83,6 +84,16 @@ app.use((req, res, next) => {
     }
   } else {
     console.log('All required environment variables are set. Skipping Azure Key Vault.');
+  }
+  
+  // Test database connection before starting server
+  try {
+    // Import the testDatabaseConnection function
+    const { testDatabaseConnection } = await import('./db');
+    await testDatabaseConnection();
+  } catch (error) {
+    console.error('Error testing database connection:', error);
+    console.log('Application will continue, but database operations may fail.');
   }
   
   const server = await registerRoutes(app);

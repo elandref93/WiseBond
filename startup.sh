@@ -1,12 +1,17 @@
-#!/bin/bash
-# This script is used for starting the application in Azure App Service
+#!/bin/sh
 
-# Set NODE_ENV if not already set
-export NODE_ENV=${NODE_ENV:-production}
+# Set environment variables if needed
+export NODE_ENV=production
+
+# Ensure the certs directory exists
+mkdir -p /app/certs
 
 # Log startup information
-echo "Starting application with NODE_ENV=$NODE_ENV"
-echo "Using PORT=$PORT"
+echo "Starting WiseBond application..."
+echo "Node version: $(node -v)"
+echo "NPM version: $(npm -v)"
+echo "Environment: $NODE_ENV"
+echo "Port: $PORT"
 
-# Execute the application
-node dist/index.js
+# Start the application
+node dist/server/index.js
