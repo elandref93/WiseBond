@@ -52,6 +52,22 @@ export const testDatabaseConnection = async (): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error('❌ Database connection failed:', error);
+    console.log('Error details:', {
+      message: error.message,
+      code: error.code,
+      hostname: error.hostname || 'none',
+      syscall: error.syscall || 'none'
+    });
+    
+    // If this is a DNS resolution error, provide more specific guidance
+    if (error.code === 'ENOTFOUND') {
+      console.error('DNS lookup failed. This could mean:');
+      console.error('1. The server name is incorrect');
+      console.error('2. The server is not publicly accessible');
+      console.error('3. Firewall rules might be blocking access');
+      console.error('Please check Azure Portal → PostgreSQL flexible server → Networking settings');
+    }
+    
     return false;
   }
 };
