@@ -115,9 +115,9 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Use the environment's PORT variable or default to 5000
+  // Use the environment's PORT variable or default to 8080
   // This is critical for Azure App Service container deployments
-  const port = process.env.PORT || 5000;
+  const port = process.env.PORT || 8080;
   server.listen({
     port,
     host: "0.0.0.0",

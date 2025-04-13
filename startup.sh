@@ -14,4 +14,4 @@ echo "Environment: $NODE_ENV"
 echo "Port: $PORT"
 
 # Start the application
-node dist/server/index.js
+node dist/index.js

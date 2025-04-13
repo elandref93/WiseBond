@@ -8,8 +8,8 @@ RUN apk --no-cache add ca-certificates
 # Copy package.json and package-lock.json first for better layer caching
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies including dev dependencies for build
+RUN npm ci
 
 # Copy SSL certificates
 COPY certs /app/certs/
@@ -23,6 +23,9 @@ COPY . .
 
 # Build the application
 RUN npm run build
+
+# Clean up dev dependencies to reduce image size
+RUN npm ci --only=production
 
 # Set environment variables
 ENV NODE_ENV=production

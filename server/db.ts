@@ -50,22 +50,40 @@ export const testDatabaseConnection = async (): Promise<boolean> => {
     console.log(`Server time: ${result.rows[0].now}`);
     
     return true;
-  } catch (error) {
-    console.error('❌ Database connection failed:', error);
-    console.log('Error details:', {
-      message: error.message,
-      code: error.code,
-      hostname: error.hostname || 'none',
-      syscall: error.syscall || 'none'
-    });
+  } catch (unknownError: unknown) {
+    console.error('❌ Database connection failed:', unknownError);
     
-    // If this is a DNS resolution error, provide more specific guidance
-    if (error.code === 'ENOTFOUND') {
-      console.error('DNS lookup failed. This could mean:');
-      console.error('1. The server name is incorrect');
-      console.error('2. The server is not publicly accessible');
-      console.error('3. Firewall rules might be blocking access');
-      console.error('Please check Azure Portal → PostgreSQL flexible server → Networking settings');
+    // Define an interface for the expected error structure
+    interface DatabaseError {
+      message?: string;
+      code?: string;
+      hostname?: string;
+      syscall?: string;
+    }
+    
+    // Safe type check
+    const isErrorObject = (err: unknown): err is DatabaseError => {
+      return err !== null && typeof err === 'object';
+    };
+    
+    if (isErrorObject(unknownError)) {
+      const errorDetails: DatabaseError = unknownError;
+      
+      console.log('Error details:', {
+        message: errorDetails.message || 'Unknown error',
+        code: errorDetails.code || 'none',
+        hostname: errorDetails.hostname || 'none',
+        syscall: errorDetails.syscall || 'none'
+      });
+      
+      // If this is a DNS resolution error, provide more specific guidance
+      if (errorDetails.code === 'ENOTFOUND') {
+        console.error('DNS lookup failed. This could mean:');
+        console.error('1. The server name is incorrect');
+        console.error('2. The server is not publicly accessible');
+        console.error('3. Firewall rules might be blocking access');
+        console.error('Please check Azure Portal → PostgreSQL flexible server → Networking settings');
+      }
     }
     
     return false;
