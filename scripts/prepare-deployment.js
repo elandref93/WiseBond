@@ -53,6 +53,23 @@ function prepareOutputDirectory() {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 }
 
+function getAllFiles(dirPath, arrayOfFiles = []) {
+  const files = fs.readdirSync(dirPath);
+
+  files.forEach(file => {
+    const fullPath = path.join(dirPath, file);
+    if (fs.statSync(fullPath).isDirectory()) {
+      getAllFiles(fullPath, arrayOfFiles);
+    } else {
+      // Remove SOURCE_DIR prefix for consistent relative paths
+      const relativePath = path.relative(SOURCE_DIR, fullPath);
+      arrayOfFiles.push(relativePath);
+    }
+  });
+
+  return arrayOfFiles;
+}
+
 /**
  * Gets the list of files to include in the deployment
  * @param {string[]} ignorePatterns - Patterns from .deployignore
@@ -124,7 +141,8 @@ function copyFilesToOutput(files) {
     }
     
     // Copy the file
-    copyRecursiveSync(sourcePath, outputPath);
+    // copyRecursiveSync(sourcePath, outputPath);
+    fs.copyFileSync(sourcePath, outputPath);
   });
 }
 
@@ -171,19 +189,21 @@ function preparePackageJson() {
  * Main function
  */
 function main() {
-  console.log("filename -> ", __filename)
-  console.log("Dir Name -> ", __dirname)
+  console.log("Source Dir -> ", SOURCE_DIR)
+  console.log("Deployment Dir -> ", OUTPUT_DIR)
+  console.log("Ignore File -> ", DEPLOYIGNORE_FILE)
   console.log('Starting deployment preparation...');
 
   console.log('Running React build...on -> ', SOURCE_DIR);
   execSync('npm run build', { stdio: 'inherit' });
   
-  const ignorePatterns = readDeployIgnore();
-  console.log(`Read ${ignorePatterns.length} ignore patterns from .deployignore`);
+  // const ignorePatterns = readDeployIgnore();
+  // console.log(`Read ${ignorePatterns.length} ignore patterns from .deployignore`);
   
   prepareOutputDirectory();
   
-  const filesToInclude = getFilesToInclude(ignorePatterns);
+  // const filesToInclude = getFilesToInclude(ignorePatterns);
+  const filesToInclude = getAllFiles(SOURCE_DIR);
   console.log(`Found ${filesToInclude.length} files to include in deployment`);
   
   copyFilesToOutput(filesToInclude);
