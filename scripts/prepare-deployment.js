@@ -14,7 +14,7 @@ import path from 'path';
 import { execSync } from 'child_process';
 
 // Configuration
-const SOURCE_DIR = '.';
+const SOURCE_DIR = './dist';
 const OUTPUT_DIR = './deployment';
 const DEPLOYIGNORE_FILE = '.deployignore';
 
