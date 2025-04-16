@@ -17,8 +17,8 @@ test-*.ts
 jest.config.*
 
 # Build artifacts
-**/dist/
-**/build/
+# **/dist/
+# **/build/
 **/.cache/
 **/.output/
 
