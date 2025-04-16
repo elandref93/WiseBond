@@ -10,6 +10,7 @@
  */
 
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 import path from 'path';
 import { execSync } from 'child_process';
 
@@ -19,8 +20,8 @@ const __dirname = path.dirname(__filename);
 
 
 // Configuration
-const SOURCE_DIR = path.resolve('./dist');
-const OUTPUT_DIR = path.resolve('./deployment');
+const SOURCE_DIR = path.resolve(__dirname, '../dist');
+const OUTPUT_DIR = path.resolve(__dirname, '../deployment');
 const DEPLOYIGNORE_FILE = path.resolve(__dirname, '../.deployignore');
 
 /**
@@ -174,7 +175,7 @@ function main() {
   console.log("Dir Name -> ", __dirname)
   console.log('Starting deployment preparation...');
 
-  console.log('Running React build...');
+  console.log('Running React build...on -> ', SOURCE_DIR);
   execSync('npm run build', { stdio: 'inherit' });
   
   const ignorePatterns = readDeployIgnore();
