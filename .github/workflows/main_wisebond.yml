@@ -73,6 +73,11 @@ jobs:
         run: |
           unzip deployment.zip
 
+      - name: List files in deployment folder
+        run: |
+          echo "Listing deployment contents..."
+          find . -type f
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
