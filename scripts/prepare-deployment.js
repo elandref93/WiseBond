@@ -118,7 +118,7 @@ function copyFilesToOutput(files) {
     }
     
     // Copy the file
-    copyRecursiveSync(sourceDir, outputDir);
+    copyRecursiveSync(sourcePath, outputPath);
   });
 }
 
