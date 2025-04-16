@@ -35,6 +35,16 @@ jobs:
           chmod +x scripts/prepare-deployment.sh
           ./scripts/prepare-deployment.sh
 
+      - name: List contents of build folder
+        run: |
+          echo "Contents of build directory:"
+          find build -type f
+
+      - name: List contents of deployment folder
+        run: |
+          echo "Contents of deployment directory:"
+          find deployment -type f
+
       - name: Zip deployment package
         run: |
           cd deployment
