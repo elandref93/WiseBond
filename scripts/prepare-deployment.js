@@ -75,6 +75,32 @@ function getFilesToInclude(ignorePatterns) {
 }
 
 /**
+ * Recursively copies files and directories from source to destination.
+ * @param {string} sourcePath - The source directory/file path.
+ * @param {string} destPath - The destination directory path.
+ */
+function copyRecursiveSync(sourcePath, destPath) {
+  const stats = fs.statSync(sourcePath);
+
+  // If sourcePath is a directory, create the directory at destination and recursively copy contents
+  if (stats.isDirectory()) {
+    if (!fs.existsSync(destPath)) {
+      fs.mkdirSync(destPath, { recursive: true });
+    }
+
+    const items = fs.readdirSync(sourcePath);
+    items.forEach(item => {
+      const currentSource = path.join(sourcePath, item);
+      const currentDest = path.join(destPath, item);
+      copyRecursiveSync(currentSource, currentDest);  // Recursively copy each item
+    });
+  } else {
+    // If it's a file, copy it to the destination
+    fs.copyFileSync(sourcePath, destPath);
+  }
+}
+
+/**
  * Copies files to the output directory
  * @param {string[]} files - List of files to copy
  */
@@ -92,7 +118,7 @@ function copyFilesToOutput(files) {
     }
     
     // Copy the file
-    fs.copyFileSync(sourcePath, outputPath);
+    copyRecursiveSync(sourceDir, outputDir);
   });
 }
 
