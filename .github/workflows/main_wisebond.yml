@@ -72,6 +72,11 @@ jobs:
       - name: Unzip artifact
         run: |
           unzip deployment.zip
+      
+      - name: Install production dependencies
+        run: |
+          echo "Installing production dependencies..."
+          npm ci --omit=dev
 
       - name: List files in deployment folder
         run: |
