@@ -14,9 +14,9 @@ import path from 'path';
 import { execSync } from 'child_process';
 
 // Configuration
-const SOURCE_DIR = './dist';
-const OUTPUT_DIR = './deployment';
-const DEPLOYIGNORE_FILE = '.deployignore';
+const SOURCE_DIR = path.resolve('./dist');
+const OUTPUT_DIR = path.resolve('./deployment');
+const DEPLOYIGNORE_FILE = path.resolve('.deployignore');
 
 /**
  * Reads the .deployignore file and returns an array of patterns
