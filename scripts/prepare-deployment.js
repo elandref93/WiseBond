@@ -140,6 +140,9 @@ function preparePackageJson() {
  */
 function main() {
   console.log('Starting deployment preparation...');
+
+  console.log('Running React build...');
+  execSync('npm run build', { stdio: 'inherit' });
   
   const ignorePatterns = readDeployIgnore();
   console.log(`Read ${ignorePatterns.length} ignore patterns from .deployignore`);

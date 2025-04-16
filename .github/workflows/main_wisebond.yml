@@ -38,7 +38,7 @@ jobs:
       - name: List contents of build folder
         run: |
           echo "Contents of build directory:"
-          find build -type f
+          find dist -type f
 
       - name: List contents of deployment folder
         run: |
