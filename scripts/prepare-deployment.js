@@ -162,7 +162,7 @@ function preparePackageJson() {
   
   // Keep only necessary scripts
   const necessaryScripts = {
-    start: packageJson.scripts.start,
+    start: packageJson.scripts.serve,
     build: packageJson.scripts.build
   };
   
