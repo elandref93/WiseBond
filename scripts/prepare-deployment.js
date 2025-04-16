@@ -13,10 +13,15 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 
+// Resolve __dirname for ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+
 // Configuration
 const SOURCE_DIR = path.resolve('./dist');
 const OUTPUT_DIR = path.resolve('./deployment');
-const DEPLOYIGNORE_FILE = path.resolve('.deployignore');
+const DEPLOYIGNORE_FILE = path.resolve(__dirname, '../.deployignore');
 
 /**
  * Reads the .deployignore file and returns an array of patterns
@@ -165,6 +170,8 @@ function preparePackageJson() {
  * Main function
  */
 function main() {
+  console.log("filename -> ", __filename)
+  console.log("Dir Name -> ", __dirname)
   console.log('Starting deployment preparation...');
 
   console.log('Running React build...');
