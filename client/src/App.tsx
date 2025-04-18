@@ -24,6 +24,7 @@ const Profile = lazy(() => import("@/pages/Profile"));
 const SharedCalculation = lazy(() => import("@/pages/SharedCalculation"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPasswordPage"));
 const ResetPassword = lazy(() => import("@/pages/ResetPasswordPage"));
+const AgentDashboard = lazy(() => import("@/pages/AgentDashboard"));
 
 function Router() {
   return (
@@ -42,6 +43,11 @@ function Router() {
       <Route path="/shared-calculation" component={SharedCalculation} />
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
+      <Route path="/agent/dashboard" component={AgentDashboard} />
+      <Route path="/agent/applications/:id" component={AgentDashboard} />
+      <Route path="/agent/applications/new" component={AgentDashboard} />
+      <Route path="/agent/clients/:id" component={AgentDashboard} />
+      <Route path="/agent/clients/new" component={AgentDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
