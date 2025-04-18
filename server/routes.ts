@@ -30,16 +30,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(
     session({
       secret: process.env.SESSION_SECRET || "homebondsa-secret",
-      resave: false,
-      saveUninitialized: false,
+      resave: true, // Changed to true to ensure session is saved
+      saveUninitialized: true, // Changed to true to ensure new sessions are saved
       store: new MemoryStoreSession({
         checkPeriod: 86400000, // prune expired entries every 24h
       }),
       cookie: {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production' // Only use secure in production
       },
     })
   );
+  
+  // Log all session operations for debugging
+  app.use((req, res, next) => {
+    const originalSave = req.session.save;
+    req.session.save = function(callback) {
+      console.log('Session being saved, session data:', req.session);
+      return originalSave.call(req.session, callback);
+    };
+    next();
+  });
 
   // Check if user is authenticated
   const isAuthenticated = (req: Request, res: Response, next: Function) => {
@@ -85,13 +97,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn(`Failed to send verification email to ${user.email}:`, emailResult.error);
       }
       
-      // Set session
+      // Set session and explicitly save it
       req.session.userId = user.id;
+      console.log("Session set on registration with userId:", user.id);
+      console.log("Registration session data before save:", req.session);
       
-      // Don't return the password
-      const { password, ...userWithoutPassword } = user;
-      
-      res.status(201).json({ user: userWithoutPassword });
+      // Explicitly save the session to ensure it's persisted
+      req.session.save((err) => {
+        if (err) {
+          console.error("Error saving registration session:", err);
+          return res.status(500).json({ message: "Failed to save session" });
+        }
+        
+        console.log("Registration session saved successfully, returning user data");
+        // Don't return the password
+        const { password, ...userWithoutPassword } = user;
+        
+        res.status(201).json({ user: userWithoutPassword });
+      });
     } catch (error) {
       if (error instanceof ZodError) {
         const validationError = fromZodError(error);
@@ -116,15 +139,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Authentication successful for user ID:", user.id);
       
-      // Set session
+      // Set session and explicitly save it
       req.session.userId = user.id;
       console.log("Session set with userId:", user.id);
-      console.log("Session data:", req.session);
+      console.log("Session data before save:", req.session);
       
-      // Don't return the password
-      const { password, ...userWithoutPassword } = user;
-      
-      res.status(200).json({ user: userWithoutPassword });
+      // Explicitly save the session to ensure it's persisted
+      req.session.save((err) => {
+        if (err) {
+          console.error("Error saving session:", err);
+          return res.status(500).json({ message: "Failed to save session" });
+        }
+        
+        console.log("Session saved successfully, returning user data");
+        // Don't return the password
+        const { password, ...userWithoutPassword } = user;
+        
+        res.status(200).json({ user: userWithoutPassword });
+      });
     } catch (error) {
       console.error("Login error:", error);
       if (error instanceof ZodError) {
