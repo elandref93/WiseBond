@@ -11,12 +11,18 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Determine environment and adjust certificate path
+// Determine environment and database type
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const isAzureDb = process.env.DATABASE_URL?.includes('azure.com') || false;
+const isNeonDb = process.env.DATABASE_URL?.includes('neon.tech') || false;
 const certBasePath = isDevelopment ? path.join(process.cwd(), 'certs') : path.join('/app', 'certs');
 
-// Get all certificate files
+// Determine database type for logging
+let dbType = 'Standard PostgreSQL';
+if (isAzureDb) dbType = 'Azure PostgreSQL';
+if (isNeonDb) dbType = 'Neon PostgreSQL';
+
+// Get all certificate files (for Azure)
 const certFiles = [
   path.join(certBasePath, 'DigiCertGlobalRootG2.crt.pem'),
   path.join(certBasePath, 'DigiCertGlobalRootCA.crt'),
@@ -37,27 +43,55 @@ const caCerts = certFiles
   })
   .filter(cert => cert !== null);
 
-// Configure SSL connection
+// Configure SSL connection for Azure
 const sslOptions = {
   rejectUnauthorized: true,
   ca: caCerts.length > 0 ? caCerts : undefined,
 };
 
 console.log(`Database connecting with SSL certificates: ${caCerts.length > 0 ? 'Yes (' + caCerts.length + ' found)' : 'No'}`);
-console.log(`Database environment: ${isAzureDb ? 'Azure PostgreSQL' : 'Local PostgreSQL'}`);
+console.log(`Database environment: ${dbType}`);
 
-// Create pool with SSL configuration
+// Create pool with SSL configuration based on database type
 // For Azure DB, use full SSL with certificates
-// For local DB, SSL might not be required, but we keep rejectUnauthorized: false for flexibility
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: isAzureDb && caCerts.length > 0 
-    ? sslOptions 
-    : isAzureDb 
-      ? { rejectUnauthorized: false } // Azure DB fallback if no certs
-      : false // Local DB doesn't need SSL
-});
+// For Neon DB, use default SSL
+// For local DB, SSL might not be required
 
+// Define pool configuration with correct typing for SSL
+// The pg module accepts various SSL configurations
+interface PoolConfig {
+  connectionString: string;
+  ssl: boolean | {
+    rejectUnauthorized: boolean;
+    ca?: string[];
+  };
+}
+
+// Create base configuration
+let poolConfig: PoolConfig = {
+  connectionString: process.env.DATABASE_URL,
+  ssl: false // Default for local PostgreSQL
+};
+
+// Update SSL config based on database type
+if (isAzureDb) {
+  if (caCerts.length > 0) {
+    poolConfig.ssl = {
+      rejectUnauthorized: true,
+      ca: caCerts
+    };
+  } else {
+    poolConfig.ssl = {
+      rejectUnauthorized: false
+    };
+  }
+} else if (isNeonDb) {
+  poolConfig.ssl = {
+    rejectUnauthorized: true
+  };
+}
+
+export const pool = new Pool(poolConfig);
 export const db = drizzle(pool, { schema });
 
 // Function to test database connection

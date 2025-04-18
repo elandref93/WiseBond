@@ -1101,19 +1101,33 @@ export class DatabaseStorage implements IStorage {
 }
 
 // Exporting the appropriate storage implementation
-// Determine if we're using Azure database
-const isAzureDb = process.env.DATABASE_URL?.includes('azure.com') || false;
+// Determine environment type
 const isDevelopment = process.env.NODE_ENV !== 'production';
+const isProduction = !isDevelopment;
 
-// Create memory storage right away as a backup option
+// Create memory storage
 const memStorage = new MemStorage();
 
-// Choose the appropriate storage implementation
+// For local development, use in-memory storage
+// For production (Azure), use database storage
 let storageImplementation: IStorage;
 
-// Always use in-memory storage for now to get the app running
-storageImplementation = memStorage;
-console.log('Using in-memory storage (data will not persist between restarts)');
+if (isProduction) {
+  try {
+    // In production, use database storage
+    storageImplementation = new DatabaseStorage();
+    console.log('Using production PostgreSQL database storage');
+  } catch (error) {
+    // Fallback to in-memory in case of error (should not happen in production)
+    console.error('❌ CRITICAL: Database initialization failed in production:', error);
+    storageImplementation = memStorage;
+    console.log('CRITICAL: Using in-memory storage in production environment!');
+  }
+} else {
+  // For development, always use in-memory storage for simplicity and reliability
+  console.log('Development environment detected, using in-memory storage');
+  storageImplementation = memStorage;
+}
 
-// This is a modified approach that will work with both local dev and production
+// Export the selected storage implementation
 export const storage = storageImplementation;

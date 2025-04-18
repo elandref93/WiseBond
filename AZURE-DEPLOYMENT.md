@@ -71,10 +71,37 @@ Ensure the following environment variables are configured in your Azure App Serv
 - `PGPASSWORD` - PostgreSQL password
 - `PGDATABASE` - PostgreSQL database name
 
+### Environment Configuration
+
+- `NODE_ENV` - Set to `production` for production deployment
+
 You can set these using the Azure Portal or the following Azure CLI command:
 ```
-az webapp config appsettings set --resource-group <resource-group-name> --name WiseBond --settings MAILGUN_API_KEY="your-key" MAILGUN_DOMAIN="your-domain" MAILGUN_FROM_EMAIL="your-email" GOOGLE_MAPS_API_KEY="your-key" DATABASE_URL="your-connection-string" PGHOST="your-db-host" PGPORT="5432" PGUSER="your-db-user" PGPASSWORD="your-db-password" PGDATABASE="your-db-name"
+az webapp config appsettings set --resource-group <resource-group-name> --name WiseBond --settings NODE_ENV="production" MAILGUN_API_KEY="your-key" MAILGUN_DOMAIN="your-domain" MAILGUN_FROM_EMAIL="your-email" GOOGLE_MAPS_API_KEY="your-key" DATABASE_URL="your-connection-string" PGHOST="your-db-host" PGPORT="5432" PGUSER="your-db-user" PGPASSWORD="your-db-password" PGDATABASE="your-db-name"
 ```
+
+## Development vs. Production Environments
+
+The application is designed to work differently in development and production environments:
+
+### Development Environment
+
+In development mode (when `NODE_ENV` is not set to `production`):
+
+1. The application uses in-memory storage regardless of database configuration
+2. Database connection tests are skipped to avoid errors
+3. Data will not persist between application restarts
+4. Perfect for local development and testing without database configuration
+
+### Production Environment
+
+In production mode (when `NODE_ENV` is set to `production`):
+
+1. The application connects to the configured PostgreSQL database
+2. Database connection is tested during startup
+3. All database operations use the real database
+4. SSL certificates are used for secure database connections
+5. Application will log critical errors if database connection fails
 
 ## Troubleshooting
 
@@ -96,7 +123,17 @@ For PostgreSQL connection problems:
 3. Ensure the SSL certificates are correctly included in the deployment
 4. Confirm all database environment variables are properly set
 5. Check the `/app/certs` directory in the container to ensure certificates are present
-6. See the detailed `AZURE-DATABASE.md` document for more information
+6. Verify that `NODE_ENV` is set to `production` - otherwise the app will use in-memory storage
+7. See the detailed `AZURE-DATABASE.md` document for more information
+
+### Environment Configuration Issues
+
+If you're experiencing issues with the application environment:
+
+1. For production deployments, ensure `NODE_ENV` is set to `production`
+2. For local development, you can leave `NODE_ENV` unset to use in-memory storage
+3. Check server logs for messages about which storage implementation is being used
+4. Verify the database environment variables if you're not seeing database operations work as expected
 
 ### Authentication Issues
 

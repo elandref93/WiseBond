@@ -87,13 +87,19 @@ app.use((req, res, next) => {
   }
   
   // Test database connection before starting server
-  try {
-    // Import the testDatabaseConnection function
-    const { testDatabaseConnection } = await import('./db');
-    await testDatabaseConnection();
-  } catch (error) {
-    console.error('Error testing database connection:', error);
-    console.log('Application will continue, but database operations may fail.');
+  // Skip in development mode to avoid unnecessary errors
+  if (process.env.NODE_ENV === 'production') {
+    console.log('Production environment detected, testing database connection...');
+    try {
+      // Import the testDatabaseConnection function
+      const { testDatabaseConnection } = await import('./db');
+      await testDatabaseConnection();
+    } catch (error) {
+      console.error('Error testing database connection:', error);
+      console.log('Application will continue, but database operations may fail.');
+    }
+  } else {
+    console.log('Development environment detected, skipping database connection test');
   }
   
   const server = await registerRoutes(app);
@@ -115,9 +121,10 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Use the environment's PORT variable or default to 8080
-  // This is critical for Azure App Service container deployments
-  const port = process.env.PORT || 8080;
+  // Use the environment's PORT variable
+  // For Azure App Service container deployments, we need port 8080
+  // For Replit development, we use port 5000
+  const port = process.env.PORT || (process.env.NODE_ENV === 'production' ? 8080 : 5000);
   server.listen({
     port,
     host: "0.0.0.0",
