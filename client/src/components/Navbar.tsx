@@ -318,6 +318,11 @@ export default function Navbar() {
                     My Profile
                   </Button>
                 </Link>
+                <Link href="/documents">
+                  <Button variant="outline" className="w-full justify-start">
+                    My Documents
+                  </Button>
+                </Link>
                 <Link href="/agent/dashboard">
                   <Button variant="outline" className="w-full justify-start">
                     Agent Dashboard
