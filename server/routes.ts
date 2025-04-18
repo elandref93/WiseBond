@@ -252,6 +252,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   });
+  
+  // Login a verified user after OTP verification
+  app.post("/api/auth/login-verified-user", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      
+      // Get the user data
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        console.log("User not found:", userId);
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      if (!user.otpVerified) {
+        console.log("User not verified:", userId);
+        return res.status(403).json({ message: "User not verified" });
+      }
+      
+      console.log("Auto-login for verified user:", userId);
+      
+      // Set session and explicitly save it
+      req.session.userId = user.id;
+      console.log("Session set with userId:", user.id);
+      console.log("Session data before save:", req.session);
+      
+      // Explicitly save the session to ensure it's persisted
+      req.session.save((err) => {
+        if (err) {
+          console.error("Error saving session:", err);
+          return res.status(500).json({ message: "Failed to save session" });
+        }
+        
+        console.log("Session saved successfully after verification, returning user data");
+        // Don't return the password
+        const { password, ...userWithoutPassword } = user;
+        
+        res.status(200).json({ user: userWithoutPassword });
+      });
+    } catch (error) {
+      console.error("Auto-login error:", error);
+      res.status(500).json({ message: "Failed to login after verification" });
+    }
+  });
 
   app.post("/api/auth/resend-otp", async (req, res) => {
     try {
