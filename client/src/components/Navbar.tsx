@@ -164,6 +164,11 @@ export default function Navbar() {
                         My Profile
                       </DropdownMenuItem>
                     </Link>
+                    <Link href="/documents">
+                      <DropdownMenuItem>
+                        My Documents
+                      </DropdownMenuItem>
+                    </Link>
                     <Link href="/agent/dashboard">
                       <DropdownMenuItem>
                         Agent Dashboard
