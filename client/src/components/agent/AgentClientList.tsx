@@ -1,218 +1,166 @@
-import React, { useState, useMemo } from "react";
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription, 
-  CardContent 
-} from "@/components/ui/card";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import React, { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { 
-  Link, 
-  useLocation 
-} from "wouter";
-import { 
-  MoreHorizontal,
-  FileText,
-  Phone,
-  Mail,
-  User
-} from "lucide-react";
-import { Loader2 } from "lucide-react";
-import { formatDistance } from "date-fns";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { Loader2, Search, Filter, Users, Phone, Mail } from "lucide-react";
+import { Link } from "wouter";
 
-interface Application {
+interface ClientApplication {
   id: number;
   clientId: number;
+  clientName?: string;
+  clientPhone?: string;
+  clientEmail?: string;
   status: string;
-  applicationDate: string;
-  [key: string]: any;
+  loanAmount?: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-interface User {
+interface ClientData {
   id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
+  name: string;
   phone?: string;
+  email?: string;
+  applicationCount: number;
+  latestApplication?: Date;
+  status: string;
 }
 
 interface AgentClientListProps {
-  applications?: Application[];
-  isLoading: boolean;
+  applications?: ClientApplication[];
+  isLoading?: boolean;
 }
 
-const AgentClientList: React.FC<AgentClientListProps> = ({ applications = [], isLoading }) => {
-  const [search, setSearch] = useState("");
-  const [, setLocation] = useLocation();
-  const { toast } = useToast();
+const AgentClientList: React.FC<AgentClientListProps> = ({
+  applications = [],
+  isLoading = false,
+}) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  // Extract unique clients from applications
-  const uniqueClientIds = useMemo(() => {
-    const ids = new Set<number>();
-    applications.forEach(app => ids.add(app.clientId));
-    return Array.from(ids);
-  }, [applications]);
-
-  // Get clients information using useMemo to create the selector function
-  const clientQueries = useMemo(() => 
-    uniqueClientIds.map(clientId => useQuery({
-      queryKey: ["/api/users", clientId],
-      queryFn: async () => {
-        try {
-          const res = await fetch(`/api/users/${clientId}`);
-          if (!res.ok) throw new Error("Failed to fetch client");
-          return await res.json();
-        } catch (error) {
-          console.error(`Error fetching client ${clientId}:`, error);
-          return { user: null };
-        }
-      },
-      enabled: uniqueClientIds.length > 0,
-    }))
-  , [uniqueClientIds]);
-
-  const isClientsLoading = clientQueries.some(query => query.isLoading);
-  const clientsData = clientQueries.map(query => query.data?.user).filter(Boolean);
-
-  // Create a map of clientId to client data
-  const clientMap = useMemo(() => {
-    const map = new Map<number, User>();
-    clientsData.forEach(client => {
-      if (client) map.set(client.id, client);
-    });
-    return map;
-  }, [clientsData]);
-
-  // Create a client summary with application counts and last activity
-  const clientSummaries = useMemo(() => {
-    return uniqueClientIds.map(clientId => {
-      const client = clientMap.get(clientId);
-      const clientApps = applications.filter(app => app.clientId === clientId);
-      
-      // Calculate application counts
-      const totalApps = clientApps.length;
-      const activeApps = clientApps.filter(app => 
-        ['new_lead', 'in_progress', 'submitted', 'under_review'].includes(app.status)
-      ).length;
-      const approvedApps = clientApps.filter(app => app.status === 'approved' || app.status === 'funded').length;
-      const declinedApps = clientApps.filter(app => app.status === 'declined').length;
-      
-      // Get last activity date
-      const sortedApps = [...clientApps].sort((a, b) => 
-        new Date(b.updatedAt || b.applicationDate).getTime() - 
-        new Date(a.updatedAt || a.applicationDate).getTime()
-      );
-      const lastActivity = sortedApps.length > 0 ? sortedApps[0].updatedAt || sortedApps[0].applicationDate : null;
-      
-      return {
-        clientId,
-        client,
-        totalApps,
-        activeApps,
-        approvedApps,
-        declinedApps,
-        lastActivity
-      };
-    });
-  }, [uniqueClientIds, clientMap, applications]);
+  // Process applications to get client data
+  const clientsMap = new Map<number, ClientData>();
   
-  // Filter client summaries based on search
-  const filteredClients = useMemo(() => {
-    return clientSummaries.filter(summary => {
-      if (!summary.client) return false;
+  applications.forEach(app => {
+    if (!clientsMap.has(app.clientId)) {
+      clientsMap.set(app.clientId, {
+        id: app.clientId,
+        name: app.clientName || `Client #${app.clientId}`,
+        phone: app.clientPhone,
+        email: app.clientEmail,
+        applicationCount: 1,
+        latestApplication: new Date(app.createdAt),
+        status: app.status
+      });
+    } else {
+      const clientData = clientsMap.get(app.clientId)!;
+      clientData.applicationCount += 1;
       
-      const client = summary.client;
-      const searchLowerCase = search.toLowerCase();
+      // Update latest application date if this one is newer
+      const appDate = new Date(app.createdAt);
+      if (appDate > clientData.latestApplication!) {
+        clientData.latestApplication = appDate;
+        clientData.status = app.status;
+      }
+    }
+  });
+
+  const clients = Array.from(clientsMap.values());
+
+  // Apply filters
+  const filteredClients = clients.filter((client) => {
+    // Status filter
+    if (statusFilter !== "all" && client.status !== statusFilter) {
+      return false;
+    }
+    
+    // Search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const nameMatch = client.name.toLowerCase().includes(searchLower);
+      const emailMatch = client.email?.toLowerCase().includes(searchLower);
+      const phoneMatch = client.phone?.toLowerCase().includes(searchLower);
       
-      return (
-        client.firstName.toLowerCase().includes(searchLowerCase) ||
-        client.lastName.toLowerCase().includes(searchLowerCase) ||
-        client.email.toLowerCase().includes(searchLowerCase) ||
-        (client.phone && client.phone.includes(search))
-      );
-    });
-  }, [clientSummaries, search]);
+      if (!(nameMatch || emailMatch || phoneMatch)) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
 
-  // Sort clients by last activity
-  const sortedClients = useMemo(() => {
-    return [...filteredClients].sort((a, b) => {
-      if (!a.lastActivity) return 1;
-      if (!b.lastActivity) return -1;
-      return new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime();
-    });
-  }, [filteredClients]);
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "pending":
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">Pending</Badge>;
+      case "approved":
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">Approved</Badge>;
+      case "declined":
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">Declined</Badge>;
+      case "in_review":
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">In Review</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
 
-  if (isLoading || isClientsLoading) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Clients</CardTitle>
+        </CardHeader>
+        <CardContent className="flex justify-center items-center min-h-[300px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <CardTitle>Clients</CardTitle>
-        <CardDescription>Manage your clients and prospects</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between">
-          <div className="w-full sm:w-1/3">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none sm:min-w-[240px]">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name, email or phone"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full"
+              placeholder="Search clients..."
+              className="pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button 
-            onClick={() => setLocation("/agent/clients/new")}
-          >
-            Add New Client
-          </Button>
-        </div>
-
-        {sortedClients.length === 0 ? (
-          <div className="text-center py-10">
-            <User className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h3 className="mt-2 text-lg font-medium">No clients found</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {applications.length === 0
-                ? "Start by adding your first client"
-                : "Try adjusting your search"}
-            </p>
-            {applications.length === 0 && (
-              <Button 
-                className="mt-4"
-                onClick={() => setLocation("/agent/clients/new")}
-              >
-                Add New Client
-              </Button>
-            )}
+          <div className="flex gap-2">
+            <select
+              className="px-3 py-2 rounded-md border border-input bg-background text-sm"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="in_review">In Review</option>
+              <option value="approved">Approved</option>
+              <option value="declined">Declined</option>
+            </select>
+            <Button variant="outline" size="icon">
+              <Filter className="h-4 w-4" />
+            </Button>
           </div>
-        ) : (
+        </div>
+      </CardHeader>
+      <CardContent>
+        {filteredClients.length > 0 ? (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -220,122 +168,99 @@ const AgentClientList: React.FC<AgentClientListProps> = ({ applications = [], is
                   <TableHead>Name</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Applications</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Latest Status</TableHead>
                   <TableHead>Last Activity</TableHead>
-                  <TableHead className="w-[80px]"></TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedClients.map((summary) => (
-                  <TableRow key={summary.clientId}>
-                    <TableCell className="font-medium">
-                      {summary.client ? (
-                        `${summary.client.firstName} ${summary.client.lastName}`
-                      ) : (
-                        "Loading client data..."
-                      )}
-                    </TableCell>
+                {filteredClients.map((client) => (
+                  <TableRow key={client.id}>
+                    <TableCell className="font-medium">{client.name}</TableCell>
                     <TableCell>
-                      {summary.client && (
-                        <div className="flex flex-col space-y-1">
-                          <div className="flex items-center text-xs">
-                            <Mail className="mr-1 h-3 w-3" />
-                            <span className="text-muted-foreground">{summary.client.email}</span>
+                      <div className="flex flex-col gap-1">
+                        {client.email && (
+                          <div className="flex items-center text-sm">
+                            <Mail className="mr-2 h-3 w-3" />
+                            <span className="truncate max-w-[180px]">
+                              {client.email}
+                            </span>
                           </div>
-                          {summary.client.phone && (
-                            <div className="flex items-center text-xs">
-                              <Phone className="mr-1 h-3 w-3" />
-                              <span className="text-muted-foreground">{summary.client.phone}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col space-y-1">
-                        <span className="text-sm">{summary.totalApps} total</span>
-                        <div className="flex space-x-1">
-                          {summary.activeApps > 0 && (
-                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
-                              {summary.activeApps} active
-                            </Badge>
-                          )}
-                          {summary.approvedApps > 0 && (
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-200">
-                              {summary.approvedApps} approved
-                            </Badge>
-                          )}
-                          {summary.declinedApps > 0 && (
-                            <Badge variant="outline" className="text-xs bg-red-50 text-red-600 border-red-200">
-                              {summary.declinedApps} declined
-                            </Badge>
-                          )}
-                        </div>
+                        )}
+                        {client.phone && (
+                          <div className="flex items-center text-sm">
+                            <Phone className="mr-2 h-3 w-3" />
+                            <span>{client.phone}</span>
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={
-                        summary.activeApps > 0 
-                          ? "outline" 
-                          : summary.approvedApps > 0 
-                            ? "secondary" 
-                            : "destructive"
-                      }>
-                        {summary.activeApps > 0 
-                          ? "Active" 
-                          : summary.approvedApps > 0 
-                            ? "Approved" 
-                            : "Inactive"}
-                      </Badge>
+                      <div className="flex items-center">
+                        <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                        <span>{client.applicationCount}</span>
+                      </div>
                     </TableCell>
                     <TableCell>
-                      {summary.lastActivity && (
-                        <div className="text-sm">
-                          {formatDistance(new Date(summary.lastActivity), new Date(), { 
-                            addSuffix: true 
-                          })}
-                        </div>
-                      )}
+                      {getStatusBadge(client.status)}
                     </TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
+                      {client.latestApplication 
+                        ? new Date(client.latestApplication).toLocaleDateString("en-ZA", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Link href={`/agent/clients/${client.id}`}>
+                          <Button variant="outline" size="sm">
+                            View
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem 
-                            onClick={() => setLocation(`/agent/clients/${summary.clientId}`)}
-                          >
-                            View Profile
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => {
-                              setLocation(`/agent/applications/new?clientId=${summary.clientId}`);
-                            }}
-                          >
-                            Create Application
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => {
-                              toast({
-                                title: "Coming Soon",
-                                description: "This feature will be available soon",
-                              });
-                            }}
-                          >
-                            Send Email
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                        </Link>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+          </div>
+        ) : (
+          <div className="text-center py-10">
+            {searchTerm || statusFilter !== "all" ? (
+              <div className="flex flex-col items-center gap-2">
+                <Search className="h-8 w-8 text-muted-foreground" />
+                <h3 className="font-semibold text-xl">No matching clients</h3>
+                <p className="text-muted-foreground">
+                  Try adjusting your search or filter to find what you're looking for
+                </p>
+                <Button 
+                  variant="outline" 
+                  className="mt-2"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setStatusFilter("all");
+                  }}
+                >
+                  Clear filters
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2">
+                <Users className="h-8 w-8 text-muted-foreground" />
+                <h3 className="font-semibold text-xl">No clients yet</h3>
+                <p className="text-muted-foreground">
+                  When you start adding clients, they will appear here
+                </p>
+                <Link href="/agent/clients/new">
+                  <Button className="mt-2">
+                    Add Client
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
