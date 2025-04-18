@@ -15,20 +15,38 @@ if (!process.env.DATABASE_URL) {
 
 // Determine environment and adjust certificate path
 const isDevelopment = process.env.NODE_ENV !== 'production';
-const certPath = isDevelopment 
-  ? path.join(process.cwd(), 'certs', 'DigiCertGlobalRootG2.crt.pem')
-  : path.join('/app', 'certs', 'DigiCertGlobalRootG2.crt.pem'); // Path in Docker container
+const certBasePath = isDevelopment ? path.join(process.cwd(), 'certs') : path.join('/app', 'certs');
+
+// Get all certificate files
+const certFiles = [
+  path.join(certBasePath, 'DigiCertGlobalRootG2.crt.pem'),
+  path.join(certBasePath, 'DigiCertGlobalRootCA.crt'),
+  path.join(certBasePath, 'Microsoft RSA Root Certificate Authority 2017.crt')
+];
+
+// Load available certificates
+const caCerts = certFiles
+  .filter(certPath => fs.existsSync(certPath))
+  .map(certPath => {
+    console.log(`Found certificate: ${certPath}`);
+    try {
+      return fs.readFileSync(certPath);
+    } catch (err) {
+      console.error(`Error reading certificate ${certPath}:`, err);
+      return null;
+    }
+  })
+  .filter(cert => cert !== null);
 
 // Configure SSL connection
 const sslConfig = {
   ssl: {
     rejectUnauthorized: true,
-    ca: fs.existsSync(certPath) ? fs.readFileSync(certPath).toString() : undefined,
+    ca: caCerts.length > 0 ? caCerts : undefined,
   }
 };
 
-console.log(`Database connecting with SSL certificate: ${fs.existsSync(certPath) ? 'Yes' : 'No'}`);
-console.log(`Certificate path: ${certPath}`);
+console.log(`Database connecting with SSL certificates: ${caCerts.length > 0 ? 'Yes (' + caCerts.length + ' found)' : 'No'}`);
 
 // Create pool with SSL configuration
 export const pool = new Pool({ 
