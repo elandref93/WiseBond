@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import Loading from "./components/Loading";
 import NotFound from "@/pages/not-found";
 import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 // Lazy load pages for better performance
 const Home = lazy(() => import("@/pages/Home"));
@@ -30,6 +31,7 @@ const Documents = lazy(() => import("@/pages/DocumentsPage"));
 function Router() {
   return (
     <Switch>
+      {/* Public routes */}
       <Route path="/" component={Home} />
       <Route path="/about" component={About} />
       <Route path="/services" component={Services} />
@@ -40,16 +42,20 @@ function Router() {
       <Route path="/contact" component={Contact} />
       <Route path="/signup" component={SignUp} />
       <Route path="/login" component={Login} />
-      <Route path="/profile" component={Profile} />
-      <Route path="/documents" component={Documents} />
       <Route path="/shared-calculation" component={SharedCalculation} />
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
-      <Route path="/agent/dashboard" component={AgentDashboard} />
-      <Route path="/agent/applications/:id" component={AgentDashboard} />
-      <Route path="/agent/applications/new" component={AgentDashboard} />
-      <Route path="/agent/clients/:id" component={AgentDashboard} />
-      <Route path="/agent/clients/new" component={AgentDashboard} />
+      
+      {/* Protected routes */}
+      <ProtectedRoute path="/profile" component={Profile} />
+      <ProtectedRoute path="/documents" component={Documents} />
+      <ProtectedRoute path="/agent/dashboard" component={AgentDashboard} />
+      <ProtectedRoute path="/agent/applications/:id" component={AgentDashboard} />
+      <ProtectedRoute path="/agent/applications/new" component={AgentDashboard} />
+      <ProtectedRoute path="/agent/clients/:id" component={AgentDashboard} />
+      <ProtectedRoute path="/agent/clients/new" component={AgentDashboard} />
+      
+      {/* 404 route */}
       <Route component={NotFound} />
     </Switch>
   );

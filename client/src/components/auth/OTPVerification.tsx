@@ -3,8 +3,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from "@/components/ui/button";
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Smartphone } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 
@@ -139,6 +140,7 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
     
     setIsLoading(true);
     try {
+      // Verify the OTP
       await apiRequest('/api/auth/verify-otp', {
         method: 'POST',
         body: JSON.stringify({
@@ -146,6 +148,23 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
           otp: values.otp,
         }),
       });
+
+      // Set the session by logging in with the verified user credentials
+      try {
+        // We need to update the authentication context by setting the user's session
+        await apiRequest('/api/auth/login-verified-user', {
+          method: 'POST',
+          body: JSON.stringify({
+            userId,
+          }),
+        });
+        
+        // Invalidate the auth context to ensure it refreshes
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      } catch (loginError) {
+        console.error('Auto-login after verification failed:', loginError);
+        // Continue with verification success even if auto-login fails
+      }
 
       toast({
         title: "Success",
