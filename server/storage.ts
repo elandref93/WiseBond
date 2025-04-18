@@ -1612,25 +1612,18 @@ const isProduction = !isDevelopment;
 // Create memory storage
 const memStorage = new MemStorage();
 
-// For local development, use in-memory storage
-// For production (Azure), use database storage
+// Use database storage for both development and production to ensure data persistence
 let storageImplementation: IStorage;
 
-if (isProduction) {
-  try {
-    // In production, use database storage
-    storageImplementation = new DatabaseStorage();
-    console.log('Using production PostgreSQL database storage');
-  } catch (error) {
-    // Fallback to in-memory in case of error (should not happen in production)
-    console.error('❌ CRITICAL: Database initialization failed in production:', error);
-    storageImplementation = memStorage;
-    console.log('CRITICAL: Using in-memory storage in production environment!');
-  }
-} else {
-  // For development, always use in-memory storage for simplicity and reliability
-  console.log('Development environment detected, using in-memory storage');
+try {
+  // Use database storage for both environments to ensure data persistence
+  storageImplementation = new DatabaseStorage();
+  console.log('Using PostgreSQL database storage for data persistence');
+} catch (error) {
+  // Fallback to in-memory in case of database error
+  console.error('❌ CRITICAL: Database initialization failed:', error);
   storageImplementation = memStorage;
+  console.log('CRITICAL: Using in-memory storage as fallback. User data will not persist between restarts!');
 }
 
 // Export the selected storage implementation
