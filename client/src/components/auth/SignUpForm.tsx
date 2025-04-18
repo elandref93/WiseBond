@@ -122,11 +122,11 @@ export default function SignUpForm() {
   const handleOTPVerified = () => {
     toast({
       title: "Verification successful",
-      description: "Your account has been verified. You can now log in.",
+      description: "Your account has been verified and you are now logged in.",
     });
     
-    // Redirect to login page
-    setLocation("/login");
+    // Redirect to home page instead of login page
+    setLocation("/");
   };
 
   if (registrationStep === 'otp' && userId && form.getValues().email) {

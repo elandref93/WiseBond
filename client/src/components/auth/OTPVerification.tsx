@@ -150,19 +150,36 @@ export default function OTPVerification({ userId, email, onVerified }: OTPVerifi
 
       // Set the session by logging in with the verified user credentials
       try {
-        // We need to update the authentication context by setting the user's session
-        await apiRequest('/api/auth/login-verified-user', {
+        // Log user in automatically after successful verification
+        const loginResponse = await apiRequest('/api/auth/login-verified-user', {
           method: 'POST',
           body: JSON.stringify({
             userId,
           }),
         });
         
+        // Check if login was successful
+        const loginData = await loginResponse.json();
+        if (!loginData.user) {
+          throw new Error("Failed to log in automatically");
+        }
+        
+        console.log("Auto-login successful after OTP verification");
+        
         // Invalidate the auth context to ensure it refreshes
         queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       } catch (loginError) {
         console.error('Auto-login after verification failed:', loginError);
-        // Continue with verification success even if auto-login fails
+        // Show a warning but still continue with verification success
+        toast({
+          title: "Verification successful but login failed",
+          description: "Your account is verified but you'll need to log in manually.",
+          variant: "destructive",
+        });
+        
+        // We'll still call onVerified to redirect, but with a different experience
+        onVerified();
+        return;
       }
 
       toast({
