@@ -10,7 +10,13 @@ import {
   users, type User, type InsertUser, type CalculationResult, type InsertCalculationResult, 
   type ContactSubmission, type InsertContactSubmission, type BudgetCategory, type InsertBudgetCategory,
   type Expense, type InsertExpense, type UpdateExpense, budgetCategories, expenses,
-  calculationResults, contactSubmissions
+  calculationResults, contactSubmissions,
+  // Agent-related imports
+  agencies, agents, applications, applicationDocuments, applicationMilestones, applicationComments, notifications,
+  type Agency, type InsertAgency, type Agent, type InsertAgent, type Application, type InsertApplication,
+  type ApplicationDocument, type InsertApplicationDocument, type ApplicationMilestone,
+  type InsertApplicationMilestone, type ApplicationComment, type InsertApplicationComment,
+  type Notification, type InsertNotification
 } from "@shared/schema";
 
 // Create session store factory once at module level
@@ -61,6 +67,51 @@ export interface IStorage {
   createExpense(expense: InsertExpense): Promise<Expense>;
   updateExpense(id: number, userId: number, updates: UpdateExpense): Promise<Expense | undefined>;
   deleteExpense(id: number, userId: number): Promise<boolean>;
+  
+  // Agency management
+  getAgencies(): Promise<Agency[]>;
+  getAgency(id: number): Promise<Agency | undefined>;
+  createAgency(agency: InsertAgency): Promise<Agency>;
+  updateAgency(id: number, updates: Partial<Agency>): Promise<Agency | undefined>;
+  
+  // Agent management
+  getAgents(): Promise<Agent[]>;
+  getAgentsByAgency(agencyId: number): Promise<Agent[]>;
+  getAgent(id: number): Promise<Agent | undefined>;
+  getAgentByUserId(userId: number): Promise<Agent | undefined>;
+  createAgent(agent: InsertAgent): Promise<Agent>;
+  updateAgent(id: number, updates: Partial<Agent>): Promise<Agent | undefined>;
+  
+  // Application management
+  getApplications(): Promise<Application[]>;
+  getApplicationsByAgent(agentId: number): Promise<Application[]>;
+  getApplicationsByClient(clientId: number): Promise<Application[]>;
+  getApplicationsByStatus(status: string): Promise<Application[]>;
+  getApplication(id: number): Promise<Application | undefined>;
+  createApplication(application: InsertApplication): Promise<Application>;
+  updateApplication(id: number, updates: Partial<Application>): Promise<Application | undefined>;
+  
+  // Application document management
+  getApplicationDocuments(applicationId: number): Promise<ApplicationDocument[]>;
+  getApplicationDocument(id: number): Promise<ApplicationDocument | undefined>;
+  createApplicationDocument(document: InsertApplicationDocument): Promise<ApplicationDocument>;
+  updateApplicationDocument(id: number, updates: Partial<ApplicationDocument>): Promise<ApplicationDocument | undefined>;
+  
+  // Application milestone management
+  getApplicationMilestones(applicationId: number): Promise<ApplicationMilestone[]>;
+  createApplicationMilestone(milestone: InsertApplicationMilestone): Promise<ApplicationMilestone>;
+  updateApplicationMilestone(id: number, updates: Partial<ApplicationMilestone>): Promise<ApplicationMilestone | undefined>;
+  
+  // Application comment management
+  getApplicationComments(applicationId: number): Promise<ApplicationComment[]>;
+  createApplicationComment(comment: InsertApplicationComment): Promise<ApplicationComment>;
+  
+  // Notification management
+  getUserNotifications(userId: number): Promise<Notification[]>;
+  getUserUnreadNotifications(userId: number): Promise<Notification[]>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  markNotificationRead(id: number): Promise<boolean>;
+  markAllNotificationsRead(userId: number): Promise<boolean>;
 }
 export class MemStorage implements IStorage {
   // In-memory storage using Maps
@@ -69,11 +120,30 @@ export class MemStorage implements IStorage {
   private contactSubmissions: Map<number, ContactSubmission>;
   private budgetCategories: Map<number, BudgetCategory>;
   private expenses: Map<number, Expense>;
+  
+  // Agent-related storage
+  private agencies: Map<number, Agency>;
+  private agents: Map<number, Agent>;
+  private applications: Map<number, Application>;
+  private applicationDocuments: Map<number, ApplicationDocument>;
+  private applicationMilestones: Map<number, ApplicationMilestone>;
+  private applicationComments: Map<number, ApplicationComment>;
+  private notifications: Map<number, Notification>;
+  
+  // Counters for ID generation
   private userIdCounter: number;
   private calculationIdCounter: number;
   private contactIdCounter: number;
   private budgetCategoryIdCounter: number;
   private expenseIdCounter: number;
+  private agencyIdCounter: number;
+  private agentIdCounter: number;
+  private applicationIdCounter: number;
+  private docIdCounter: number;
+  private milestoneIdCounter: number;
+  private commentIdCounter: number;
+  private notificationIdCounter: number;
+  
   private otpStore: Map<number, { otp: string, expiresAt: Date }>;
   private passwordResetTokens: Map<string, { userId: number, expiresAt: Date }>;
   sessionStore: session.Store;
@@ -85,11 +155,30 @@ export class MemStorage implements IStorage {
     this.contactSubmissions = new Map();
     this.budgetCategories = new Map();
     this.expenses = new Map();
+    
+    // Initialize agent-related storage
+    this.agencies = new Map();
+    this.agents = new Map();
+    this.applications = new Map();
+    this.applicationDocuments = new Map();
+    this.applicationMilestones = new Map();
+    this.applicationComments = new Map();
+    this.notifications = new Map();
+    
+    // Initialize counters
     this.userIdCounter = 1;
     this.calculationIdCounter = 1;
     this.contactIdCounter = 1;
     this.budgetCategoryIdCounter = 1;
     this.expenseIdCounter = 1;
+    this.agencyIdCounter = 1;
+    this.agentIdCounter = 1;
+    this.applicationIdCounter = 1;
+    this.docIdCounter = 1;
+    this.milestoneIdCounter = 1;
+    this.commentIdCounter = 1;
+    this.notificationIdCounter = 1;
+    
     this.otpStore = new Map();
     this.passwordResetTokens = new Map();
     

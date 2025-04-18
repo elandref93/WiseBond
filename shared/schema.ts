@@ -201,3 +201,190 @@ export type InsertBudgetCategory = z.infer<typeof insertBudgetCategorySchema>;
 export type Expense = typeof expenses.$inferSelect;
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
 export type UpdateExpense = z.infer<typeof updateExpenseSchema>;
+
+// Agent and Agency Models for Real Estate Agents Portal
+
+export const agencies = pgTable("agencies", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  logo: text("logo"),
+  address: text("address"),
+  city: text("city"),
+  province: text("province"),
+  postalCode: text("postal_code"),
+  website: text("website"),
+  phoneNumber: text("phone_number"),
+  email: text("email"),
+  licenseNumber: text("license_number"),
+  active: boolean("active").default(true),
+  commissionStructure: text("commission_structure"), // JSON string with commission tiers
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAgencySchema = createInsertSchema(agencies).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+export const agents = pgTable("agents", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull().unique(),
+  agencyId: integer("agency_id").references(() => agencies.id),
+  licenseNumber: text("license_number").notNull(),
+  profilePicture: text("profile_picture"),
+  biography: text("biography"),
+  specializations: text("specializations"), // JSON array of specializations
+  regions: text("regions"), // JSON array of regions covered
+  commissionTier: text("commission_tier").default("standard"),
+  commissionRate: real("commission_rate").default(0),
+  active: boolean("active").default(true),
+  approved: boolean("approved").default(false),
+  applicationDate: timestamp("application_date").defaultNow(),
+  approvalDate: timestamp("approval_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAgentSchema = createInsertSchema(agents).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true,
+  approvalDate: true
+});
+
+export const applications = pgTable("applications", {
+  id: serial("id").primaryKey(),
+  clientId: integer("client_id").references(() => users.id).notNull(),
+  agentId: integer("agent_id").references(() => agents.id),
+  status: text("status").notNull().default("new_lead"), // new_lead, in_progress, submitted, under_review, approved, funded, declined
+  lender: text("lender"),
+  propertyValue: integer("property_value"),
+  loanAmount: integer("loan_amount"),
+  term: integer("term"), // Loan term in months
+  interestRate: real("interest_rate"),
+  applicationDate: timestamp("application_date").defaultNow(),
+  submissionDate: timestamp("submission_date"),
+  decisionDate: timestamp("decision_date"),
+  fundingDate: timestamp("funding_date"),
+  notes: text("notes"),
+  urgency: text("urgency").default("normal"), // low, normal, high
+  commissionEarned: real("commission_earned"),
+  commissionPaidDate: timestamp("commission_paid_date"),
+  propertyAddress: text("property_address"),
+  propertyType: text("property_type"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertApplicationSchema = createInsertSchema(applications).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true,
+  commissionPaidDate: true,
+  decisionDate: true,
+  fundingDate: true,
+  submissionDate: true
+});
+
+export const applicationDocuments = pgTable("application_documents", {
+  id: serial("id").primaryKey(),
+  applicationId: integer("application_id").references(() => applications.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  documentType: text("document_type").notNull(), // id, payslip, bank_statement, tax_return, offer_letter, etc.
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  status: text("status").default("pending"), // pending, approved, rejected
+  uploadDate: timestamp("upload_date").defaultNow(),
+  reviewDate: timestamp("review_date"),
+  reviewedBy: integer("reviewed_by").references(() => users.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertApplicationDocumentSchema = createInsertSchema(applicationDocuments).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true,
+  reviewDate: true,
+  reviewedBy: true
+});
+
+export const applicationMilestones = pgTable("application_milestones", {
+  id: serial("id").primaryKey(),
+  applicationId: integer("application_id").references(() => applications.id).notNull(),
+  milestoneName: text("milestone_name").notNull(), // pre_qualify, submit, under_review, decision, funding
+  completed: boolean("completed").default(false),
+  expectedDate: timestamp("expected_date"),
+  completedDate: timestamp("completed_date"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertApplicationMilestoneSchema = createInsertSchema(applicationMilestones).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true,
+  completedDate: true
+});
+
+export const applicationComments = pgTable("application_comments", {
+  id: serial("id").primaryKey(),
+  applicationId: integer("application_id").references(() => applications.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  comment: text("comment").notNull(),
+  mentions: text("mentions"), // JSON array of user IDs mentioned
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertApplicationCommentSchema = createInsertSchema(applicationComments).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true
+});
+
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  type: text("type").notNull(), // approval, document_request, reminder, comment, etc.
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  relatedId: integer("related_id"), // ID of the related entity (application, document, etc.)
+  relatedType: text("related_type"), // Type of the related entity (application, document, etc.)
+  read: boolean("read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({ 
+  id: true, 
+  createdAt: true,
+  read: true
+});
+
+// Export types for all these new models
+export type Agency = typeof agencies.$inferSelect;
+export type InsertAgency = z.infer<typeof insertAgencySchema>;
+
+export type Agent = typeof agents.$inferSelect;
+export type InsertAgent = z.infer<typeof insertAgentSchema>;
+
+export type Application = typeof applications.$inferSelect;
+export type InsertApplication = z.infer<typeof insertApplicationSchema>;
+
+export type ApplicationDocument = typeof applicationDocuments.$inferSelect;
+export type InsertApplicationDocument = z.infer<typeof insertApplicationDocumentSchema>;
+
+export type ApplicationMilestone = typeof applicationMilestones.$inferSelect;
+export type InsertApplicationMilestone = z.infer<typeof insertApplicationMilestoneSchema>;
+
+export type ApplicationComment = typeof applicationComments.$inferSelect;
+export type InsertApplicationComment = z.infer<typeof insertApplicationCommentSchema>;
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
