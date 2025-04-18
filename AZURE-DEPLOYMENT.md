@@ -55,15 +55,25 @@ Ensure your GitHub repository has the following secrets configured:
 
 Ensure the following environment variables are configured in your Azure App Service:
 
+### External API Keys
+
 - `MAILGUN_API_KEY`
 - `MAILGUN_DOMAIN`
 - `MAILGUN_FROM_EMAIL`
 - `GOOGLE_MAPS_API_KEY`
-- Any other secrets required by your application
+
+### Database Configuration
+
+- `DATABASE_URL` - Complete PostgreSQL connection string
+- `PGHOST` - PostgreSQL server hostname
+- `PGPORT` - PostgreSQL server port (typically 5432)
+- `PGUSER` - PostgreSQL username
+- `PGPASSWORD` - PostgreSQL password
+- `PGDATABASE` - PostgreSQL database name
 
 You can set these using the Azure Portal or the following Azure CLI command:
 ```
-az webapp config appsettings set --resource-group <resource-group-name> --name WiseBond --settings MAILGUN_API_KEY="your-key" MAILGUN_DOMAIN="your-domain" MAILGUN_FROM_EMAIL="your-email" GOOGLE_MAPS_API_KEY="your-key"
+az webapp config appsettings set --resource-group <resource-group-name> --name WiseBond --settings MAILGUN_API_KEY="your-key" MAILGUN_DOMAIN="your-domain" MAILGUN_FROM_EMAIL="your-email" GOOGLE_MAPS_API_KEY="your-key" DATABASE_URL="your-connection-string" PGHOST="your-db-host" PGPORT="5432" PGUSER="your-db-user" PGPASSWORD="your-db-password" PGDATABASE="your-db-name"
 ```
 
 ## Troubleshooting
@@ -77,6 +87,17 @@ If you encounter container startup issues:
 3. Verify all required environment variables are set
 4. Check if the database connection is properly configured
 
+### Database Connection Issues
+
+For PostgreSQL connection problems:
+
+1. Verify that the App Service and PostgreSQL server are in the same Virtual Network
+2. Check that the Private Link configuration is correct in Azure PostgreSQL
+3. Ensure the SSL certificates are correctly included in the deployment
+4. Confirm all database environment variables are properly set
+5. Check the `/app/certs` directory in the container to ensure certificates are present
+6. See the detailed `AZURE-DATABASE.md` document for more information
+
 ### Authentication Issues
 
 If GitHub Actions deployment fails with authentication issues:
@@ -84,3 +105,13 @@ If GitHub Actions deployment fails with authentication issues:
 1. Check that the federated credential is properly set up in Azure AD
 2. Verify the client ID, tenant ID, and subscription ID are correct
 3. Ensure the service principal has the necessary permissions to deploy to App Service
+
+## SSL Certificates
+
+The application includes the following SSL certificates for secure database connectivity:
+
+- `DigiCertGlobalRootG2.crt.pem`
+- `DigiCertGlobalRootCA.crt`
+- `Microsoft RSA Root Certificate Authority 2017.crt`
+
+These certificates are required for establishing secure connections to Azure PostgreSQL with Private Link enabled.

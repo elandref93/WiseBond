@@ -1,8 +1,9 @@
 import { eq, and, desc, sql } from "drizzle-orm";
-import { db } from "./db";
+import { db, pool } from "./db";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
-import { Pool } from "@neondatabase/serverless";
+import pkg from 'pg';
+const { Pool } = pkg;
 import bcrypt from 'bcrypt';
 import memorystore from 'memorystore';
 import { 
@@ -544,10 +545,12 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    // Create a PostgreSQL session store
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    // Use the pool from db.ts to ensure consistent connection settings
+    // including SSL configurations
+    
+    // Create a PostgreSQL session store with the same pool used by drizzle
     this.sessionStore = new PgSessionStore({ 
-      pool, 
+      pool: pool, 
       createTableIfMissing: true,
       tableName: 'sessions'
     });
@@ -1098,4 +1101,24 @@ export class DatabaseStorage implements IStorage {
 }
 
 // Exporting the appropriate storage implementation
-export const storage = new DatabaseStorage();
+// Determine if we're using Azure database
+const isAzureDb = process.env.DATABASE_URL?.includes('azure.com') || false;
+const isDevelopment = process.env.NODE_ENV !== 'production';
+
+// Choose the appropriate storage implementation
+// For Azure DB in production, use DatabaseStorage
+// For local development, use the local DB but fallback to MemStorage if connection fails
+let storageImplementation: IStorage;
+
+try {
+  // First try to use database storage
+  storageImplementation = new DatabaseStorage();
+  console.log('Using persistent database storage');
+} catch (error) {
+  // Fallback to in-memory storage if database connection fails
+  console.warn('❌ Database initialization failed, falling back to in-memory storage:', error);
+  storageImplementation = new MemStorage();
+  console.log('Using in-memory storage (data will not persist between restarts)');
+}
+
+export const storage = storageImplementation;

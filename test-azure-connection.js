@@ -1,4 +1,5 @@
-import { Pool } from '@neondatabase/serverless';
+import pkg from 'pg';
+const { Pool } = pkg;
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -9,6 +10,20 @@ dotenv.config();
 // Define connection details for testing
 const testConnection = async () => {
   console.log('🔍 Testing Azure PostgreSQL connection...');
+  
+  // Check if necessary environment variables are set
+  console.log('Checking environment variables:');
+  const requiredVars = ['DATABASE_URL', 'PGHOST', 'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE'];
+  const missingVars = [];
+  
+  requiredVars.forEach(varName => {
+    if (process.env[varName]) {
+      console.log(`✅ ${varName}: Set`);
+    } else {
+      console.log(`❌ ${varName}: Not set`);
+      missingVars.push(varName);
+    }
+  });
   
   // Check if DATABASE_URL is set
   if (!process.env.DATABASE_URL) {

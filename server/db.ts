@@ -1,11 +1,9 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import pkg from 'pg';
+const { Pool } = pkg;
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 import fs from 'fs';
 import path from 'path';
-
-neonConfig.webSocketConstructor = ws;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -15,6 +13,7 @@ if (!process.env.DATABASE_URL) {
 
 // Determine environment and adjust certificate path
 const isDevelopment = process.env.NODE_ENV !== 'production';
+const isAzureDb = process.env.DATABASE_URL?.includes('azure.com') || false;
 const certBasePath = isDevelopment ? path.join(process.cwd(), 'certs') : path.join('/app', 'certs');
 
 // Get all certificate files
@@ -30,7 +29,7 @@ const caCerts = certFiles
   .map(certPath => {
     console.log(`Found certificate: ${certPath}`);
     try {
-      return fs.readFileSync(certPath);
+      return fs.readFileSync(certPath).toString();
     } catch (err) {
       console.error(`Error reading certificate ${certPath}:`, err);
       return null;
@@ -39,22 +38,27 @@ const caCerts = certFiles
   .filter(cert => cert !== null);
 
 // Configure SSL connection
-const sslConfig = {
-  ssl: {
-    rejectUnauthorized: true,
-    ca: caCerts.length > 0 ? caCerts : undefined,
-  }
+const sslOptions = {
+  rejectUnauthorized: true,
+  ca: caCerts.length > 0 ? caCerts : undefined,
 };
 
 console.log(`Database connecting with SSL certificates: ${caCerts.length > 0 ? 'Yes (' + caCerts.length + ' found)' : 'No'}`);
+console.log(`Database environment: ${isAzureDb ? 'Azure PostgreSQL' : 'Local PostgreSQL'}`);
 
 // Create pool with SSL configuration
-export const pool = new Pool({ 
+// For Azure DB, use full SSL with certificates
+// For local DB, SSL might not be required, but we keep rejectUnauthorized: false for flexibility
+export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ...sslConfig
+  ssl: isAzureDb && caCerts.length > 0 
+    ? sslOptions 
+    : isAzureDb 
+      ? { rejectUnauthorized: false } // Azure DB fallback if no certs
+      : false // Local DB doesn't need SSL
 });
 
-export const db = drizzle({ client: pool, schema });
+export const db = drizzle(pool, { schema });
 
 // Function to test database connection
 export const testDatabaseConnection = async (): Promise<boolean> => {
