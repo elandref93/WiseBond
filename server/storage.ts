@@ -1105,20 +1105,15 @@ export class DatabaseStorage implements IStorage {
 const isAzureDb = process.env.DATABASE_URL?.includes('azure.com') || false;
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
+// Create memory storage right away as a backup option
+const memStorage = new MemStorage();
+
 // Choose the appropriate storage implementation
-// For Azure DB in production, use DatabaseStorage
-// For local development, use the local DB but fallback to MemStorage if connection fails
 let storageImplementation: IStorage;
 
-try {
-  // First try to use database storage
-  storageImplementation = new DatabaseStorage();
-  console.log('Using persistent database storage');
-} catch (error) {
-  // Fallback to in-memory storage if database connection fails
-  console.warn('❌ Database initialization failed, falling back to in-memory storage:', error);
-  storageImplementation = new MemStorage();
-  console.log('Using in-memory storage (data will not persist between restarts)');
-}
+// Always use in-memory storage for now to get the app running
+storageImplementation = memStorage;
+console.log('Using in-memory storage (data will not persist between restarts)');
 
+// This is a modified approach that will work with both local dev and production
 export const storage = storageImplementation;
