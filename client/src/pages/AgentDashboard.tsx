@@ -1,5 +1,5 @@
 import React from "react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Redirect } from "wouter";
 import AgentDashboardLayout from "@/components/agent/AgentDashboardLayout";
 

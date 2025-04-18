@@ -1,112 +1,101 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Activity, Clock, CheckCircle, UserPlus, FileText } from "lucide-react";
 
-// Define the type for the applications
-interface Application {
+interface ClientApplication {
   id: number;
-  status: string;
   clientId: number;
-  applicationDate: string;
-  [key: string]: any;
+  status: string;
+  loanAmount?: number;
+  commissionEarned?: number;
+  commissionPaidDate?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface AgentDashboardStatsProps {
-  applications?: Application[];
+  applications?: ClientApplication[];
 }
 
 const AgentDashboardStats: React.FC<AgentDashboardStatsProps> = ({ applications = [] }) => {
-  // Calculate statistics
-  const activeClients = applications
-    ? [...new Set(applications.map(app => app.clientId))].length
-    : 0;
-    
-  const pendingApplications = applications
-    ? applications.filter(app => 
-        ['new_lead', 'in_progress', 'submitted', 'under_review'].includes(app.status)
-      ).length
-    : 0;
-    
-  const approvalsThisMonth = applications
-    ? applications.filter(app => {
-        const approvedInThisMonth = app.status === 'approved';
-        if (!approvedInThisMonth) return false;
-        
-        // Check if approved in current month
-        const now = new Date();
-        const approvedDate = app.decisionDate ? new Date(app.decisionDate) : null;
-        return approvedDate && 
-               approvedDate.getMonth() === now.getMonth() && 
-               approvedDate.getFullYear() === now.getFullYear();
-      }).length
-    : 0;
-    
-  const avgProcessingDays = applications && applications.length > 0
-    ? applications
-        .filter(app => app.submissionDate && app.decisionDate)
-        .reduce((acc, app) => {
-          const submissionDate = new Date(app.submissionDate);
-          const decisionDate = new Date(app.decisionDate);
-          const differenceInDays = Math.floor((decisionDate.getTime() - submissionDate.getTime()) / (1000 * 3600 * 24));
-          return acc + differenceInDays;
-        }, 0) / applications.filter(app => app.submissionDate && app.decisionDate).length || 0
-    : 0;
+  // Calculate various statistics from the applications data
+  const totalApplications = applications.length;
+  const pendingApplications = applications.filter(app => app.status === 'pending').length;
+  const approvedApplications = applications.filter(app => app.status === 'approved').length;
+  const declinedApplications = applications.filter(app => app.status === 'declined').length;
+  
+  // Calculate unique clients (using Set to get unique clientIds)
+  const uniqueClients = new Set(applications.map(app => app.clientId)).size;
+  
+  // Calculate total commission
+  const totalCommission = applications
+    .filter(app => app.commissionEarned)
+    .reduce((sum, app) => sum + (app.commissionEarned || 0), 0);
   
   return (
-    <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-      <Card className="bg-primary/5">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <Card>
         <CardContent className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-3 rounded-full">
-              <UserPlus className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Active Clients</p>
-              <h3 className="text-2xl font-bold">{activeClients}</h3>
-            </div>
-          </div>
+          <div className="text-2xl font-bold">{totalApplications}</div>
+          <p className="text-sm text-muted-foreground">Total Applications</p>
         </CardContent>
       </Card>
       
-      <Card className="bg-primary/5">
+      <Card>
         <CardContent className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-3 rounded-full">
-              <FileText className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Pending Applications</p>
-              <h3 className="text-2xl font-bold">{pendingApplications}</h3>
-            </div>
-          </div>
+          <div className="text-2xl font-bold">{uniqueClients}</div>
+          <p className="text-sm text-muted-foreground">Active Clients</p>
         </CardContent>
       </Card>
       
-      <Card className="bg-primary/5">
+      <Card>
         <CardContent className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-3 rounded-full">
-              <CheckCircle className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Approvals This Month</p>
-              <h3 className="text-2xl font-bold">{approvalsThisMonth}</h3>
-            </div>
-          </div>
+          <div className="text-2xl font-bold">{pendingApplications}</div>
+          <p className="text-sm text-muted-foreground">Pending Applications</p>
         </CardContent>
       </Card>
       
-      <Card className="bg-primary/5">
+      <Card>
         <CardContent className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-3 rounded-full">
-              <Clock className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Avg. Processing Days</p>
-              <h3 className="text-2xl font-bold">{avgProcessingDays.toFixed(1)}</h3>
-            </div>
+          <div className="text-2xl font-bold">R{totalCommission.toLocaleString()}</div>
+          <p className="text-sm text-muted-foreground">Total Commission</p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-2xl font-bold">{approvedApplications}</div>
+          <p className="text-sm text-muted-foreground">Approved Applications</p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-2xl font-bold">{declinedApplications}</div>
+          <p className="text-sm text-muted-foreground">Declined Applications</p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-2xl font-bold">
+            {totalApplications > 0 
+              ? `${Math.round((approvedApplications / totalApplications) * 100)}%` 
+              : '0%'}
           </div>
+          <p className="text-sm text-muted-foreground">Approval Rate</p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-2xl font-bold">
+            {applications.length > 0 
+              ? `${Math.round(applications.filter(app => 
+                  new Date().getTime() - new Date(app.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
+                ).length / applications.length * 100)}%` 
+              : '0%'}
+          </div>
+          <p className="text-sm text-muted-foreground">Last 7 Days Activity</p>
         </CardContent>
       </Card>
     </div>

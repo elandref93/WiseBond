@@ -164,6 +164,11 @@ export default function Navbar() {
                         My Profile
                       </DropdownMenuItem>
                     </Link>
+                    <Link href="/agent/dashboard">
+                      <DropdownMenuItem>
+                        Agent Dashboard
+                      </DropdownMenuItem>
+                    </Link>
                     <DropdownMenuItem onClick={handleLogout}>
                       Logout
                     </DropdownMenuItem>
@@ -306,6 +311,11 @@ export default function Navbar() {
                 <Link href="/profile">
                   <Button variant="outline" className="w-full justify-start">
                     My Profile
+                  </Button>
+                </Link>
+                <Link href="/agent/dashboard">
+                  <Button variant="outline" className="w-full justify-start">
+                    Agent Dashboard
                   </Button>
                 </Link>
                 <Button
