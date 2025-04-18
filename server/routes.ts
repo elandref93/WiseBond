@@ -5,7 +5,9 @@ import session from "express-session";
 import MemoryStore from "memorystore";
 import { 
   insertUserSchema, loginSchema, insertCalculationResultSchema, insertContactSubmissionSchema, 
-  updateProfileSchema, insertBudgetCategorySchema, insertExpenseSchema, updateExpenseSchema 
+  updateProfileSchema, insertBudgetCategorySchema, insertExpenseSchema, updateExpenseSchema,
+  insertAgencySchema, insertAgentSchema, insertApplicationSchema, insertApplicationDocumentSchema,
+  insertApplicationMilestoneSchema, insertApplicationCommentSchema, insertNotificationSchema
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from 'zod-validation-error';
@@ -792,6 +794,407 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Prime Rate API
   app.get("/api/prime-rate", getPrimeRateHandler);
+
+  // Agent routes
+  // Get current user agent profile
+  app.get("/api/agent/profile", isAuthenticated, async (req, res) => {
+    try {
+      const agent = await storage.getAgentByUserId(req.session.userId!);
+      
+      if (!agent) {
+        return res.status(404).json({ message: "Agent profile not found" });
+      }
+      
+      res.status(200).json({ agent });
+    } catch (error) {
+      console.error("Error getting agent profile:", error);
+      res.status(500).json({ message: "Failed to get agent profile" });
+    }
+  });
+  
+  // Create agent profile for current user
+  app.post("/api/agent/profile", isAuthenticated, async (req, res) => {
+    try {
+      // Check if user already has an agent profile
+      const existingAgent = await storage.getAgentByUserId(req.session.userId!);
+      if (existingAgent) {
+        return res.status(400).json({ message: "Agent profile already exists" });
+      }
+      
+      const agentData = insertAgentSchema.parse({ 
+        ...req.body,
+        userId: req.session.userId! 
+      });
+      
+      const agent = await storage.createAgent(agentData);
+      res.status(201).json({ agent });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error("Error creating agent profile:", error);
+      res.status(500).json({ message: "Failed to create agent profile" });
+    }
+  });
+  
+  // Update agent profile
+  app.patch("/api/agent/profile", isAuthenticated, async (req, res) => {
+    try {
+      const agent = await storage.getAgentByUserId(req.session.userId!);
+      
+      if (!agent) {
+        return res.status(404).json({ message: "Agent profile not found" });
+      }
+      
+      const updatedAgent = await storage.updateAgent(agent.id, req.body);
+      res.status(200).json({ agent: updatedAgent });
+    } catch (error) {
+      console.error("Error updating agent profile:", error);
+      res.status(500).json({ message: "Failed to update agent profile" });
+    }
+  });
+  
+  // Get all agencies
+  app.get("/api/agencies", async (req, res) => {
+    try {
+      const agencies = await storage.getAgencies();
+      res.status(200).json({ agencies });
+    } catch (error) {
+      console.error("Error getting agencies:", error);
+      res.status(500).json({ message: "Failed to get agencies" });
+    }
+  });
+  
+  // Get specific agency
+  app.get("/api/agencies/:id", async (req, res) => {
+    try {
+      const agencyId = parseInt(req.params.id);
+      const agency = await storage.getAgency(agencyId);
+      
+      if (!agency) {
+        return res.status(404).json({ message: "Agency not found" });
+      }
+      
+      res.status(200).json({ agency });
+    } catch (error) {
+      console.error("Error getting agency:", error);
+      res.status(500).json({ message: "Failed to get agency" });
+    }
+  });
+  
+  // Create new agency - Admin only
+  app.post("/api/agencies", isAuthenticated, async (req, res) => {
+    try {
+      // TODO: Check admin role when implementing role-based auth
+      const agencyData = insertAgencySchema.parse(req.body);
+      const agency = await storage.createAgency(agencyData);
+      res.status(201).json({ agency });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error("Error creating agency:", error);
+      res.status(500).json({ message: "Failed to create agency" });
+    }
+  });
+  
+  // Agent application management routes
+  
+  // Get all applications for current agent
+  app.get("/api/agent/applications", isAuthenticated, async (req, res) => {
+    try {
+      const agent = await storage.getAgentByUserId(req.session.userId!);
+      
+      if (!agent) {
+        return res.status(404).json({ message: "Agent profile not found" });
+      }
+      
+      const applications = await storage.getApplicationsByAgent(agent.id);
+      res.status(200).json({ applications });
+    } catch (error) {
+      console.error("Error getting agent applications:", error);
+      res.status(500).json({ message: "Failed to get applications" });
+    }
+  });
+  
+  // Get application by ID (with documents, milestones and comments)
+  app.get("/api/applications/:id", isAuthenticated, async (req, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const application = await storage.getApplication(applicationId);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      
+      // Also fetch related documents, milestones and comments
+      const documents = await storage.getApplicationDocuments(applicationId);
+      const milestones = await storage.getApplicationMilestones(applicationId);
+      const comments = await storage.getApplicationComments(applicationId);
+      
+      // Get client info
+      const client = await storage.getUser(application.clientId);
+      
+      if (!client) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      
+      const { password, ...clientWithoutPassword } = client;
+      
+      res.status(200).json({ 
+        application,
+        client: clientWithoutPassword,
+        documents,
+        milestones,
+        comments
+      });
+    } catch (error) {
+      console.error("Error getting application details:", error);
+      res.status(500).json({ message: "Failed to get application details" });
+    }
+  });
+  
+  // Create application for a client
+  app.post("/api/applications", isAuthenticated, async (req, res) => {
+    try {
+      const agent = await storage.getAgentByUserId(req.session.userId!);
+      
+      if (!agent) {
+        return res.status(404).json({ message: "Agent profile not found" });
+      }
+      
+      const applicationData = insertApplicationSchema.parse({
+        ...req.body,
+        agentId: agent.id
+      });
+      
+      const application = await storage.createApplication(applicationData);
+      
+      // Create default milestones
+      const defaultMilestones = [
+        { milestoneName: "pre_qualify", expectedDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000) },
+        { milestoneName: "submit", expectedDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) },
+        { milestoneName: "under_review", expectedDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
+        { milestoneName: "decision", expectedDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) },
+        { milestoneName: "funding", expectedDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000) }
+      ];
+      
+      const milestones = await Promise.all(
+        defaultMilestones.map(milestone => 
+          storage.createApplicationMilestone({
+            applicationId: application.id,
+            milestoneName: milestone.milestoneName,
+            expectedDate: milestone.expectedDate
+          })
+        )
+      );
+      
+      // Notify client
+      const client = await storage.getUser(application.clientId);
+      
+      if (client) {
+        await storage.createNotification({
+          userId: client.id,
+          type: "application_created",
+          title: "New Home Loan Application",
+          message: "A new home loan application has been created for you.",
+          relatedId: application.id,
+          relatedType: "application"
+        });
+      }
+      
+      res.status(201).json({ application, milestones });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error("Error creating application:", error);
+      res.status(500).json({ message: "Failed to create application" });
+    }
+  });
+  
+  // Update application
+  app.patch("/api/applications/:id", isAuthenticated, async (req, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const application = await storage.getApplication(applicationId);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      
+      // Verify the agent owns this application
+      const agent = await storage.getAgentByUserId(req.session.userId!);
+      if (!agent || application.agentId !== agent.id) {
+        return res.status(403).json({ message: "Not authorized to update this application" });
+      }
+      
+      // Check if status is being updated
+      const oldStatus = application.status;
+      const newStatus = req.body.status;
+      
+      const updatedApplication = await storage.updateApplication(applicationId, req.body);
+      
+      // If status changed, update relevant milestone
+      if (newStatus && oldStatus !== newStatus) {
+        const milestoneMap: { [key: string]: string } = {
+          'new_lead': 'pre_qualify',
+          'in_progress': 'submit',
+          'submitted': 'submit',
+          'under_review': 'under_review',
+          'approved': 'decision',
+          'funded': 'funding',
+          'declined': 'decision'
+        };
+        
+        const milestoneName = milestoneMap[newStatus];
+        
+        if (milestoneName) {
+          const milestones = await storage.getApplicationMilestones(applicationId);
+          const milestone = milestones.find(m => m.milestoneName === milestoneName);
+          
+          if (milestone) {
+            await storage.updateApplicationMilestone(milestone.id, {
+              completed: ['approved', 'funded', 'declined'].includes(newStatus) || 
+                         (milestoneName !== 'decision' && milestoneName !== 'funding'),
+              completedDate: new Date()
+            });
+          }
+        }
+        
+        // Create notification for client
+        const client = await storage.getUser(application.clientId);
+        if (client) {
+          let title = '';
+          let message = '';
+          
+          switch (newStatus) {
+            case 'submitted':
+              title = 'Application Submitted';
+              message = 'Your home loan application has been submitted to the lender.';
+              break;
+            case 'under_review':
+              title = 'Application Under Review';
+              message = 'Your home loan application is now under review by the lender.';
+              break;
+            case 'approved':
+              title = 'Application Approved!';
+              message = 'Congratulations! Your home loan application has been approved.';
+              break;
+            case 'funded':
+              title = 'Loan Funded';
+              message = 'Great news! Your home loan has been funded.';
+              break;
+            case 'declined':
+              title = 'Application Decision';
+              message = 'There has been a decision on your home loan application. Please contact your agent.';
+              break;
+          }
+          
+          if (title && message) {
+            await storage.createNotification({
+              userId: client.id,
+              type: `application_${newStatus}`,
+              title,
+              message,
+              relatedId: application.id,
+              relatedType: 'application'
+            });
+          }
+        }
+      }
+      
+      res.status(200).json({ application: updatedApplication });
+    } catch (error) {
+      console.error("Error updating application:", error);
+      res.status(500).json({ message: "Failed to update application" });
+    }
+  });
+  
+  // Add comment to application
+  app.post("/api/applications/:id/comments", isAuthenticated, async (req, res) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const application = await storage.getApplication(applicationId);
+      
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      
+      const comment = await storage.createApplicationComment({
+        applicationId,
+        userId: req.session.userId!,
+        comment: req.body.comment,
+        mentions: req.body.mentions
+      });
+      
+      // Notify mentioned users
+      if (req.body.mentions) {
+        const mentions = JSON.parse(req.body.mentions);
+        const user = await storage.getUser(req.session.userId!);
+        
+        if (user && Array.isArray(mentions)) {
+          mentions.forEach(async (userId: number) => {
+            await storage.createNotification({
+              userId,
+              type: "comment_mention",
+              title: "You were mentioned in a comment",
+              message: `${user.firstName} ${user.lastName} mentioned you in a comment.`,
+              relatedId: applicationId,
+              relatedType: "application"
+            });
+          });
+        }
+      }
+      
+      res.status(201).json({ comment });
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      res.status(500).json({ message: "Failed to add comment" });
+    }
+  });
+  
+  // Get unread notifications for current user
+  app.get("/api/notifications", isAuthenticated, async (req, res) => {
+    try {
+      const notifications = await storage.getUserUnreadNotifications(req.session.userId!);
+      res.status(200).json({ notifications });
+    } catch (error) {
+      console.error("Error getting notifications:", error);
+      res.status(500).json({ message: "Failed to get notifications" });
+    }
+  });
+  
+  // Mark notification as read
+  app.post("/api/notifications/:id/read", isAuthenticated, async (req, res) => {
+    try {
+      const notificationId = parseInt(req.params.id);
+      const success = await storage.markNotificationRead(notificationId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+  
+  // Mark all notifications as read
+  app.post("/api/notifications/read-all", isAuthenticated, async (req, res) => {
+    try {
+      const success = await storage.markAllNotificationsRead(req.session.userId!);
+      res.status(200).json({ success });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ message: "Failed to mark all notifications as read" });
+    }
+  });
 
   // Initialize prime rate service
   initPrimeRateService().catch(error => {

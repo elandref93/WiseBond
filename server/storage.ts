@@ -531,6 +531,407 @@ export class MemStorage implements IStorage {
     
     return this.expenses.delete(id);
   }
+  
+  // Agency Management Methods
+  
+  async getAgencies(): Promise<Agency[]> {
+    return Array.from(this.agencies.values())
+      .filter(agency => agency.active)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+  
+  async getAgency(id: number): Promise<Agency | undefined> {
+    return this.agencies.get(id);
+  }
+  
+  async createAgency(insertAgency: InsertAgency): Promise<Agency> {
+    const id = this.agencyIdCounter++;
+    const now = new Date();
+    
+    const agency: Agency = {
+      id,
+      name: insertAgency.name,
+      logo: insertAgency.logo ?? null,
+      address: insertAgency.address ?? null,
+      city: insertAgency.city ?? null,
+      province: insertAgency.province ?? null,
+      postalCode: insertAgency.postalCode ?? null,
+      website: insertAgency.website ?? null,
+      phoneNumber: insertAgency.phoneNumber ?? null,
+      email: insertAgency.email ?? null,
+      licenseNumber: insertAgency.licenseNumber ?? null,
+      active: insertAgency.active ?? true,
+      commissionStructure: insertAgency.commissionStructure ?? null,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.agencies.set(id, agency);
+    return agency;
+  }
+  
+  async updateAgency(id: number, updates: Partial<Agency>): Promise<Agency | undefined> {
+    const agency = this.agencies.get(id);
+    if (!agency) return undefined;
+    
+    const updatedAgency = {
+      ...agency,
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    this.agencies.set(id, updatedAgency);
+    return updatedAgency;
+  }
+  
+  // Agent Management Methods
+  
+  async getAgents(): Promise<Agent[]> {
+    return Array.from(this.agents.values())
+      .filter(agent => agent.active);
+  }
+  
+  async getAgentsByAgency(agencyId: number): Promise<Agent[]> {
+    return Array.from(this.agents.values())
+      .filter(agent => agent.agencyId === agencyId && agent.active);
+  }
+  
+  async getAgent(id: number): Promise<Agent | undefined> {
+    return this.agents.get(id);
+  }
+  
+  async getAgentByUserId(userId: number): Promise<Agent | undefined> {
+    return Array.from(this.agents.values())
+      .find(agent => agent.userId === userId);
+  }
+  
+  async createAgent(insertAgent: InsertAgent): Promise<Agent> {
+    const id = this.agentIdCounter++;
+    const now = new Date();
+    
+    const agent: Agent = {
+      id,
+      userId: insertAgent.userId,
+      agencyId: insertAgent.agencyId ?? null,
+      licenseNumber: insertAgent.licenseNumber,
+      profilePicture: insertAgent.profilePicture ?? null,
+      biography: insertAgent.biography ?? null,
+      specializations: insertAgent.specializations ?? null,
+      regions: insertAgent.regions ?? null,
+      commissionTier: insertAgent.commissionTier ?? 'standard',
+      commissionRate: insertAgent.commissionRate ?? 0,
+      active: insertAgent.active ?? true,
+      approved: insertAgent.approved ?? false,
+      applicationDate: insertAgent.applicationDate ?? now,
+      approvalDate: null,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.agents.set(id, agent);
+    return agent;
+  }
+  
+  async updateAgent(id: number, updates: Partial<Agent>): Promise<Agent | undefined> {
+    const agent = this.agents.get(id);
+    if (!agent) return undefined;
+    
+    const updatedAgent = {
+      ...agent,
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    this.agents.set(id, updatedAgent);
+    return updatedAgent;
+  }
+  
+  // Application Management Methods
+  
+  async getApplications(): Promise<Application[]> {
+    return Array.from(this.applications.values())
+      .sort((a, b) => {
+        // Sort by application date descending (newest first)
+        return new Date(b.applicationDate).getTime() - new Date(a.applicationDate).getTime();
+      });
+  }
+  
+  async getApplicationsByAgent(agentId: number): Promise<Application[]> {
+    return Array.from(this.applications.values())
+      .filter(app => app.agentId === agentId)
+      .sort((a, b) => {
+        // Sort by application date descending (newest first)
+        return new Date(b.applicationDate).getTime() - new Date(a.applicationDate).getTime();
+      });
+  }
+  
+  async getApplicationsByClient(clientId: number): Promise<Application[]> {
+    return Array.from(this.applications.values())
+      .filter(app => app.clientId === clientId)
+      .sort((a, b) => {
+        // Sort by application date descending (newest first)
+        return new Date(b.applicationDate).getTime() - new Date(a.applicationDate).getTime();
+      });
+  }
+  
+  async getApplicationsByStatus(status: string): Promise<Application[]> {
+    return Array.from(this.applications.values())
+      .filter(app => app.status === status)
+      .sort((a, b) => {
+        // Sort by application date descending (newest first)
+        return new Date(b.applicationDate).getTime() - new Date(a.applicationDate).getTime();
+      });
+  }
+  
+  async getApplication(id: number): Promise<Application | undefined> {
+    return this.applications.get(id);
+  }
+  
+  async createApplication(insertApplication: InsertApplication): Promise<Application> {
+    const id = this.applicationIdCounter++;
+    const now = new Date();
+    
+    const application: Application = {
+      id,
+      clientId: insertApplication.clientId,
+      agentId: insertApplication.agentId ?? null,
+      status: insertApplication.status ?? 'new_lead',
+      lender: insertApplication.lender ?? null,
+      propertyValue: insertApplication.propertyValue ?? null,
+      loanAmount: insertApplication.loanAmount ?? null,
+      term: insertApplication.term ?? null,
+      interestRate: insertApplication.interestRate ?? null,
+      applicationDate: insertApplication.applicationDate ?? now,
+      submissionDate: null,
+      decisionDate: null,
+      fundingDate: null,
+      notes: insertApplication.notes ?? null,
+      urgency: insertApplication.urgency ?? 'normal',
+      commissionEarned: insertApplication.commissionEarned ?? null,
+      commissionPaidDate: null,
+      propertyAddress: insertApplication.propertyAddress ?? null,
+      propertyType: insertApplication.propertyType ?? null,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.applications.set(id, application);
+    return application;
+  }
+  
+  async updateApplication(id: number, updates: Partial<Application>): Promise<Application | undefined> {
+    const application = this.applications.get(id);
+    if (!application) return undefined;
+    
+    const updatedApplication = {
+      ...application,
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    this.applications.set(id, updatedApplication);
+    return updatedApplication;
+  }
+  
+  // Application Document Methods
+  
+  async getApplicationDocuments(applicationId: number): Promise<ApplicationDocument[]> {
+    return Array.from(this.applicationDocuments.values())
+      .filter(doc => doc.applicationId === applicationId)
+      .sort((a, b) => {
+        // Sort by upload date descending (newest first)
+        return new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime();
+      });
+  }
+  
+  async getApplicationDocument(id: number): Promise<ApplicationDocument | undefined> {
+    return this.applicationDocuments.get(id);
+  }
+  
+  async createApplicationDocument(insertDocument: InsertApplicationDocument): Promise<ApplicationDocument> {
+    const id = this.docIdCounter++;
+    const now = new Date();
+    
+    const document: ApplicationDocument = {
+      id,
+      applicationId: insertDocument.applicationId,
+      userId: insertDocument.userId,
+      documentType: insertDocument.documentType,
+      fileName: insertDocument.fileName,
+      filePath: insertDocument.filePath,
+      fileSize: insertDocument.fileSize,
+      mimeType: insertDocument.mimeType,
+      status: insertDocument.status ?? 'pending',
+      uploadDate: insertDocument.uploadDate ?? now,
+      reviewDate: null,
+      reviewedBy: null,
+      notes: insertDocument.notes ?? null,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.applicationDocuments.set(id, document);
+    return document;
+  }
+  
+  async updateApplicationDocument(id: number, updates: Partial<ApplicationDocument>): Promise<ApplicationDocument | undefined> {
+    const document = this.applicationDocuments.get(id);
+    if (!document) return undefined;
+    
+    const updatedDocument = {
+      ...document,
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    this.applicationDocuments.set(id, updatedDocument);
+    return updatedDocument;
+  }
+  
+  // Application Milestone Methods
+  
+  async getApplicationMilestones(applicationId: number): Promise<ApplicationMilestone[]> {
+    return Array.from(this.applicationMilestones.values())
+      .filter(milestone => milestone.applicationId === applicationId);
+  }
+  
+  async createApplicationMilestone(insertMilestone: InsertApplicationMilestone): Promise<ApplicationMilestone> {
+    const id = this.milestoneIdCounter++;
+    const now = new Date();
+    
+    const milestone: ApplicationMilestone = {
+      id,
+      applicationId: insertMilestone.applicationId,
+      milestoneName: insertMilestone.milestoneName,
+      completed: insertMilestone.completed ?? false,
+      expectedDate: insertMilestone.expectedDate ?? null,
+      completedDate: null,
+      notes: insertMilestone.notes ?? null,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.applicationMilestones.set(id, milestone);
+    return milestone;
+  }
+  
+  async updateApplicationMilestone(id: number, updates: Partial<ApplicationMilestone>): Promise<ApplicationMilestone | undefined> {
+    const milestone = this.applicationMilestones.get(id);
+    if (!milestone) return undefined;
+    
+    // If updating to completed, add a completedDate if not already set
+    if (updates.completed === true && !updates.completedDate) {
+      updates.completedDate = new Date();
+    }
+    
+    const updatedMilestone = {
+      ...milestone,
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    this.applicationMilestones.set(id, updatedMilestone);
+    return updatedMilestone;
+  }
+  
+  // Application Comment Methods
+  
+  async getApplicationComments(applicationId: number): Promise<ApplicationComment[]> {
+    return Array.from(this.applicationComments.values())
+      .filter(comment => comment.applicationId === applicationId)
+      .sort((a, b) => {
+        // Sort by creation date ascending (oldest first)
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      });
+  }
+  
+  async createApplicationComment(insertComment: InsertApplicationComment): Promise<ApplicationComment> {
+    const id = this.commentIdCounter++;
+    const now = new Date();
+    
+    const comment: ApplicationComment = {
+      id,
+      applicationId: insertComment.applicationId,
+      userId: insertComment.userId,
+      comment: insertComment.comment,
+      mentions: insertComment.mentions ?? null,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.applicationComments.set(id, comment);
+    return comment;
+  }
+  
+  // Notification Methods
+  
+  async getUserNotifications(userId: number): Promise<Notification[]> {
+    return Array.from(this.notifications.values())
+      .filter(notification => notification.userId === userId)
+      .sort((a, b) => {
+        // Sort by creation date descending (newest first)
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+  }
+  
+  async getUserUnreadNotifications(userId: number): Promise<Notification[]> {
+    return Array.from(this.notifications.values())
+      .filter(notification => notification.userId === userId && !notification.read)
+      .sort((a, b) => {
+        // Sort by creation date descending (newest first)
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+  }
+  
+  async createNotification(insertNotification: InsertNotification): Promise<Notification> {
+    const id = this.notificationIdCounter++;
+    const now = new Date();
+    
+    const notification: Notification = {
+      id,
+      userId: insertNotification.userId,
+      type: insertNotification.type,
+      title: insertNotification.title,
+      message: insertNotification.message,
+      relatedId: insertNotification.relatedId ?? null,
+      relatedType: insertNotification.relatedType ?? null,
+      read: false,
+      createdAt: now
+    };
+    
+    this.notifications.set(id, notification);
+    return notification;
+  }
+  
+  async markNotificationRead(id: number): Promise<boolean> {
+    const notification = this.notifications.get(id);
+    if (!notification) return false;
+    
+    const updatedNotification = {
+      ...notification,
+      read: true
+    };
+    
+    this.notifications.set(id, updatedNotification);
+    return true;
+  }
+  
+  async markAllNotificationsRead(userId: number): Promise<boolean> {
+    let success = true;
+    
+    Array.from(this.notifications.values())
+      .filter(notification => notification.userId === userId && !notification.read)
+      .forEach(notification => {
+        const updated = {
+          ...notification,
+          read: true
+        };
+        
+        success = success && this.notifications.set(notification.id, updated) !== undefined;
+      });
+    
+    return success;
+  }
 
   async updateUserPassword(id: number, newPassword: string): Promise<boolean> {
     const user = this.users.get(id);
