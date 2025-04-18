@@ -25,9 +25,27 @@ export function loadGoogleMapsAPI(): Promise<void> {
   
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   
+  // Check for API key - more helpful error handling
   if (!apiKey) {
-    console.error('Google Maps API key not found. Please check environment configuration.');
+    const hostname = window.location.hostname;
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    
+    if (isLocalhost) {
+      console.error(`
+Google Maps API key not found. Please check:
+1. .env file has VITE_GOOGLE_MAPS_API_KEY set
+2. Server has copied GOOGLE_MAPS_API_KEY to VITE_GOOGLE_MAPS_API_KEY
+3. Vite has restarted after environment changes`);
+    } else {
+      console.error('Maps functionality unavailable. Please contact support if this issue persists.');
+    }
+    
     return Promise.reject(new Error('Google Maps API key not found'));
+  }
+  
+  // Validate API key format
+  if (!apiKey.startsWith('AIza')) {
+    console.warn('The Google Maps API key may be invalid. Google Maps API keys typically start with "AIza"');
   }
   
   console.log('Loading Google Maps API...');
@@ -36,8 +54,22 @@ export function loadGoogleMapsAPI(): Promise<void> {
   loadPromise = new Promise<void>((resolve, reject) => {
     // Create script element
     const script = document.createElement('script');
-    // Use API key from environment without logging it
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    
+    // Enhance security: Only use API key on production domains or localhost
+    const hostname = window.location.hostname;
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+    const isProductionDomain = hostname.endsWith('wisebond.co.za') || 
+                              hostname.endsWith('replit.app') ||
+                              hostname.endsWith('azurewebsites.net');
+                              
+    // Use API key from environment without logging it, and only on allowed domains
+    if (isProductionDomain || isLocalhost) {
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    } else {
+      console.warn('Using Google Maps API without key on non-production domain');
+      script.src = 'https://maps.googleapis.com/maps/api/js?libraries=places';
+    }
+    
     script.async = true;
     script.defer = true;
     
@@ -52,7 +84,25 @@ export function loadGoogleMapsAPI(): Promise<void> {
     
     // Error handler
     script.onerror = (e) => {
-      console.error('Failed to load Google Maps API', e);
+      // Enhanced error reporting without exposing full API key
+      const hostname = window.location.hostname;
+      const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+      const isProductionDomain = hostname.endsWith('wisebond.co.za') || 
+                              hostname.endsWith('replit.app') ||
+                              hostname.endsWith('azurewebsites.net');
+      
+      // Only report detailed errors in development environments
+      if (isLocalhost) {
+        console.error('Failed to load Google Maps API', e);
+        
+        // Check if API key exists but is malformed (wrong format)
+        if (apiKey && !apiKey.startsWith('AIza')) {
+          console.error('API key appears to be malformed. Google Maps API keys start with "AIza"');
+        }
+      } else {
+        console.error('Failed to load Google Maps API. Please contact support if this issue persists.');
+      }
+      
       isLoading = false;
       loadError = new Error('Failed to load Google Maps API');
       reject(loadError);
