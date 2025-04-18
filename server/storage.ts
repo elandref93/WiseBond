@@ -247,11 +247,25 @@ export class MemStorage implements IStorage {
   }
 
   async verifyUser(username: string, password: string): Promise<User | undefined> {
+    // Log the login attempt for debugging
+    console.log(`Login attempt for username: ${username}`);
+    
     // Since we're using email as username now, we'll look up by email instead
     const user = await this.getUserByEmail(username);
-    if (!user) return undefined;
+    if (!user) {
+      console.log(`No user found with email: ${username}`);
+      return undefined;
+    }
     
+    console.log(`User found with ID: ${user.id}, attempting password verification`);
     const isMatch = await bcrypt.compare(password, user.password);
+    
+    if (!isMatch) {
+      console.log(`Password verification failed for user ID: ${user.id}`);
+    } else {
+      console.log(`Password verification successful for user ID: ${user.id}`);
+    }
+    
     return isMatch ? user : undefined;
   }
 

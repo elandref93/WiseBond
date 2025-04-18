@@ -103,23 +103,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/login", async (req, res) => {
     try {
+      console.log("Login attempt with body:", JSON.stringify(req.body));
       const loginData = loginSchema.parse(req.body);
+      console.log("Login data after validation:", JSON.stringify(loginData));
+      
       const user = await storage.verifyUser(loginData.username, loginData.password);
       
       if (!user) {
+        console.log("Authentication failed: Invalid credentials");
         return res.status(401).json({ message: "Invalid email or password" });
       }
       
+      console.log("Authentication successful for user ID:", user.id);
+      
       // Set session
       req.session.userId = user.id;
+      console.log("Session set with userId:", user.id);
+      console.log("Session data:", req.session);
       
       // Don't return the password
       const { password, ...userWithoutPassword } = user;
       
       res.status(200).json({ user: userWithoutPassword });
     } catch (error) {
+      console.error("Login error:", error);
       if (error instanceof ZodError) {
         const validationError = fromZodError(error);
+        console.log("Validation error:", validationError.message);
         return res.status(400).json({ message: validationError.message });
       }
       res.status(500).json({ message: "Login failed" });
@@ -136,19 +146,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.get("/api/auth/me", isAuthenticated, async (req, res) => {
+  app.get("/api/auth/me", async (req, res) => {
+    console.log("GET /api/auth/me - Session data:", req.session);
+    console.log("Session ID:", req.sessionID);
+    
+    if (!req.session.userId) {
+      console.log("No userId in session, returning 401");
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
     try {
-      const user = await storage.getUser(req.session.userId!);
+      console.log("Fetching user with ID:", req.session.userId);
+      const user = await storage.getUser(req.session.userId);
       
       if (!user) {
+        console.log("User not found in storage for ID:", req.session.userId);
         return res.status(404).json({ message: "User not found" });
       }
+      
+      console.log("User found, returning data for ID:", user.id);
       
       // Don't return the password
       const { password, ...userWithoutPassword } = user;
       
       res.status(200).json({ user: userWithoutPassword });
     } catch (error) {
+      console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to get user" });
     }
   });
