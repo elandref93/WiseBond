@@ -101,6 +101,7 @@ export default function Profile() {
       monthlyIncome: undefined,
       maritalStatus: undefined,
       hasCoApplicant: false,
+      coApplicantTitle: '',
       coApplicantFirstName: '',
       coApplicantLastName: '',
       coApplicantEmail: '',
@@ -774,7 +775,16 @@ export default function Profile() {
                                 <FormItem>
                                   <FormLabel>First Name</FormLabel>
                                   <FormControl>
-                                    <Input {...field} placeholder="Co-applicant's first name" />
+                                    <Input 
+                                      {...field} 
+                                      placeholder="Co-applicant's first name" 
+                                      onChange={(e) => {
+                                        // Only allow letters, spaces, hyphens and apostrophes
+                                        const value = e.target.value;
+                                        const sanitized = value.replace(/[^a-zA-Z\s\-']/g, '');
+                                        field.onChange(sanitized);
+                                      }}
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -788,7 +798,16 @@ export default function Profile() {
                                 <FormItem>
                                   <FormLabel>Last Name</FormLabel>
                                   <FormControl>
-                                    <Input {...field} placeholder="Co-applicant's last name" />
+                                    <Input 
+                                      {...field} 
+                                      placeholder="Co-applicant's last name" 
+                                      onChange={(e) => {
+                                        // Only allow letters, spaces, hyphens and apostrophes
+                                        const value = e.target.value;
+                                        const sanitized = value.replace(/[^a-zA-Z\s\-']/g, '');
+                                        field.onChange(sanitized);
+                                      }}
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>

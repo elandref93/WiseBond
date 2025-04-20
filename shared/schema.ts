@@ -138,6 +138,7 @@ export const updateProfileSchema = createInsertSchema(users)
     // Co-applicant fields
     maritalStatus: z.enum(['Single', 'Married', 'Divorced', 'Widowed']).optional(),
     hasCoApplicant: z.boolean().optional(),
+    coApplicantTitle: z.string().optional(),
     coApplicantFirstName: z.string().optional(),
     coApplicantLastName: z.string().optional(),
     coApplicantEmail: z.string().optional().refine(
