@@ -23,6 +23,22 @@ export const users = pgTable("users", {
   jobTitle: text("job_title"),
   employmentDuration: text("employment_duration"), // Duration of employment in current position
   monthlyIncome: integer("monthly_income"),  // Can be null
+  maritalStatus: text("marital_status"), // Single, Married, Divorced, Widowed
+  hasCoApplicant: boolean("has_co_applicant").default(false), // Whether the user is applying with a co-applicant
+  coApplicantFirstName: text("co_applicant_first_name"), // Co-applicant's first name
+  coApplicantLastName: text("co_applicant_last_name"), // Co-applicant's last name
+  coApplicantEmail: text("co_applicant_email"), // Co-applicant's email address
+  coApplicantPhone: text("co_applicant_phone"), // Co-applicant's phone number
+  coApplicantIdNumber: text("co_applicant_id_number"), // Co-applicant's ID number
+  coApplicantDateOfBirth: text("co_applicant_date_of_birth"), // Co-applicant's date of birth
+  coApplicantEmploymentStatus: text("co_applicant_employment_status"), // Co-applicant's employment status
+  coApplicantEmployerName: text("co_applicant_employer_name"), // Co-applicant's employer name
+  coApplicantMonthlyIncome: integer("co_applicant_monthly_income"), // Co-applicant's monthly income
+  sameAddress: boolean("same_address").default(true), // Whether co-applicant has the same address as main applicant
+  coApplicantAddress: text("co_applicant_address"), // Co-applicant's address if different
+  coApplicantCity: text("co_applicant_city"), // Co-applicant's city if different
+  coApplicantPostalCode: text("co_applicant_postal_code"), // Co-applicant's postal code if different
+  coApplicantProvince: text("co_applicant_province"), // Co-applicant's province if different
   otpVerified: boolean("otp_verified").default(false),
   profileComplete: boolean("profile_complete").default(false),
   createdAt: timestamp("created_at").defaultNow(),
@@ -90,6 +106,50 @@ export const updateProfileSchema = createInsertSchema(users)
     ),
     // Monthly income can be null
     monthlyIncome: z.number().nullable().optional(),
+    
+    // Co-applicant fields
+    maritalStatus: z.enum(['Single', 'Married', 'Divorced', 'Widowed']).optional(),
+    hasCoApplicant: z.boolean().optional(),
+    coApplicantFirstName: z.string().optional(),
+    coApplicantLastName: z.string().optional(),
+    coApplicantEmail: z.string().optional().refine(
+      (val) => {
+        if (!val) return true;
+        return /^[A-Za-z0-9._%+-]+@([A-Za-z0-9-_]+\.)+[A-Za-z]{2,6}$/.test(val);
+      },
+      { message: "Invalid co-applicant email address" }
+    ),
+    coApplicantPhone: z.string().optional().refine(
+      (val) => {
+        if (!val) return true;
+        return /^(\+27|0)[6-8][0-9]{8}$/.test(val);
+      },
+      { message: "Please enter a valid South African mobile number for co-applicant" }
+    ),
+    coApplicantIdNumber: z.string().optional().refine(
+      (val) => {
+        if (!val) return true;
+        if (!/^\d{13}$/.test(val)) return false;
+        
+        const digits = val.split('').map(Number);
+        const checkDigit = digits.pop();
+        const sum = digits.reverse()
+          .map((d, i) => (i % 2 === 0) ? 
+            ((d * 2) > 9 ? (d * 2) - 9 : (d * 2)) : d)
+          .reduce((acc, val) => acc + val, 0);
+        return (10 - (sum % 10)) % 10 === checkDigit;
+      },
+      { message: "Invalid South African ID number for co-applicant" }
+    ),
+    coApplicantDateOfBirth: z.string().optional(),
+    coApplicantEmploymentStatus: z.enum(['Employed', 'Self-employed', 'Unemployed', 'Retired', 'Student']).optional(),
+    coApplicantEmployerName: z.string().optional(),
+    coApplicantMonthlyIncome: z.number().nullable().optional(),
+    sameAddress: z.boolean().optional(),
+    coApplicantAddress: z.string().optional(),
+    coApplicantCity: z.string().optional(),
+    coApplicantPostalCode: z.string().optional(),
+    coApplicantProvince: z.string().optional(),
   });
 
 export const loginSchema = z.object({

@@ -98,8 +98,33 @@ export default function Profile() {
       jobTitle: '',
       employmentDuration: '',
       monthlyIncome: undefined,
+      maritalStatus: undefined,
+      hasCoApplicant: false,
+      coApplicantFirstName: '',
+      coApplicantLastName: '',
+      coApplicantEmail: '',
+      coApplicantPhone: '',
+      coApplicantIdNumber: '',
+      coApplicantDateOfBirth: '',
+      coApplicantEmploymentStatus: undefined,
+      coApplicantEmployerName: '',
+      coApplicantMonthlyIncome: undefined,
+      sameAddress: true,
+      coApplicantAddress: '',
+      coApplicantCity: '',
+      coApplicantPostalCode: '',
+      coApplicantProvince: '',
     },
   });
+  
+  // State for co-applicant ID validation
+  const [coApplicantIdInfo, setCoApplicantIdInfo] = useState<{
+    isValid: boolean;
+    dateOfBirth?: string;
+    age?: number;
+    gender?: 'male' | 'female';
+    citizenship?: 'SA Citizen' | 'Permanent Resident';
+  }>({ isValid: false });
   
   // Update form values when profile data is loaded
   useEffect(() => {
@@ -123,6 +148,22 @@ export default function Profile() {
         jobTitle: profileData.jobTitle || '',
         employmentDuration: profileData.employmentDuration || '',
         monthlyIncome: profileData.monthlyIncome === null ? null : profileData.monthlyIncome,
+        maritalStatus: profileData.maritalStatus as 'Single' | 'Married' | 'Divorced' | 'Widowed' | undefined,
+        hasCoApplicant: profileData.hasCoApplicant || false,
+        coApplicantFirstName: profileData.coApplicantFirstName || '',
+        coApplicantLastName: profileData.coApplicantLastName || '',
+        coApplicantEmail: profileData.coApplicantEmail || '',
+        coApplicantPhone: profileData.coApplicantPhone || '',
+        coApplicantIdNumber: profileData.coApplicantIdNumber || '',
+        coApplicantDateOfBirth: profileData.coApplicantDateOfBirth || '',
+        coApplicantEmploymentStatus: profileData.coApplicantEmploymentStatus as 'Employed' | 'Self-employed' | 'Unemployed' | 'Retired' | 'Student' | undefined,
+        coApplicantEmployerName: profileData.coApplicantEmployerName || '',
+        coApplicantMonthlyIncome: profileData.coApplicantMonthlyIncome === null ? null : profileData.coApplicantMonthlyIncome,
+        sameAddress: profileData.sameAddress ?? true,
+        coApplicantAddress: profileData.coApplicantAddress || '',
+        coApplicantCity: profileData.coApplicantCity || '',
+        coApplicantPostalCode: profileData.coApplicantPostalCode || '',
+        coApplicantProvince: profileData.coApplicantProvince || '',
         otpVerified: profileData.otpVerified || false,
         profileComplete: profileData.profileComplete || false
       };
@@ -132,6 +173,10 @@ export default function Profile() {
       // Process ID number if it exists
       if (profileData.idNumber) {
         handleIdNumberValidation(profileData.idNumber);
+      }
+      // Process co-applicant ID number if it exists
+      if (profileData.coApplicantIdNumber) {
+        handleCoApplicantIdNumberValidation(profileData.coApplicantIdNumber);
       }
     }
   }, [profileData, form]);
