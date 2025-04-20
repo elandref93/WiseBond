@@ -101,7 +101,7 @@ export default function Profile() {
       monthlyIncome: undefined,
       maritalStatus: undefined,
       hasCoApplicant: false,
-      coApplicantTitle: '',
+
       coApplicantFirstName: '',
       coApplicantLastName: '',
       coApplicantEmail: '',
@@ -133,7 +133,6 @@ export default function Profile() {
     if (profileData) {
       // Create a sanitized version of the profile data with empty string/number fallbacks
       const formData: UpdateProfile = {
-        title: profileData.title || '',
         firstName: profileData.firstName,
         lastName: profileData.lastName,
         email: profileData.email,
@@ -153,7 +152,7 @@ export default function Profile() {
         monthlyIncome: profileData.monthlyIncome === null ? null : profileData.monthlyIncome,
         maritalStatus: profileData.maritalStatus as 'Single' | 'Married' | 'Divorced' | 'Widowed' | undefined,
         hasCoApplicant: profileData.hasCoApplicant || false,
-        coApplicantTitle: profileData.coApplicantTitle || '',
+
         coApplicantFirstName: profileData.coApplicantFirstName || '',
         coApplicantLastName: profileData.coApplicantLastName || '',
         coApplicantEmail: profileData.coApplicantEmail || '',
@@ -362,35 +361,7 @@ export default function Profile() {
                     <div className="space-y-6">
                       <h2 className="text-xl font-semibold">Personal Details</h2>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <FormField
-                          control={form.control}
-                          name="title"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Title</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value || undefined}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select title" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="Mr">Mr</SelectItem>
-                                  <SelectItem value="Mrs">Mrs</SelectItem>
-                                  <SelectItem value="Ms">Ms</SelectItem>
-                                  <SelectItem value="Dr">Dr</SelectItem>
-                                  <SelectItem value="Prof">Prof</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField
                           control={form.control}
                           name="firstName"
@@ -797,35 +768,7 @@ export default function Profile() {
                             Adding a co-applicant may increase your chances of loan approval and may allow for a higher loan amount.
                           </p>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <FormField
-                              control={form.control}
-                              name="coApplicantTitle"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Title</FormLabel>
-                                  <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value || undefined}
-                                  >
-                                    <FormControl>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Select title" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="Mr">Mr</SelectItem>
-                                      <SelectItem value="Mrs">Mrs</SelectItem>
-                                      <SelectItem value="Ms">Ms</SelectItem>
-                                      <SelectItem value="Dr">Dr</SelectItem>
-                                      <SelectItem value="Prof">Prof</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormField
                               control={form.control}
                               name="coApplicantFirstName"
