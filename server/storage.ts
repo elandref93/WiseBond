@@ -1067,7 +1067,7 @@ export class DatabaseStorage implements IStorage {
   
   async getUser(id: number): Promise<User | undefined> {
     try {
-      // Use a simple query that only requests fields we know exist
+      // Include all the co-applicant fields in the query
       const userResult = await db.execute(sql`
         SELECT id, username, password, first_name as "firstName", last_name as "lastName", 
         email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
@@ -1076,38 +1076,45 @@ export class DatabaseStorage implements IStorage {
         employment_sector as "employmentSector", job_title as "jobTitle", 
         employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
         otp_verified as "otpVerified", profile_complete as "profileComplete", 
-        created_at as "createdAt", updated_at as "updatedAt"
+        created_at as "createdAt", updated_at as "updatedAt",
+        marital_status, has_co_applicant, 
+        co_applicant_first_name, co_applicant_last_name, co_applicant_email, 
+        co_applicant_phone, co_applicant_id_number, co_applicant_date_of_birth, 
+        co_applicant_age, co_applicant_employment_status, co_applicant_employer_name, 
+        co_applicant_employment_sector, co_applicant_job_title, co_applicant_employment_duration, 
+        co_applicant_monthly_income, same_address, co_applicant_address, co_applicant_city, 
+        co_applicant_postal_code, co_applicant_province
         FROM users 
         WHERE id = ${id}
         LIMIT 1
       `);
       
-      // Convert to User type with null values for co-applicant fields
+      // Map database column names to JavaScript property names
       if (userResult.rows.length > 0) {
         const userData = userResult.rows[0];
         const user = {
           ...userData,
-          // Add null values for co-applicant fields
-          maritalStatus: null,
-          hasCoApplicant: false,
-          coApplicantFirstName: null,
-          coApplicantLastName: null,
-          coApplicantEmail: null,
-          coApplicantPhone: null,
-          coApplicantIdNumber: null,
-          coApplicantDateOfBirth: null,
-          coApplicantAge: null,
-          coApplicantEmploymentStatus: null,
-          coApplicantEmployerName: null,
-          coApplicantEmploymentSector: null,
-          coApplicantJobTitle: null,
-          coApplicantEmploymentDuration: null,
-          coApplicantMonthlyIncome: null,
-          sameAddress: true,
-          coApplicantAddress: null,
-          coApplicantCity: null,
-          coApplicantPostalCode: null,
-          coApplicantProvince: null,
+          // Map database column names to JavaScript property names
+          maritalStatus: userData.marital_status,
+          hasCoApplicant: userData.has_co_applicant,
+          coApplicantFirstName: userData.co_applicant_first_name,
+          coApplicantLastName: userData.co_applicant_last_name,
+          coApplicantEmail: userData.co_applicant_email,
+          coApplicantPhone: userData.co_applicant_phone,
+          coApplicantIdNumber: userData.co_applicant_id_number,
+          coApplicantDateOfBirth: userData.co_applicant_date_of_birth,
+          coApplicantAge: userData.co_applicant_age,
+          coApplicantEmploymentStatus: userData.co_applicant_employment_status,
+          coApplicantEmployerName: userData.co_applicant_employer_name,
+          coApplicantEmploymentSector: userData.co_applicant_employment_sector,
+          coApplicantJobTitle: userData.co_applicant_job_title,
+          coApplicantEmploymentDuration: userData.co_applicant_employment_duration,
+          coApplicantMonthlyIncome: userData.co_applicant_monthly_income,
+          sameAddress: userData.same_address,
+          coApplicantAddress: userData.co_applicant_address,
+          coApplicantCity: userData.co_applicant_city,
+          coApplicantPostalCode: userData.co_applicant_postal_code,
+          coApplicantProvince: userData.co_applicant_province,
         };
         return user;
       }
@@ -1120,7 +1127,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
-      // Use a simple query that only requests fields we know exist
+      // Include all the co-applicant fields in the query
       const userResult = await db.execute(sql`
         SELECT id, username, password, first_name as "firstName", last_name as "lastName", 
         email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
@@ -1129,38 +1136,45 @@ export class DatabaseStorage implements IStorage {
         employment_sector as "employmentSector", job_title as "jobTitle", 
         employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
         otp_verified as "otpVerified", profile_complete as "profileComplete", 
-        created_at as "createdAt", updated_at as "updatedAt"
+        created_at as "createdAt", updated_at as "updatedAt",
+        marital_status, has_co_applicant, 
+        co_applicant_first_name, co_applicant_last_name, co_applicant_email, 
+        co_applicant_phone, co_applicant_id_number, co_applicant_date_of_birth, 
+        co_applicant_age, co_applicant_employment_status, co_applicant_employer_name, 
+        co_applicant_employment_sector, co_applicant_job_title, co_applicant_employment_duration, 
+        co_applicant_monthly_income, same_address, co_applicant_address, co_applicant_city, 
+        co_applicant_postal_code, co_applicant_province
         FROM users 
         WHERE username = ${username}
         LIMIT 1
       `);
       
-      // Convert to User type with null values for co-applicant fields
+      // Map database column names to JavaScript property names
       if (userResult.rows.length > 0) {
         const userData = userResult.rows[0];
         const user = {
           ...userData,
-          // Add null values for co-applicant fields
-          maritalStatus: null,
-          hasCoApplicant: false,
-          coApplicantFirstName: null,
-          coApplicantLastName: null,
-          coApplicantEmail: null,
-          coApplicantPhone: null,
-          coApplicantIdNumber: null,
-          coApplicantDateOfBirth: null,
-          coApplicantAge: null,
-          coApplicantEmploymentStatus: null,
-          coApplicantEmployerName: null,
-          coApplicantEmploymentSector: null,
-          coApplicantJobTitle: null,
-          coApplicantEmploymentDuration: null,
-          coApplicantMonthlyIncome: null,
-          sameAddress: true,
-          coApplicantAddress: null,
-          coApplicantCity: null,
-          coApplicantPostalCode: null,
-          coApplicantProvince: null,
+          // Map database column names to JavaScript property names
+          maritalStatus: userData.marital_status,
+          hasCoApplicant: userData.has_co_applicant,
+          coApplicantFirstName: userData.co_applicant_first_name,
+          coApplicantLastName: userData.co_applicant_last_name,
+          coApplicantEmail: userData.co_applicant_email,
+          coApplicantPhone: userData.co_applicant_phone,
+          coApplicantIdNumber: userData.co_applicant_id_number,
+          coApplicantDateOfBirth: userData.co_applicant_date_of_birth,
+          coApplicantAge: userData.co_applicant_age,
+          coApplicantEmploymentStatus: userData.co_applicant_employment_status,
+          coApplicantEmployerName: userData.co_applicant_employer_name,
+          coApplicantEmploymentSector: userData.co_applicant_employment_sector,
+          coApplicantJobTitle: userData.co_applicant_job_title,
+          coApplicantEmploymentDuration: userData.co_applicant_employment_duration,
+          coApplicantMonthlyIncome: userData.co_applicant_monthly_income,
+          sameAddress: userData.same_address,
+          coApplicantAddress: userData.co_applicant_address,
+          coApplicantCity: userData.co_applicant_city,
+          coApplicantPostalCode: userData.co_applicant_postal_code,
+          coApplicantProvince: userData.co_applicant_province,
         };
         return user;
       }
@@ -1173,7 +1187,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
-      // Use a simple query that only requests fields we know exist
+      // Include all the co-applicant fields in the query
       const userResult = await db.execute(sql`
         SELECT id, username, password, first_name as "firstName", last_name as "lastName", 
         email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
@@ -1182,38 +1196,45 @@ export class DatabaseStorage implements IStorage {
         employment_sector as "employmentSector", job_title as "jobTitle", 
         employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
         otp_verified as "otpVerified", profile_complete as "profileComplete", 
-        created_at as "createdAt", updated_at as "updatedAt"
+        created_at as "createdAt", updated_at as "updatedAt",
+        marital_status, has_co_applicant, 
+        co_applicant_first_name, co_applicant_last_name, co_applicant_email, 
+        co_applicant_phone, co_applicant_id_number, co_applicant_date_of_birth, 
+        co_applicant_age, co_applicant_employment_status, co_applicant_employer_name, 
+        co_applicant_employment_sector, co_applicant_job_title, co_applicant_employment_duration, 
+        co_applicant_monthly_income, same_address, co_applicant_address, co_applicant_city, 
+        co_applicant_postal_code, co_applicant_province
         FROM users 
         WHERE email = ${email}
         LIMIT 1
       `);
       
-      // Convert to User type with null values for co-applicant fields
+      // Map database column names to JavaScript property names
       if (userResult.rows.length > 0) {
         const userData = userResult.rows[0];
         const user = {
           ...userData,
-          // Add null values for co-applicant fields
-          maritalStatus: null,
-          hasCoApplicant: false,
-          coApplicantFirstName: null,
-          coApplicantLastName: null,
-          coApplicantEmail: null,
-          coApplicantPhone: null,
-          coApplicantIdNumber: null,
-          coApplicantDateOfBirth: null,
-          coApplicantAge: null,
-          coApplicantEmploymentStatus: null,
-          coApplicantEmployerName: null,
-          coApplicantEmploymentSector: null,
-          coApplicantJobTitle: null,
-          coApplicantEmploymentDuration: null,
-          coApplicantMonthlyIncome: null,
-          sameAddress: true,
-          coApplicantAddress: null,
-          coApplicantCity: null,
-          coApplicantPostalCode: null,
-          coApplicantProvince: null,
+          // Map database column names to JavaScript property names
+          maritalStatus: userData.marital_status,
+          hasCoApplicant: userData.has_co_applicant,
+          coApplicantFirstName: userData.co_applicant_first_name,
+          coApplicantLastName: userData.co_applicant_last_name,
+          coApplicantEmail: userData.co_applicant_email,
+          coApplicantPhone: userData.co_applicant_phone,
+          coApplicantIdNumber: userData.co_applicant_id_number,
+          coApplicantDateOfBirth: userData.co_applicant_date_of_birth,
+          coApplicantAge: userData.co_applicant_age,
+          coApplicantEmploymentStatus: userData.co_applicant_employment_status,
+          coApplicantEmployerName: userData.co_applicant_employer_name,
+          coApplicantEmploymentSector: userData.co_applicant_employment_sector,
+          coApplicantJobTitle: userData.co_applicant_job_title,
+          coApplicantEmploymentDuration: userData.co_applicant_employment_duration,
+          coApplicantMonthlyIncome: userData.co_applicant_monthly_income,
+          sameAddress: userData.same_address,
+          coApplicantAddress: userData.co_applicant_address,
+          coApplicantCity: userData.co_applicant_city,
+          coApplicantPostalCode: userData.co_applicant_postal_code,
+          coApplicantProvince: userData.co_applicant_province,
         };
         return user;
       }
