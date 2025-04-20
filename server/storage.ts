@@ -1116,11 +1116,31 @@ export class DatabaseStorage implements IStorage {
 
   async verifyUser(username: string, password: string): Promise<User | undefined> {
     try {
-      // Since we're using email as username, we'll look up by email
-      const user = await this.getUserByEmail(username);
-      if (!user) return undefined;
+      console.log(`Attempting to verify user with login: ${username}`);
       
+      let user = await this.getUserByEmail(username);
+      
+      // If user not found by email, try looking up by username
+      if (!user) {
+        console.log(`No user found with email: ${username}, trying username lookup`);
+        user = await this.getUserByUsername(username);
+      }
+      
+      // If still no user found, authentication fails
+      if (!user) {
+        console.log(`No user found with either email or username: ${username}`);
+        return undefined;
+      }
+      
+      console.log(`User found with ID: ${user.id}, attempting password verification`);
       const isMatch = await bcrypt.compare(password, user.password);
+      
+      if (!isMatch) {
+        console.log(`Password verification failed for user ID: ${user.id}`);
+      } else {
+        console.log(`Password verification successful for user ID: ${user.id}`);
+      }
+      
       return isMatch ? user : undefined;
     } catch (error) {
       console.error("Database error in verifyUser:", error);
