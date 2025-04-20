@@ -29,6 +29,16 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { 
   UserCircle as UserIcon, 
   Home, 
@@ -52,6 +62,9 @@ export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>('personal');
+  const [showOtpDialog, setShowOtpDialog] = useState<boolean>(false);
+  const [mobileOtp, setMobileOtp] = useState<string>('');
+  const [verifyingMobile, setVerifyingMobile] = useState<boolean>(false);
   const [idInfo, setIdInfo] = useState<{
     isValid: boolean;
     dateOfBirth?: string;
@@ -418,10 +431,12 @@ export default function Profile() {
                                       size="sm"
                                       className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 text-xs"
                                       onClick={() => {
+                                        // In a real implementation, this would trigger an API call to send an OTP
                                         toast({
-                                          title: "Coming Soon",
-                                          description: "Mobile verification will be available soon using Twilio OTP",
+                                          title: "OTP Sent",
+                                          description: `Verification code sent to ${field.value}`,
                                         });
+                                        setShowOtpDialog(true);
                                       }}
                                     >
                                       Verify

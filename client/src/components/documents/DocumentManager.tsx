@@ -248,43 +248,7 @@ const DocumentManager = () => {
         </CardContent>
       </Card>
       
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-6 flex items-center">
-            <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">
-              <FileText className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-medium">ID Document</h3>
-              <p className="text-sm text-muted-foreground">Upload a copy of your ID document or passport</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6 flex items-center">
-            <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">
-              <FileText className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-medium">Proof of Income</h3>
-              <p className="text-sm text-muted-foreground">Upload your last 3 months of payslips</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6 flex items-center">
-            <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">
-              <FileText className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-medium">Bank Statements</h3>
-              <p className="text-sm text-muted-foreground">Upload your last 3 months of bank statements</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Document tiles have been removed as requested */}
       
       <Tabs defaultValue="timeline" className="mb-8">
         <div className="flex justify-end mb-6">
