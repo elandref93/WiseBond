@@ -6,6 +6,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  title: text("title"), // Title (Mr, Mrs, Ms, Dr, etc.)
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   email: text("email").notNull().unique(),
@@ -25,6 +26,7 @@ export const users = pgTable("users", {
   monthlyIncome: integer("monthly_income"),  // Can be null
   maritalStatus: text("marital_status"), // Single, Married, Divorced, Widowed
   hasCoApplicant: boolean("has_co_applicant").default(false), // Whether the user is applying with a co-applicant
+  coApplicantTitle: text("co_applicant_title"), // Co-applicant's title (Mr, Mrs, Ms, Dr, etc.)
   coApplicantFirstName: text("co_applicant_first_name"), // Co-applicant's first name
   coApplicantLastName: text("co_applicant_last_name"), // Co-applicant's last name
   coApplicantEmail: text("co_applicant_email"), // Co-applicant's email address
@@ -52,6 +54,7 @@ export const users = pgTable("users", {
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  title: true,
   firstName: true,
   lastName: true,
   email: true,
@@ -71,6 +74,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   monthlyIncome: true,
   maritalStatus: true,
   hasCoApplicant: true,
+  coApplicantTitle: true,
   coApplicantFirstName: true,
   coApplicantLastName: true,
   coApplicantEmail: true,
