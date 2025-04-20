@@ -1067,7 +1067,58 @@ export class DatabaseStorage implements IStorage {
   
   async getUser(id: number): Promise<User | undefined> {
     try {
-      const [user] = await db.select().from(users).where(eq(users.id, id));
+      // Select all columns explicitly based on the schema to avoid issues with missing columns
+      const query = db.select({
+        id: users.id,
+        username: users.username,
+        password: users.password,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phone: users.phone,
+        idNumber: users.idNumber,
+        dateOfBirth: users.dateOfBirth,
+        age: users.age,
+        address: users.address,
+        city: users.city,
+        postalCode: users.postalCode,
+        province: users.province,
+        employmentStatus: users.employmentStatus,
+        employerName: users.employerName,
+        employmentSector: users.employmentSector,
+        jobTitle: users.jobTitle,
+        employmentDuration: users.employmentDuration,
+        monthlyIncome: users.monthlyIncome,
+        maritalStatus: users.maritalStatus,
+        hasCoApplicant: users.hasCoApplicant,
+        coApplicantFirstName: users.coApplicantFirstName,
+        coApplicantLastName: users.coApplicantLastName,
+        coApplicantEmail: users.coApplicantEmail,
+        coApplicantPhone: users.coApplicantPhone,
+        coApplicantIdNumber: users.coApplicantIdNumber,
+        coApplicantDateOfBirth: users.coApplicantDateOfBirth,
+        coApplicantAge: users.coApplicantAge,
+        coApplicantEmploymentStatus: users.coApplicantEmploymentStatus,
+        coApplicantEmployerName: users.coApplicantEmployerName,
+        coApplicantEmploymentSector: users.coApplicantEmploymentSector,
+        coApplicantJobTitle: users.coApplicantJobTitle,
+        coApplicantEmploymentDuration: users.coApplicantEmploymentDuration,
+        coApplicantMonthlyIncome: users.coApplicantMonthlyIncome,
+        sameAddress: users.sameAddress,
+        coApplicantAddress: users.coApplicantAddress,
+        coApplicantCity: users.coApplicantCity,
+        coApplicantPostalCode: users.coApplicantPostalCode,
+        coApplicantProvince: users.coApplicantProvince,
+        otpVerified: users.otpVerified,
+        profileComplete: users.profileComplete,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt
+      })
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1);
+      
+      const [user] = await query;
       return user;
     } catch (error) {
       console.error("Database error in getUser:", error);
@@ -1077,7 +1128,58 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
-      const [user] = await db.select().from(users).where(eq(users.username, username));
+      // Select all columns explicitly based on the schema to avoid issues with missing columns
+      const query = db.select({
+        id: users.id,
+        username: users.username,
+        password: users.password,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phone: users.phone,
+        idNumber: users.idNumber,
+        dateOfBirth: users.dateOfBirth,
+        age: users.age,
+        address: users.address,
+        city: users.city,
+        postalCode: users.postalCode,
+        province: users.province,
+        employmentStatus: users.employmentStatus,
+        employerName: users.employerName,
+        employmentSector: users.employmentSector,
+        jobTitle: users.jobTitle,
+        employmentDuration: users.employmentDuration,
+        monthlyIncome: users.monthlyIncome,
+        maritalStatus: users.maritalStatus,
+        hasCoApplicant: users.hasCoApplicant,
+        coApplicantFirstName: users.coApplicantFirstName,
+        coApplicantLastName: users.coApplicantLastName,
+        coApplicantEmail: users.coApplicantEmail,
+        coApplicantPhone: users.coApplicantPhone,
+        coApplicantIdNumber: users.coApplicantIdNumber,
+        coApplicantDateOfBirth: users.coApplicantDateOfBirth,
+        coApplicantAge: users.coApplicantAge,
+        coApplicantEmploymentStatus: users.coApplicantEmploymentStatus,
+        coApplicantEmployerName: users.coApplicantEmployerName,
+        coApplicantEmploymentSector: users.coApplicantEmploymentSector,
+        coApplicantJobTitle: users.coApplicantJobTitle,
+        coApplicantEmploymentDuration: users.coApplicantEmploymentDuration,
+        coApplicantMonthlyIncome: users.coApplicantMonthlyIncome,
+        sameAddress: users.sameAddress,
+        coApplicantAddress: users.coApplicantAddress,
+        coApplicantCity: users.coApplicantCity,
+        coApplicantPostalCode: users.coApplicantPostalCode,
+        coApplicantProvince: users.coApplicantProvince,
+        otpVerified: users.otpVerified,
+        profileComplete: users.profileComplete,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt
+      })
+      .from(users)
+      .where(eq(users.username, username))
+      .limit(1);
+      
+      const [user] = await query;
       return user;
     } catch (error) {
       console.error("Database error in getUserByUsername:", error);
@@ -1087,7 +1189,58 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
-      const [user] = await db.select().from(users).where(eq(users.email, email));
+      // Select all columns explicitly based on the schema to avoid issues with missing columns
+      const query = db.select({
+        id: users.id,
+        username: users.username,
+        password: users.password,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phone: users.phone,
+        idNumber: users.idNumber,
+        dateOfBirth: users.dateOfBirth,
+        age: users.age,
+        address: users.address,
+        city: users.city,
+        postalCode: users.postalCode,
+        province: users.province,
+        employmentStatus: users.employmentStatus,
+        employerName: users.employerName,
+        employmentSector: users.employmentSector,
+        jobTitle: users.jobTitle,
+        employmentDuration: users.employmentDuration,
+        monthlyIncome: users.monthlyIncome,
+        maritalStatus: users.maritalStatus,
+        hasCoApplicant: users.hasCoApplicant,
+        coApplicantFirstName: users.coApplicantFirstName,
+        coApplicantLastName: users.coApplicantLastName,
+        coApplicantEmail: users.coApplicantEmail,
+        coApplicantPhone: users.coApplicantPhone,
+        coApplicantIdNumber: users.coApplicantIdNumber,
+        coApplicantDateOfBirth: users.coApplicantDateOfBirth,
+        coApplicantAge: users.coApplicantAge,
+        coApplicantEmploymentStatus: users.coApplicantEmploymentStatus,
+        coApplicantEmployerName: users.coApplicantEmployerName,
+        coApplicantEmploymentSector: users.coApplicantEmploymentSector,
+        coApplicantJobTitle: users.coApplicantJobTitle,
+        coApplicantEmploymentDuration: users.coApplicantEmploymentDuration,
+        coApplicantMonthlyIncome: users.coApplicantMonthlyIncome,
+        sameAddress: users.sameAddress,
+        coApplicantAddress: users.coApplicantAddress,
+        coApplicantCity: users.coApplicantCity,
+        coApplicantPostalCode: users.coApplicantPostalCode,
+        coApplicantProvince: users.coApplicantProvince,
+        otpVerified: users.otpVerified,
+        profileComplete: users.profileComplete,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt
+      })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+      
+      const [user] = await query;
       return user;
     } catch (error) {
       console.error("Database error in getUserByEmail:", error);

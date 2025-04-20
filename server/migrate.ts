@@ -13,6 +13,40 @@ export const runMigrations = async () => {
     try {
       await db.select().from(schema.users).limit(1);
       console.log('✅ Users table exists');
+      
+      // Check and add co-applicant columns
+      console.log('Checking for missing co-applicant columns in users table...');
+      try {
+        // Check if marital_status column exists
+        await db.execute(sql`SELECT marital_status FROM users LIMIT 1`);
+        console.log('✅ Co-applicant columns already exist');
+      } catch (e) {
+        console.log('Adding co-applicant columns to users table...');
+        await db.execute(sql`
+          ALTER TABLE users
+          ADD COLUMN IF NOT EXISTS marital_status TEXT,
+          ADD COLUMN IF NOT EXISTS has_co_applicant BOOLEAN DEFAULT FALSE,
+          ADD COLUMN IF NOT EXISTS co_applicant_first_name TEXT,
+          ADD COLUMN IF NOT EXISTS co_applicant_last_name TEXT,
+          ADD COLUMN IF NOT EXISTS co_applicant_email TEXT,
+          ADD COLUMN IF NOT EXISTS co_applicant_phone TEXT,
+          ADD COLUMN IF NOT EXISTS co_applicant_id_number TEXT,
+          ADD COLUMN IF NOT EXISTS co_applicant_date_of_birth TEXT,
+          ADD COLUMN IF NOT EXISTS co_applicant_age INTEGER,
+          ADD COLUMN IF NOT EXISTS co_applicant_employment_status TEXT,
+          ADD COLUMN IF NOT EXISTS co_applicant_employer_name TEXT,
+          ADD COLUMN IF NOT EXISTS co_applicant_employment_sector TEXT,
+          ADD COLUMN IF NOT EXISTS co_applicant_job_title TEXT,
+          ADD COLUMN IF NOT EXISTS co_applicant_employment_duration TEXT,
+          ADD COLUMN IF NOT EXISTS co_applicant_monthly_income INTEGER,
+          ADD COLUMN IF NOT EXISTS same_address BOOLEAN DEFAULT TRUE,
+          ADD COLUMN IF NOT EXISTS co_applicant_address TEXT,
+          ADD COLUMN IF NOT EXISTS co_applicant_city TEXT,
+          ADD COLUMN IF NOT EXISTS co_applicant_postal_code TEXT,
+          ADD COLUMN IF NOT EXISTS co_applicant_province TEXT
+        `);
+        console.log('✅ Added co-applicant columns to users table');
+      }
     } catch (e) {
       console.log('Creating users table...');
       await db.execute(sql`
@@ -37,13 +71,33 @@ export const runMigrations = async () => {
           job_title TEXT,
           employment_duration TEXT,
           monthly_income INTEGER,
+          marital_status TEXT,
+          has_co_applicant BOOLEAN DEFAULT FALSE,
+          co_applicant_first_name TEXT,
+          co_applicant_last_name TEXT,
+          co_applicant_email TEXT,
+          co_applicant_phone TEXT,
+          co_applicant_id_number TEXT,
+          co_applicant_date_of_birth TEXT,
+          co_applicant_age INTEGER,
+          co_applicant_employment_status TEXT,
+          co_applicant_employer_name TEXT,
+          co_applicant_employment_sector TEXT,
+          co_applicant_job_title TEXT,
+          co_applicant_employment_duration TEXT,
+          co_applicant_monthly_income INTEGER,
+          same_address BOOLEAN DEFAULT TRUE,
+          co_applicant_address TEXT,
+          co_applicant_city TEXT,
+          co_applicant_postal_code TEXT,
+          co_applicant_province TEXT,
           otp_verified BOOLEAN DEFAULT FALSE,
           profile_complete BOOLEAN DEFAULT FALSE,
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW()
         )
       `);
-      console.log('✅ Created users table');
+      console.log('✅ Created users table with co-applicant columns');
     }
     
     // Check if calculation_results table exists
@@ -127,6 +181,50 @@ export const runMigrations = async () => {
       console.log('✅ Sessions table exists');
     } catch (e) {
       console.log('Sessions table might be created by connect-pg-simple automatically');
+    }
+    
+    // Check notifications table
+    try {
+      await db.select().from(schema.notifications).limit(1);
+      console.log('✅ Notifications table exists');
+      
+      // Ensure notifications table has read column, not isRead
+      try {
+        await db.execute(sql`SELECT read FROM notifications LIMIT 1`);
+        console.log('✅ Notifications table has correct column structure');
+      } catch (e) {
+        // The error could be because either the table doesn't exist or the column doesn't exist
+        try {
+          // Check if isRead exists
+          await db.execute(sql`SELECT "is_read" FROM notifications LIMIT 1`);
+          // If we get here, it means isRead exists but read doesn't, so we need to rename
+          console.log('Renaming is_read column to read in notifications table...');
+          await db.execute(sql`ALTER TABLE notifications RENAME COLUMN "is_read" TO "read"`);
+          console.log('✅ Renamed is_read to read in notifications table');
+        } catch (e2) {
+          // If we get here, neither column exists, so we need to add read
+          console.log('Adding read column to notifications table...');
+          await db.execute(sql`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS "read" BOOLEAN DEFAULT FALSE`);
+          console.log('✅ Added read column to notifications table');
+        }
+      }
+    } catch (e) {
+      // Notifications table doesn't exist
+      console.log('Creating notifications table...');
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS notifications (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL,
+          type TEXT NOT NULL,
+          title TEXT NOT NULL,
+          message TEXT NOT NULL,
+          related_id INTEGER,
+          related_type TEXT,
+          read BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+      console.log('✅ Created notifications table');
     }
     
     console.log('✅ All migrations completed successfully');
