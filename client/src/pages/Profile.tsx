@@ -398,9 +398,15 @@ export default function Profile() {
                             <FormItem>
                               <div className="flex justify-between items-center mb-1">
                                 <FormLabel>Phone Number</FormLabel>
-                                <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
-                                  Unverified
-                                </Badge>
+                                {profileData?.otpVerified ? (
+                                  <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+                                    Verified
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
+                                    Unverified
+                                  </Badge>
+                                )}
                               </div>
                               <FormControl>
                                 <div className="relative">
@@ -424,7 +430,7 @@ export default function Profile() {
                                       }
                                     }}
                                   />
-                                  {field.value && field.value.length >= 10 && (
+                                  {field.value && field.value.length >= 10 && !profileData?.otpVerified && (
                                     <Button 
                                       type="button" 
                                       variant="outline" 
@@ -810,9 +816,9 @@ export default function Profile() {
               maxLength={6}
               value={mobileOtp}
               onChange={(value) => setMobileOtp(value)}
-              render={({ slots }) => (
+              render={() => (
                 <InputOTPGroup>
-                  {slots.map((slot, index) => (
+                  {Array.from({ length: 6 }).map((_, index) => (
                     <InputOTPSlot key={index} index={index} />
                   ))}
                 </InputOTPGroup>
@@ -845,13 +851,13 @@ export default function Profile() {
                   setShowOtpDialog(false);
                   // In a real implementation, we would make an API call to update phone verification status
                   // For now, we'll update it locally in the form
-                  form.setValue('phoneVerified', true);
+                  form.setValue('otpVerified', true);
                   
                   // Also submit the form to save the changes
                   const currentFormData = form.getValues();
                   updateProfileMutation.mutate({
                     ...currentFormData,
-                    phoneVerified: true
+                    otpVerified: true
                   });
                   
                   toast({
