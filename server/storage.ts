@@ -1921,7 +1921,7 @@ export class DatabaseStorage implements IStorage {
       const result = await db.select()
         .from(applicationMilestones)
         .where(eq(applicationMilestones.applicationId, applicationId))
-        .orderBy(desc(applicationMilestones.date));
+        .orderBy(desc(applicationMilestones.createdAt));
       return result;
     } catch (error) {
       console.error("Database error in getApplicationMilestones:", error);
@@ -2006,7 +2006,7 @@ export class DatabaseStorage implements IStorage {
         .where(
           and(
             eq(notifications.userId, userId),
-            eq(notifications.isRead, false)
+            eq(notifications.read, false)
           )
         )
         .orderBy(desc(notifications.createdAt));
@@ -2033,7 +2033,7 @@ export class DatabaseStorage implements IStorage {
   async markNotificationRead(id: number): Promise<boolean> {
     try {
       await db.update(notifications)
-        .set({ isRead: true })
+        .set({ read: true })
         .where(eq(notifications.id, id));
       return true;
     } catch (error) {
@@ -2045,7 +2045,7 @@ export class DatabaseStorage implements IStorage {
   async markAllNotificationsRead(userId: number): Promise<boolean> {
     try {
       await db.update(notifications)
-        .set({ isRead: true })
+        .set({ read: true })
         .where(eq(notifications.userId, userId));
       return true;
     } catch (error) {

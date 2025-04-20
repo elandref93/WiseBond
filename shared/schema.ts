@@ -31,8 +31,12 @@ export const users = pgTable("users", {
   coApplicantPhone: text("co_applicant_phone"), // Co-applicant's phone number
   coApplicantIdNumber: text("co_applicant_id_number"), // Co-applicant's ID number
   coApplicantDateOfBirth: text("co_applicant_date_of_birth"), // Co-applicant's date of birth
+  coApplicantAge: integer("co_applicant_age"), // Co-applicant's age
   coApplicantEmploymentStatus: text("co_applicant_employment_status"), // Co-applicant's employment status
   coApplicantEmployerName: text("co_applicant_employer_name"), // Co-applicant's employer name
+  coApplicantEmploymentSector: text("co_applicant_employment_sector"), // Co-applicant's employment sector
+  coApplicantJobTitle: text("co_applicant_job_title"), // Co-applicant's job title
+  coApplicantEmploymentDuration: text("co_applicant_employment_duration"), // Co-applicant's employment duration
   coApplicantMonthlyIncome: integer("co_applicant_monthly_income"), // Co-applicant's monthly income
   sameAddress: boolean("same_address").default(true), // Whether co-applicant has the same address as main applicant
   coApplicantAddress: text("co_applicant_address"), // Co-applicant's address if different
@@ -65,6 +69,26 @@ export const insertUserSchema = createInsertSchema(users).pick({
   jobTitle: true,
   employmentDuration: true,
   monthlyIncome: true,
+  maritalStatus: true,
+  hasCoApplicant: true,
+  coApplicantFirstName: true,
+  coApplicantLastName: true,
+  coApplicantEmail: true,
+  coApplicantPhone: true,
+  coApplicantIdNumber: true,
+  coApplicantDateOfBirth: true,
+  coApplicantAge: true,
+  coApplicantEmploymentStatus: true,
+  coApplicantEmployerName: true,
+  coApplicantEmploymentSector: true,
+  coApplicantJobTitle: true,
+  coApplicantEmploymentDuration: true,
+  coApplicantMonthlyIncome: true,
+  sameAddress: true,
+  coApplicantAddress: true,
+  coApplicantCity: true,
+  coApplicantPostalCode: true,
+  coApplicantProvince: true,
   otpVerified: true,
   profileComplete: true,
 });
@@ -142,8 +166,12 @@ export const updateProfileSchema = createInsertSchema(users)
       { message: "Invalid South African ID number for co-applicant" }
     ),
     coApplicantDateOfBirth: z.string().optional(),
+    coApplicantAge: z.number().optional(),
     coApplicantEmploymentStatus: z.enum(['Employed', 'Self-employed', 'Unemployed', 'Retired', 'Student']).optional(),
     coApplicantEmployerName: z.string().optional(),
+    coApplicantEmploymentSector: z.string().optional(),
+    coApplicantJobTitle: z.string().optional(),
+    coApplicantEmploymentDuration: z.string().optional(),
     coApplicantMonthlyIncome: z.number().nullable().optional(),
     sameAddress: z.boolean().optional(),
     coApplicantAddress: z.string().optional(),
