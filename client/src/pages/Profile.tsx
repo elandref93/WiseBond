@@ -210,7 +210,7 @@ export default function Profile() {
     updateProfileMutation.mutate(formData);
   };
   
-  // Process ID number and extract information
+  // Process ID number and extract information for main applicant
   const handleIdNumberValidation = (idNumber: string) => {
     if (!idNumber) {
       setIdInfo({ isValid: false });
@@ -245,11 +245,47 @@ export default function Profile() {
     }
   };
   
+  // Process ID number and extract information for co-applicant
+  const handleCoApplicantIdNumberValidation = (idNumber: string) => {
+    if (!idNumber) {
+      setCoApplicantIdInfo({ isValid: false });
+      return;
+    }
+    
+    const isValid = validateSAID(idNumber);
+    if (!isValid) {
+      setCoApplicantIdInfo({ isValid: false });
+      return;
+    }
+    
+    const dob = extractDateOfBirth(idNumber);
+    const age = calculateAgeFromID(idNumber);
+    const gender = extractGender(idNumber);
+    const citizenship = extractCitizenship(idNumber);
+    
+    setCoApplicantIdInfo({
+      isValid,
+      dateOfBirth: dob ? formatDateYYYYMMDD(dob) : undefined,
+      age: age !== null ? age : undefined,
+      gender: gender !== null ? gender : undefined,
+      citizenship: citizenship !== null ? citizenship : undefined,
+    });
+    
+    // Auto-fill co-applicant dateOfBirth from ID
+    if (dob) {
+      form.setValue('coApplicantDateOfBirth', formatDateYYYYMMDD(dob));
+    }
+  };
+  
   if (isProfileLoading) {
     return <div className="flex justify-center py-8">Loading profile...</div>;
   }
   
   const watchedIdNumber = form.watch('idNumber');
+  const watchedCoApplicantIdNumber = form.watch('coApplicantIdNumber');
+  const watchedMaritalStatus = form.watch('maritalStatus');
+  const watchedHasCoApplicant = form.watch('hasCoApplicant');
+  const showCoApplicantSection = watchedMaritalStatus === 'Married' || watchedHasCoApplicant;
   
   // Tab navigation items with disabled flag type
   const tabs: Array<{ id: string; label: string; icon: React.ReactNode; disabled?: boolean }> = [
@@ -591,6 +627,407 @@ export default function Profile() {
                             </FormItem>
                           )}
                         />
+                      </div>
+                      
+                      <Separator className="my-6" />
+                      <h3 className="text-lg font-medium mb-4">Marital Status & Co-Application</h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="maritalStatus"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Marital Status</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value || undefined}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select marital status" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Single">Single</SelectItem>
+                                  <SelectItem value="Married">Married</SelectItem>
+                                  <SelectItem value="Divorced">Divorced</SelectItem>
+                                  <SelectItem value="Widowed">Widowed</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                This affects your loan application options
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="hasCoApplicant"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                              <div className="space-y-0.5">
+                                <FormLabel className="text-base">
+                                  Apply with a Co-Applicant
+                                </FormLabel>
+                                <FormDescription>
+                                  Add a spouse or partner to your application
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      
+                      {showCoApplicantSection && (
+                        <div className="space-y-6 mt-6 p-4 border border-blue-100 bg-blue-50 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <UserIcon className="h-5 w-5 text-blue-500" />
+                            <h3 className="text-lg font-medium text-blue-700">Co-Applicant Information</h3>
+                          </div>
+                          <p className="text-sm text-blue-600">
+                            Adding a co-applicant may increase your chances of loan approval and may allow for a higher loan amount.
+                          </p>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                              control={form.control}
+                              name="coApplicantFirstName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>First Name</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} placeholder="Co-applicant's first name" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={form.control}
+                              name="coApplicantLastName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Last Name</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} placeholder="Co-applicant's last name" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <FormField
+                              control={form.control}
+                              name="coApplicantIdNumber"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>
+                                    South African ID Number 
+                                    {coApplicantIdInfo.isValid && <Badge className="ml-2 bg-green-500">Verified</Badge>}
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      {...field} 
+                                      placeholder="13-digit SA ID number" 
+                                      maxLength={13}
+                                      onChange={(e) => {
+                                        field.onChange(e);
+                                        handleCoApplicantIdNumberValidation(e.target.value);
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            {watchedCoApplicantIdNumber && !coApplicantIdInfo.isValid && (
+                              <Alert className="mt-4 bg-red-50 text-red-700 border-red-200">
+                                <AlertDescription>
+                                  Invalid South African ID number. Please check and enter a valid 13-digit ID number.
+                                </AlertDescription>
+                              </Alert>
+                            )}
+                            
+                            {coApplicantIdInfo.isValid && (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-muted rounded-lg">
+                                <div>
+                                  <p className="text-sm font-medium">Date of Birth</p>
+                                  <p>{coApplicantIdInfo.dateOfBirth}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium">Age</p>
+                                  <p>{coApplicantIdInfo.age} years</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium">Gender</p>
+                                  <p className="capitalize">{coApplicantIdInfo.gender}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium">Citizenship</p>
+                                  <p>{coApplicantIdInfo.citizenship}</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                              control={form.control}
+                              name="coApplicantEmail"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Email Address</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} type="email" placeholder="Co-applicant's email" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={form.control}
+                              name="coApplicantPhone"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Phone Number</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      {...field} 
+                                      placeholder="e.g. 0821234567 or +27821234567"
+                                      pattern="(0[0-9]{9}|\+27[1-9][0-9]{8})"
+                                      maxLength={12}
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        // Allow only digits and plus sign
+                                        const sanitized = value.replace(/[^\d+]/g, '');
+                                        
+                                        // Enforce length constraints
+                                        if (sanitized.startsWith('+27') && sanitized.length > 12) {
+                                          field.onChange(sanitized.substring(0, 12));
+                                        } else if (sanitized.startsWith('0') && sanitized.length > 10) {
+                                          field.onChange(sanitized.substring(0, 10));
+                                        } else {
+                                          field.onChange(sanitized);
+                                        }
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          <FormField
+                            control={form.control}
+                            name="coApplicantEmploymentStatus"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Employment Status</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value || undefined}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="Employed">Employed</SelectItem>
+                                    <SelectItem value="Self-employed">Self-Employed</SelectItem>
+                                    <SelectItem value="Unemployed">Unemployed</SelectItem>
+                                    <SelectItem value="Retired">Retired</SelectItem>
+                                    <SelectItem value="Student">Student</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          {(form.watch('coApplicantEmploymentStatus') === 'Employed' || 
+                            form.watch('coApplicantEmploymentStatus') === 'Self-employed') && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <FormField
+                                control={form.control}
+                                name="coApplicantEmployerName"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Employer / Company Name</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        {...field} 
+                                        placeholder="Name of employer or business" 
+                                        value={field.value || ''}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={form.control}
+                                name="coApplicantMonthlyIncome"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Monthly Income (ZAR)</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        type="number"
+                                        placeholder="e.g. 25000"
+                                        value={field.value === undefined || field.value === null ? '' : field.value}
+                                        onChange={(e) => {
+                                          // Convert to number or undefined if empty
+                                          const value = e.target.value === '' ? undefined : Number(e.target.value);
+                                          field.onChange(value);
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          )}
+                          
+                          <FormField
+                            control={form.control}
+                            name="sameAddress"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                <div className="space-y-0.5">
+                                  <FormLabel className="text-base">
+                                    Same Address as Main Applicant
+                                  </FormLabel>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          
+                          {!form.watch('sameAddress') && (
+                            <div className="space-y-4">
+                              <FormField
+                                control={form.control}
+                                name="coApplicantAddress"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Street Address</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        placeholder="Co-applicant's street address"
+                                        value={field.value || ''}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <FormField
+                                  control={form.control}
+                                  name="coApplicantCity"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>City</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="City" value={field.value || ''} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={form.control}
+                                  name="coApplicantProvince"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Province</FormLabel>
+                                      <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value || ""}
+                                      >
+                                        <FormControl>
+                                          <SelectTrigger>
+                                            <SelectValue placeholder="Select province" />
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          <SelectItem value="eastern_cape">Eastern Cape</SelectItem>
+                                          <SelectItem value="free_state">Free State</SelectItem>
+                                          <SelectItem value="gauteng">Gauteng</SelectItem>
+                                          <SelectItem value="kwazulu_natal">KwaZulu-Natal</SelectItem>
+                                          <SelectItem value="limpopo">Limpopo</SelectItem>
+                                          <SelectItem value="mpumalanga">Mpumalanga</SelectItem>
+                                          <SelectItem value="northern_cape">Northern Cape</SelectItem>
+                                          <SelectItem value="north_west">North West</SelectItem>
+                                          <SelectItem value="western_cape">Western Cape</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={form.control}
+                                  name="coApplicantPostalCode"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Postal Code</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="e.g. 2000" value={field.value || ''} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      <div className="flex justify-end mt-6">
+                        <Button 
+                          type="submit" 
+                          className="w-full md:w-auto"
+                          disabled={updateProfileMutation.isPending}
+                        >
+                          {updateProfileMutation.isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Saving Changes...
+                            </>
+                          ) : (
+                            'Save Profile Changes'
+                          )}
+                        </Button>
                       </div>
                     </div>
                   )}
