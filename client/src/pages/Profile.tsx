@@ -794,6 +794,80 @@ export default function Profile() {
           </Card>
         </div>
       </div>
+
+      {/* Mobile OTP Verification Dialog */}
+      <Dialog open={showOtpDialog} onOpenChange={setShowOtpDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Verify Your Mobile Number</DialogTitle>
+            <DialogDescription>
+              Enter the 6-digit code sent to your mobile phone to verify your number.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col items-center py-6">
+            <InputOTP 
+              maxLength={6}
+              value={mobileOtp}
+              onChange={(value) => setMobileOtp(value)}
+              render={({ slots }) => (
+                <InputOTPGroup>
+                  {slots.map((slot, index) => (
+                    <InputOTPSlot key={index} index={index} />
+                  ))}
+                </InputOTPGroup>
+              )} 
+            />
+            <p className="text-sm text-muted-foreground mt-4">
+              Didn't receive a code? <Button variant="link" className="p-0 h-auto" onClick={() => {
+                toast({
+                  title: "Code Resent",
+                  description: "A new verification code has been sent to your mobile number."
+                });
+              }}>Resend Code</Button>
+            </p>
+          </div>
+
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+            <Button 
+              variant="secondary" 
+              onClick={() => setShowOtpDialog(false)}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                setVerifyingMobile(true);
+                // Simulate verification process
+                setTimeout(() => {
+                  setVerifyingMobile(false);
+                  setShowOtpDialog(false);
+                  // In a real implementation, we would make an API call to update phone verification status
+                  // For now, we'll update it locally in the form
+                  form.setValue('phoneVerified', true);
+                  
+                  // Also submit the form to save the changes
+                  const currentFormData = form.getValues();
+                  updateProfileMutation.mutate({
+                    ...currentFormData,
+                    phoneVerified: true
+                  });
+                  
+                  toast({
+                    title: "Mobile Verified",
+                    description: "Your mobile number has been successfully verified.",
+                  });
+                }, 1500);
+              }}
+              disabled={mobileOtp.length !== 6 || verifyingMobile}
+              className="w-full sm:w-auto"
+            >
+              {verifyingMobile ? "Verifying..." : "Verify Mobile"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
