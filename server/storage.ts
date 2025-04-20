@@ -1100,11 +1100,33 @@ export class DatabaseStorage implements IStorage {
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(insertUser.password, saltRounds);
       
+      // Initialize with default values for co-applicant fields
       const [user] = await db.insert(users).values({
         ...insertUser,
         password: hashedPassword,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        // Co-applicant fields with default values
+        maritalStatus: insertUser.maritalStatus || null,
+        hasCoApplicant: insertUser.hasCoApplicant || false,
+        coApplicantFirstName: insertUser.coApplicantFirstName || null,
+        coApplicantLastName: insertUser.coApplicantLastName || null,
+        coApplicantEmail: insertUser.coApplicantEmail || null,
+        coApplicantPhone: insertUser.coApplicantPhone || null,
+        coApplicantIdNumber: insertUser.coApplicantIdNumber || null,
+        coApplicantDateOfBirth: insertUser.coApplicantDateOfBirth || null,
+        coApplicantAge: insertUser.coApplicantAge || null,
+        coApplicantEmploymentStatus: insertUser.coApplicantEmploymentStatus || null,
+        coApplicantEmployerName: insertUser.coApplicantEmployerName || null,
+        coApplicantEmploymentSector: insertUser.coApplicantEmploymentSector || null,
+        coApplicantJobTitle: insertUser.coApplicantJobTitle || null,
+        coApplicantEmploymentDuration: insertUser.coApplicantEmploymentDuration || null,
+        coApplicantMonthlyIncome: insertUser.coApplicantMonthlyIncome || null,
+        sameAddress: insertUser.sameAddress || false,
+        coApplicantAddress: insertUser.coApplicantAddress || null,
+        coApplicantCity: insertUser.coApplicantCity || null,
+        coApplicantPostalCode: insertUser.coApplicantPostalCode || null,
+        coApplicantProvince: insertUser.coApplicantProvince || null
       }).returning();
       
       return user;
@@ -1619,6 +1641,415 @@ export class DatabaseStorage implements IStorage {
       return isMatch;
     } catch (error) {
       console.error("Error comparing passwords:", error);
+      return false;
+    }
+  }
+
+  // Agency management
+  async getAgencies(): Promise<Agency[]> {
+    try {
+      const result = await db.select().from(agencies).orderBy(agencies.name);
+      return result;
+    } catch (error) {
+      console.error("Database error in getAgencies:", error);
+      return [];
+    }
+  }
+
+  async getAgency(id: number): Promise<Agency | undefined> {
+    try {
+      const [agency] = await db.select().from(agencies).where(eq(agencies.id, id));
+      return agency;
+    } catch (error) {
+      console.error("Database error in getAgency:", error);
+      return undefined;
+    }
+  }
+
+  async createAgency(agency: InsertAgency): Promise<Agency> {
+    try {
+      const [result] = await db.insert(agencies).values({
+        ...agency,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in createAgency:", error);
+      throw new Error("Failed to create agency");
+    }
+  }
+
+  async updateAgency(id: number, updates: Partial<Agency>): Promise<Agency | undefined> {
+    try {
+      const [updatedAgency] = await db.update(agencies)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(agencies.id, id))
+        .returning();
+      return updatedAgency;
+    } catch (error) {
+      console.error("Database error in updateAgency:", error);
+      return undefined;
+    }
+  }
+
+  // Agent management
+  async getAgents(): Promise<Agent[]> {
+    try {
+      const result = await db.select().from(agents);
+      return result;
+    } catch (error) {
+      console.error("Database error in getAgents:", error);
+      return [];
+    }
+  }
+
+  async getAgentsByAgency(agencyId: number): Promise<Agent[]> {
+    try {
+      const result = await db.select()
+        .from(agents)
+        .where(eq(agents.agencyId, agencyId));
+      return result;
+    } catch (error) {
+      console.error("Database error in getAgentsByAgency:", error);
+      return [];
+    }
+  }
+
+  async getAgent(id: number): Promise<Agent | undefined> {
+    try {
+      const [agent] = await db.select().from(agents).where(eq(agents.id, id));
+      return agent;
+    } catch (error) {
+      console.error("Database error in getAgent:", error);
+      return undefined;
+    }
+  }
+
+  async getAgentByUserId(userId: number): Promise<Agent | undefined> {
+    try {
+      const [agent] = await db.select().from(agents).where(eq(agents.userId, userId));
+      return agent;
+    } catch (error) {
+      console.error("Database error in getAgentByUserId:", error);
+      return undefined;
+    }
+  }
+
+  async createAgent(agent: InsertAgent): Promise<Agent> {
+    try {
+      const [result] = await db.insert(agents).values({
+        ...agent,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in createAgent:", error);
+      throw new Error("Failed to create agent");
+    }
+  }
+
+  async updateAgent(id: number, updates: Partial<Agent>): Promise<Agent | undefined> {
+    try {
+      const [updatedAgent] = await db.update(agents)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(agents.id, id))
+        .returning();
+      return updatedAgent;
+    } catch (error) {
+      console.error("Database error in updateAgent:", error);
+      return undefined;
+    }
+  }
+
+  // Application management
+  async getApplications(): Promise<Application[]> {
+    try {
+      const result = await db.select().from(applications).orderBy(desc(applications.createdAt));
+      return result;
+    } catch (error) {
+      console.error("Database error in getApplications:", error);
+      return [];
+    }
+  }
+
+  async getApplicationsByAgent(agentId: number): Promise<Application[]> {
+    try {
+      const result = await db.select()
+        .from(applications)
+        .where(eq(applications.agentId, agentId))
+        .orderBy(desc(applications.createdAt));
+      return result;
+    } catch (error) {
+      console.error("Database error in getApplicationsByAgent:", error);
+      return [];
+    }
+  }
+
+  async getApplicationsByClient(clientId: number): Promise<Application[]> {
+    try {
+      const result = await db.select()
+        .from(applications)
+        .where(eq(applications.clientId, clientId))
+        .orderBy(desc(applications.createdAt));
+      return result;
+    } catch (error) {
+      console.error("Database error in getApplicationsByClient:", error);
+      return [];
+    }
+  }
+
+  async getApplicationsByStatus(status: string): Promise<Application[]> {
+    try {
+      const result = await db.select()
+        .from(applications)
+        .where(eq(applications.status, status))
+        .orderBy(desc(applications.createdAt));
+      return result;
+    } catch (error) {
+      console.error("Database error in getApplicationsByStatus:", error);
+      return [];
+    }
+  }
+
+  async getApplication(id: number): Promise<Application | undefined> {
+    try {
+      const [application] = await db.select().from(applications).where(eq(applications.id, id));
+      return application;
+    } catch (error) {
+      console.error("Database error in getApplication:", error);
+      return undefined;
+    }
+  }
+
+  async createApplication(application: InsertApplication): Promise<Application> {
+    try {
+      const [result] = await db.insert(applications).values({
+        ...application,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in createApplication:", error);
+      throw new Error("Failed to create application");
+    }
+  }
+
+  async updateApplication(id: number, updates: Partial<Application>): Promise<Application | undefined> {
+    try {
+      const [updatedApplication] = await db.update(applications)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(applications.id, id))
+        .returning();
+      return updatedApplication;
+    } catch (error) {
+      console.error("Database error in updateApplication:", error);
+      return undefined;
+    }
+  }
+
+  // Application document management
+  async getApplicationDocuments(applicationId: number): Promise<ApplicationDocument[]> {
+    try {
+      const result = await db.select()
+        .from(applicationDocuments)
+        .where(eq(applicationDocuments.applicationId, applicationId))
+        .orderBy(applicationDocuments.documentType);
+      return result;
+    } catch (error) {
+      console.error("Database error in getApplicationDocuments:", error);
+      return [];
+    }
+  }
+
+  async getApplicationDocument(id: number): Promise<ApplicationDocument | undefined> {
+    try {
+      const [document] = await db.select()
+        .from(applicationDocuments)
+        .where(eq(applicationDocuments.id, id));
+      return document;
+    } catch (error) {
+      console.error("Database error in getApplicationDocument:", error);
+      return undefined;
+    }
+  }
+
+  async createApplicationDocument(document: InsertApplicationDocument): Promise<ApplicationDocument> {
+    try {
+      const [result] = await db.insert(applicationDocuments).values({
+        ...document,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in createApplicationDocument:", error);
+      throw new Error("Failed to create application document");
+    }
+  }
+
+  async updateApplicationDocument(id: number, updates: Partial<ApplicationDocument>): Promise<ApplicationDocument | undefined> {
+    try {
+      const [updatedDocument] = await db.update(applicationDocuments)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(applicationDocuments.id, id))
+        .returning();
+      return updatedDocument;
+    } catch (error) {
+      console.error("Database error in updateApplicationDocument:", error);
+      return undefined;
+    }
+  }
+
+  // Application milestone management
+  async getApplicationMilestones(applicationId: number): Promise<ApplicationMilestone[]> {
+    try {
+      const result = await db.select()
+        .from(applicationMilestones)
+        .where(eq(applicationMilestones.applicationId, applicationId))
+        .orderBy(desc(applicationMilestones.date));
+      return result;
+    } catch (error) {
+      console.error("Database error in getApplicationMilestones:", error);
+      return [];
+    }
+  }
+
+  async createApplicationMilestone(milestone: InsertApplicationMilestone): Promise<ApplicationMilestone> {
+    try {
+      const [result] = await db.insert(applicationMilestones).values({
+        ...milestone,
+        createdAt: new Date()
+      }).returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in createApplicationMilestone:", error);
+      throw new Error("Failed to create application milestone");
+    }
+  }
+
+  async updateApplicationMilestone(id: number, updates: Partial<ApplicationMilestone>): Promise<ApplicationMilestone | undefined> {
+    try {
+      const [updatedMilestone] = await db.update(applicationMilestones)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(applicationMilestones.id, id))
+        .returning();
+      return updatedMilestone;
+    } catch (error) {
+      console.error("Database error in updateApplicationMilestone:", error);
+      return undefined;
+    }
+  }
+
+  // Application comment management
+  async getApplicationComments(applicationId: number): Promise<ApplicationComment[]> {
+    try {
+      const result = await db.select()
+        .from(applicationComments)
+        .where(eq(applicationComments.applicationId, applicationId))
+        .orderBy(desc(applicationComments.createdAt));
+      return result;
+    } catch (error) {
+      console.error("Database error in getApplicationComments:", error);
+      return [];
+    }
+  }
+
+  async createApplicationComment(comment: InsertApplicationComment): Promise<ApplicationComment> {
+    try {
+      const [result] = await db.insert(applicationComments).values({
+        ...comment,
+        createdAt: new Date()
+      }).returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in createApplicationComment:", error);
+      throw new Error("Failed to create application comment");
+    }
+  }
+
+  // Notification management
+  async getUserNotifications(userId: number): Promise<Notification[]> {
+    try {
+      const result = await db.select()
+        .from(notifications)
+        .where(eq(notifications.userId, userId))
+        .orderBy(desc(notifications.createdAt));
+      return result;
+    } catch (error) {
+      console.error("Database error in getUserNotifications:", error);
+      return [];
+    }
+  }
+
+  async getUserUnreadNotifications(userId: number): Promise<Notification[]> {
+    try {
+      const result = await db.select()
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.userId, userId),
+            eq(notifications.isRead, false)
+          )
+        )
+        .orderBy(desc(notifications.createdAt));
+      return result;
+    } catch (error) {
+      console.error("Database error in getUserUnreadNotifications:", error);
+      return [];
+    }
+  }
+
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    try {
+      const [result] = await db.insert(notifications).values({
+        ...notification,
+        createdAt: new Date()
+      }).returning();
+      return result;
+    } catch (error) {
+      console.error("Database error in createNotification:", error);
+      throw new Error("Failed to create notification");
+    }
+  }
+
+  async markNotificationRead(id: number): Promise<boolean> {
+    try {
+      await db.update(notifications)
+        .set({ isRead: true })
+        .where(eq(notifications.id, id));
+      return true;
+    } catch (error) {
+      console.error("Database error in markNotificationRead:", error);
+      return false;
+    }
+  }
+
+  async markAllNotificationsRead(userId: number): Promise<boolean> {
+    try {
+      await db.update(notifications)
+        .set({ isRead: true })
+        .where(eq(notifications.userId, userId));
+      return true;
+    } catch (error) {
+      console.error("Database error in markAllNotificationsRead:", error);
       return false;
     }
   }
