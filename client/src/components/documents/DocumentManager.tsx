@@ -437,7 +437,7 @@ const DocumentManager = () => {
                 <div className="flex items-center">
                   <span className="text-xl font-semibold">During Offer Stage</span>
                   <Badge className="ml-3 bg-slate-100 text-slate-800">
-                    {duringOfferDocs.filter(doc => doc.isSubmitted).length} of {duringOfferDocs.length}
+                    {duringOfferDocs.filter(doc => doc.files.length > 0).length} of {duringOfferDocs.length}
                   </Badge>
                 </div>
               </AccordionTrigger>
@@ -453,7 +453,7 @@ const DocumentManager = () => {
                 <div className="flex items-center">
                   <span className="text-xl font-semibold">Accepted Offer Stage</span>
                   <Badge className="ml-3 bg-slate-100 text-slate-800">
-                    {acceptedOfferDocs.filter(doc => doc.isSubmitted).length} of {acceptedOfferDocs.length}
+                    {acceptedOfferDocs.filter(doc => doc.files.length > 0).length} of {acceptedOfferDocs.length}
                   </Badge>
                 </div>
               </AccordionTrigger>
@@ -474,7 +474,7 @@ const DocumentManager = () => {
                   <div className="flex items-center">
                     <span className="text-xl font-semibold">{category} Documents</span>
                     <Badge className="ml-3 bg-slate-100 text-slate-800">
-                      {docs.filter(doc => doc.isSubmitted).length} of {docs.length}
+                      {docs.filter(doc => doc.files.length > 0).length} of {docs.length}
                     </Badge>
                   </div>
                 </AccordionTrigger>
@@ -497,24 +497,38 @@ const DocumentManager = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {documents.filter(doc => doc.isSubmitted).length > 0 ? (
+          {filteredDocuments.some(doc => doc.files.length > 0) ? (
             <div className="space-y-4">
-              {documents
-                .filter(doc => doc.isSubmitted)
-                .map(doc => (
-                  <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center">
-                      <FileText className="h-5 w-5 text-primary mr-3" />
-                      <div>
-                        <p className="font-medium">{doc.name}</p>
-                        <p className="text-xs text-muted-foreground">Uploaded on {new Date().toLocaleDateString()}</p>
+              {filteredDocuments
+                .filter(doc => doc.files.length > 0)
+                .flatMap(doc => 
+                  doc.files.map(file => (
+                    <div key={file.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center">
+                        <FileText className="h-5 w-5 text-primary mr-3" />
+                        <div>
+                          <p className="font-medium">{doc.name} - {file.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatFileSize(file.size)} • Uploaded {file.uploadedAt.toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="sm">
+                          View
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleFileDelete(doc.id, file.id)}
+                        >
+                          Delete
+                        </Button>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm">
-                      View
-                    </Button>
-                  </div>
-                ))}
+                  ))
+                )}
             </div>
           ) : (
             <div className="text-center py-10">
