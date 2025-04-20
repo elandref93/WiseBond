@@ -367,7 +367,16 @@ export default function Profile() {
                             <FormItem>
                               <FormLabel>First Name</FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="Your first name" />
+                                <Input 
+                                  {...field} 
+                                  placeholder="Your first name" 
+                                  onChange={(e) => {
+                                    // Only allow letters, spaces, hyphens and apostrophes
+                                    const value = e.target.value;
+                                    const sanitized = value.replace(/[^a-zA-Z\s\-']/g, '');
+                                    field.onChange(sanitized);
+                                  }}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -381,7 +390,16 @@ export default function Profile() {
                             <FormItem>
                               <FormLabel>Last Name</FormLabel>
                               <FormControl>
-                                <Input {...field} placeholder="Your last name" />
+                                <Input 
+                                  {...field} 
+                                  placeholder="Your last name" 
+                                  onChange={(e) => {
+                                    // Only allow letters, spaces, hyphens and apostrophes
+                                    const value = e.target.value;
+                                    const sanitized = value.replace(/[^a-zA-Z\s\-']/g, '');
+                                    field.onChange(sanitized);
+                                  }}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -937,19 +955,35 @@ export default function Profile() {
                                 name="coApplicantMonthlyIncome"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>Monthly Income (ZAR)</FormLabel>
+                                    <FormLabel>Monthly Income</FormLabel>
                                     <FormControl>
-                                      <Input
-                                        {...field}
-                                        type="number"
-                                        placeholder="e.g. 25000"
-                                        value={field.value === undefined || field.value === null ? '' : field.value}
-                                        onChange={(e) => {
-                                          // Convert to number or undefined if empty
-                                          const value = e.target.value === '' ? undefined : Number(e.target.value);
-                                          field.onChange(value);
-                                        }}
-                                      />
+                                      <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                          <span className="text-gray-500 sm:text-sm">R</span>
+                                        </div>
+                                        <Input
+                                          {...field}
+                                          className="pl-8"
+                                          placeholder="e.g. 25,000"
+                                          value={field.value === undefined || field.value === null ? '' : field.value}
+                                          onChange={(e) => {
+                                            // Remove currency formatting for data value
+                                            const valueWithoutR = e.target.value.replace(/R/g, '');
+                                            const numericValue = valueWithoutR.replace(/[^0-9]/g, '');
+                                            
+                                            // Convert to number or undefined if empty
+                                            const value = numericValue === '' ? undefined : Number(numericValue);
+                                            field.onChange(value);
+                                          }}
+                                          onBlur={(e) => {
+                                            if (field.value) {
+                                              // Format the display when field loses focus
+                                              const formattedValue = field.value.toLocaleString('en-ZA');
+                                              e.target.value = `R${formattedValue}`;
+                                            }
+                                          }}
+                                        />
+                                      </div>
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
