@@ -86,20 +86,23 @@ app.use((req, res, next) => {
     console.log('All required environment variables are set. Skipping Azure Key Vault.');
   }
   
-  // Test database connection before starting server
-  // Skip in development mode to avoid unnecessary errors
-  if (process.env.NODE_ENV === 'production') {
-    console.log('Production environment detected, testing database connection...');
-    try {
-      // Import the testDatabaseConnection function
-      const { testDatabaseConnection } = await import('./db');
-      await testDatabaseConnection();
-    } catch (error) {
-      console.error('Error testing database connection:', error);
-      console.log('Application will continue, but database operations may fail.');
+  // Run database migrations and test connection before starting server
+  try {
+    // Import and run the database migrations
+    const { runMigrations } = await import('./migrate');
+    const migrationsSuccessful = await runMigrations();
+    
+    if (!migrationsSuccessful) {
+      console.error('WARNING: Database migrations were not completed successfully');
+      console.log('Application will continue, but database operations may fail');
     }
-  } else {
-    console.log('Development environment detected, skipping database connection test');
+    
+    // Test database connection
+    const { testDatabaseConnection } = await import('./db');
+    await testDatabaseConnection();
+  } catch (error) {
+    console.error('Error setting up database:', error);
+    console.log('Application will continue, but database operations may fail.');
   }
   
   const server = await registerRoutes(app);
