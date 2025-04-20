@@ -360,7 +360,35 @@ export default function Profile() {
                     <div className="space-y-6">
                       <h2 className="text-xl font-semibold">Personal Details</h2>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="title"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Title</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value || undefined}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select title" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Mr">Mr</SelectItem>
+                                  <SelectItem value="Mrs">Mrs</SelectItem>
+                                  <SelectItem value="Ms">Ms</SelectItem>
+                                  <SelectItem value="Dr">Dr</SelectItem>
+                                  <SelectItem value="Prof">Prof</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
                         <FormField
                           control={form.control}
                           name="firstName"
