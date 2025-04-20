@@ -1418,6 +1418,29 @@ export class DatabaseStorage implements IStorage {
         existingColumnUpdates.monthly_income = updates.monthlyIncome === 0 ? null : updates.monthlyIncome;
       }
       
+      // Add marital status field
+      if (updates.maritalStatus !== undefined) existingColumnUpdates.marital_status = updates.maritalStatus;
+      
+      // Add co-applicant fields
+      if (updates.hasCoApplicant !== undefined) existingColumnUpdates.has_co_applicant = updates.hasCoApplicant;
+      if (updates.coApplicantFirstName !== undefined) existingColumnUpdates.co_applicant_first_name = updates.coApplicantFirstName;
+      if (updates.coApplicantLastName !== undefined) existingColumnUpdates.co_applicant_last_name = updates.coApplicantLastName;
+      if (updates.coApplicantEmail !== undefined) existingColumnUpdates.co_applicant_email = updates.coApplicantEmail;
+      if (updates.coApplicantPhone !== undefined) existingColumnUpdates.co_applicant_phone = updates.coApplicantPhone;
+      if (updates.coApplicantIdNumber !== undefined) existingColumnUpdates.co_applicant_id_number = updates.coApplicantIdNumber;
+      if (updates.coApplicantDateOfBirth !== undefined) existingColumnUpdates.co_applicant_date_of_birth = updates.coApplicantDateOfBirth;
+      if (updates.coApplicantEmploymentStatus !== undefined) existingColumnUpdates.co_applicant_employment_status = updates.coApplicantEmploymentStatus;
+      if (updates.coApplicantEmployerName !== undefined) existingColumnUpdates.co_applicant_employer_name = updates.coApplicantEmployerName;
+      if (updates.coApplicantMonthlyIncome !== undefined) {
+        // Same handling as for main applicant's income
+        existingColumnUpdates.co_applicant_monthly_income = updates.coApplicantMonthlyIncome === 0 ? null : updates.coApplicantMonthlyIncome;
+      }
+      if (updates.sameAddress !== undefined) existingColumnUpdates.same_address = updates.sameAddress;
+      if (updates.coApplicantAddress !== undefined) existingColumnUpdates.co_applicant_address = updates.coApplicantAddress;
+      if (updates.coApplicantCity !== undefined) existingColumnUpdates.co_applicant_city = updates.coApplicantCity;
+      if (updates.coApplicantPostalCode !== undefined) existingColumnUpdates.co_applicant_postal_code = updates.coApplicantPostalCode;
+      if (updates.coApplicantProvince !== undefined) existingColumnUpdates.co_applicant_province = updates.coApplicantProvince;
+      
       if (updates.otpVerified !== undefined) existingColumnUpdates.otp_verified = updates.otpVerified;
       if (updates.profileComplete !== undefined) existingColumnUpdates.profile_complete = updates.profileComplete;
       
