@@ -1431,9 +1431,14 @@ export class DatabaseStorage implements IStorage {
       }
       
       // Use SQL query to update only the fields we know exist
-      const updateFieldsStr = Object.entries(existingColumnUpdates)
-        .map(([key, _]) => `${key} = :${key}`)
+      // Convert the object to a list of SQL parameters instead of using named parameters
+      // This avoids the syntax error with colons in SQL
+      const updateEntries = Object.entries(existingColumnUpdates);
+      const updateFieldsStr = updateEntries
+        .map(([key], index) => `${key} = $${index + 1}`)
         .join(', ');
+      
+      const updateValues = updateEntries.map(([_, value]) => value);
       
       const userResult = await db.execute(
         sql`UPDATE users SET ${sql.raw(updateFieldsStr)} WHERE id = ${id} RETURNING 
@@ -1443,9 +1448,17 @@ export class DatabaseStorage implements IStorage {
           employment_status as "employmentStatus", employer_name as "employerName", 
           employment_sector as "employmentSector", job_title as "jobTitle", 
           employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
+          marital_status as "maritalStatus", has_co_applicant as "hasCoApplicant",
+          co_applicant_first_name as "coApplicantFirstName", co_applicant_last_name as "coApplicantLastName",
+          co_applicant_email as "coApplicantEmail", co_applicant_phone as "coApplicantPhone",
+          co_applicant_id_number as "coApplicantIdNumber", co_applicant_date_of_birth as "coApplicantDateOfBirth",
+          co_applicant_employment_status as "coApplicantEmploymentStatus", co_applicant_employer_name as "coApplicantEmployerName",
+          co_applicant_monthly_income as "coApplicantMonthlyIncome", same_address as "sameAddress",
+          co_applicant_address as "coApplicantAddress", co_applicant_city as "coApplicantCity",
+          co_applicant_postal_code as "coApplicantPostalCode", co_applicant_province as "coApplicantProvince",
           otp_verified as "otpVerified", profile_complete as "profileComplete", 
-          created_at as "createdAt", updated_at as "updatedAt"
-        `.append(sql.raw(updateFieldsStr, existingColumnUpdates))
+          created_at as "createdAt", updated_at as "updatedAt"`,
+        updateValues
       );
       
       if (userResult.rows.length === 0) {
