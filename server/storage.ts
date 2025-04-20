@@ -1067,7 +1067,7 @@ export class DatabaseStorage implements IStorage {
   
   async getUser(id: number): Promise<User | undefined> {
     try {
-      // Include all the co-applicant fields in the query
+      // First try with just the basic user fields
       const userResult = await db.execute(sql`
         SELECT id, username, password, first_name as "firstName", last_name as "lastName", 
         email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
@@ -1076,47 +1076,89 @@ export class DatabaseStorage implements IStorage {
         employment_sector as "employmentSector", job_title as "jobTitle", 
         employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
         otp_verified as "otpVerified", profile_complete as "profileComplete", 
-        created_at as "createdAt", updated_at as "updatedAt",
-        marital_status, has_co_applicant, 
-        co_applicant_first_name, co_applicant_last_name, co_applicant_email, 
-        co_applicant_phone, co_applicant_id_number, co_applicant_date_of_birth, 
-        co_applicant_age, co_applicant_employment_status, co_applicant_employer_name, 
-        co_applicant_employment_sector, co_applicant_job_title, co_applicant_employment_duration, 
-        co_applicant_monthly_income, same_address, co_applicant_address, co_applicant_city, 
-        co_applicant_postal_code, co_applicant_province
+        created_at as "createdAt", updated_at as "updatedAt"
         FROM users 
         WHERE id = ${id}
         LIMIT 1
       `);
       
-      // Map database column names to JavaScript property names
       if (userResult.rows.length > 0) {
         const userData = userResult.rows[0];
-        const user = {
+        
+        // Check if co-applicant columns exist by attempting a separate query
+        try {
+          const coApplicantResult = await db.execute(sql`
+            SELECT 
+              marital_status, has_co_applicant, 
+              co_applicant_first_name, co_applicant_last_name, co_applicant_email, 
+              co_applicant_phone, co_applicant_id_number, co_applicant_date_of_birth, 
+              co_applicant_age, co_applicant_employment_status, co_applicant_employer_name, 
+              co_applicant_employment_sector, co_applicant_job_title, co_applicant_employment_duration, 
+              co_applicant_monthly_income, same_address, co_applicant_address, co_applicant_city, 
+              co_applicant_postal_code, co_applicant_province
+            FROM users 
+            WHERE id = ${id}
+            LIMIT 1
+          `);
+          
+          if (coApplicantResult.rows.length > 0) {
+            const coApplicantData = coApplicantResult.rows[0];
+            
+            // Map co-applicant database columns to JavaScript properties
+            return {
+              ...userData,
+              maritalStatus: coApplicantData.marital_status,
+              hasCoApplicant: coApplicantData.has_co_applicant,
+              coApplicantFirstName: coApplicantData.co_applicant_first_name,
+              coApplicantLastName: coApplicantData.co_applicant_last_name,
+              coApplicantEmail: coApplicantData.co_applicant_email,
+              coApplicantPhone: coApplicantData.co_applicant_phone,
+              coApplicantIdNumber: coApplicantData.co_applicant_id_number,
+              coApplicantDateOfBirth: coApplicantData.co_applicant_date_of_birth,
+              coApplicantAge: coApplicantData.co_applicant_age,
+              coApplicantEmploymentStatus: coApplicantData.co_applicant_employment_status,
+              coApplicantEmployerName: coApplicantData.co_applicant_employer_name,
+              coApplicantEmploymentSector: coApplicantData.co_applicant_employment_sector,
+              coApplicantJobTitle: coApplicantData.co_applicant_job_title,
+              coApplicantEmploymentDuration: coApplicantData.co_applicant_employment_duration,
+              coApplicantMonthlyIncome: coApplicantData.co_applicant_monthly_income,
+              sameAddress: coApplicantData.same_address,
+              coApplicantAddress: coApplicantData.co_applicant_address,
+              coApplicantCity: coApplicantData.co_applicant_city,
+              coApplicantPostalCode: coApplicantData.co_applicant_postal_code,
+              coApplicantProvince: coApplicantData.co_applicant_province,
+            };
+          }
+        } catch (coApplicantError) {
+          // Co-applicant columns don't exist yet, so just return user with default values
+          console.log("Co-applicant columns don't exist yet, using default values");
+        }
+        
+        // If we get here, either co-applicant columns don't exist or no data was found
+        // Return user with default values for co-applicant fields
+        return {
           ...userData,
-          // Map database column names to JavaScript property names
-          maritalStatus: userData.marital_status,
-          hasCoApplicant: userData.has_co_applicant,
-          coApplicantFirstName: userData.co_applicant_first_name,
-          coApplicantLastName: userData.co_applicant_last_name,
-          coApplicantEmail: userData.co_applicant_email,
-          coApplicantPhone: userData.co_applicant_phone,
-          coApplicantIdNumber: userData.co_applicant_id_number,
-          coApplicantDateOfBirth: userData.co_applicant_date_of_birth,
-          coApplicantAge: userData.co_applicant_age,
-          coApplicantEmploymentStatus: userData.co_applicant_employment_status,
-          coApplicantEmployerName: userData.co_applicant_employer_name,
-          coApplicantEmploymentSector: userData.co_applicant_employment_sector,
-          coApplicantJobTitle: userData.co_applicant_job_title,
-          coApplicantEmploymentDuration: userData.co_applicant_employment_duration,
-          coApplicantMonthlyIncome: userData.co_applicant_monthly_income,
-          sameAddress: userData.same_address,
-          coApplicantAddress: userData.co_applicant_address,
-          coApplicantCity: userData.co_applicant_city,
-          coApplicantPostalCode: userData.co_applicant_postal_code,
-          coApplicantProvince: userData.co_applicant_province,
+          maritalStatus: null,
+          hasCoApplicant: false,
+          coApplicantFirstName: null,
+          coApplicantLastName: null,
+          coApplicantEmail: null,
+          coApplicantPhone: null,
+          coApplicantIdNumber: null,
+          coApplicantDateOfBirth: null,
+          coApplicantAge: null,
+          coApplicantEmploymentStatus: null,
+          coApplicantEmployerName: null,
+          coApplicantEmploymentSector: null,
+          coApplicantJobTitle: null,
+          coApplicantEmploymentDuration: null,
+          coApplicantMonthlyIncome: null,
+          sameAddress: true,
+          coApplicantAddress: null,
+          coApplicantCity: null,
+          coApplicantPostalCode: null,
+          coApplicantProvince: null,
         };
-        return user;
       }
       return undefined;
     } catch (error) {
@@ -1127,7 +1169,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
-      // Include all the co-applicant fields in the query
+      // First try with just the basic user fields
       const userResult = await db.execute(sql`
         SELECT id, username, password, first_name as "firstName", last_name as "lastName", 
         email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
@@ -1136,47 +1178,89 @@ export class DatabaseStorage implements IStorage {
         employment_sector as "employmentSector", job_title as "jobTitle", 
         employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
         otp_verified as "otpVerified", profile_complete as "profileComplete", 
-        created_at as "createdAt", updated_at as "updatedAt",
-        marital_status, has_co_applicant, 
-        co_applicant_first_name, co_applicant_last_name, co_applicant_email, 
-        co_applicant_phone, co_applicant_id_number, co_applicant_date_of_birth, 
-        co_applicant_age, co_applicant_employment_status, co_applicant_employer_name, 
-        co_applicant_employment_sector, co_applicant_job_title, co_applicant_employment_duration, 
-        co_applicant_monthly_income, same_address, co_applicant_address, co_applicant_city, 
-        co_applicant_postal_code, co_applicant_province
+        created_at as "createdAt", updated_at as "updatedAt"
         FROM users 
         WHERE username = ${username}
         LIMIT 1
       `);
       
-      // Map database column names to JavaScript property names
       if (userResult.rows.length > 0) {
         const userData = userResult.rows[0];
-        const user = {
+        
+        // Check if co-applicant columns exist by attempting a separate query
+        try {
+          const coApplicantResult = await db.execute(sql`
+            SELECT 
+              marital_status, has_co_applicant, 
+              co_applicant_first_name, co_applicant_last_name, co_applicant_email, 
+              co_applicant_phone, co_applicant_id_number, co_applicant_date_of_birth, 
+              co_applicant_age, co_applicant_employment_status, co_applicant_employer_name, 
+              co_applicant_employment_sector, co_applicant_job_title, co_applicant_employment_duration, 
+              co_applicant_monthly_income, same_address, co_applicant_address, co_applicant_city, 
+              co_applicant_postal_code, co_applicant_province
+            FROM users 
+            WHERE id = ${userData.id}
+            LIMIT 1
+          `);
+          
+          if (coApplicantResult.rows.length > 0) {
+            const coApplicantData = coApplicantResult.rows[0];
+            
+            // Map co-applicant database columns to JavaScript properties
+            return {
+              ...userData,
+              maritalStatus: coApplicantData.marital_status,
+              hasCoApplicant: coApplicantData.has_co_applicant,
+              coApplicantFirstName: coApplicantData.co_applicant_first_name,
+              coApplicantLastName: coApplicantData.co_applicant_last_name,
+              coApplicantEmail: coApplicantData.co_applicant_email,
+              coApplicantPhone: coApplicantData.co_applicant_phone,
+              coApplicantIdNumber: coApplicantData.co_applicant_id_number,
+              coApplicantDateOfBirth: coApplicantData.co_applicant_date_of_birth,
+              coApplicantAge: coApplicantData.co_applicant_age,
+              coApplicantEmploymentStatus: coApplicantData.co_applicant_employment_status,
+              coApplicantEmployerName: coApplicantData.co_applicant_employer_name,
+              coApplicantEmploymentSector: coApplicantData.co_applicant_employment_sector,
+              coApplicantJobTitle: coApplicantData.co_applicant_job_title,
+              coApplicantEmploymentDuration: coApplicantData.co_applicant_employment_duration,
+              coApplicantMonthlyIncome: coApplicantData.co_applicant_monthly_income,
+              sameAddress: coApplicantData.same_address,
+              coApplicantAddress: coApplicantData.co_applicant_address,
+              coApplicantCity: coApplicantData.co_applicant_city,
+              coApplicantPostalCode: coApplicantData.co_applicant_postal_code,
+              coApplicantProvince: coApplicantData.co_applicant_province,
+            };
+          }
+        } catch (coApplicantError) {
+          // Co-applicant columns don't exist yet, so just return user with default values
+          console.log("Co-applicant columns don't exist yet, using default values");
+        }
+        
+        // If we get here, either co-applicant columns don't exist or no data was found
+        // Return user with default values for co-applicant fields
+        return {
           ...userData,
-          // Map database column names to JavaScript property names
-          maritalStatus: userData.marital_status,
-          hasCoApplicant: userData.has_co_applicant,
-          coApplicantFirstName: userData.co_applicant_first_name,
-          coApplicantLastName: userData.co_applicant_last_name,
-          coApplicantEmail: userData.co_applicant_email,
-          coApplicantPhone: userData.co_applicant_phone,
-          coApplicantIdNumber: userData.co_applicant_id_number,
-          coApplicantDateOfBirth: userData.co_applicant_date_of_birth,
-          coApplicantAge: userData.co_applicant_age,
-          coApplicantEmploymentStatus: userData.co_applicant_employment_status,
-          coApplicantEmployerName: userData.co_applicant_employer_name,
-          coApplicantEmploymentSector: userData.co_applicant_employment_sector,
-          coApplicantJobTitle: userData.co_applicant_job_title,
-          coApplicantEmploymentDuration: userData.co_applicant_employment_duration,
-          coApplicantMonthlyIncome: userData.co_applicant_monthly_income,
-          sameAddress: userData.same_address,
-          coApplicantAddress: userData.co_applicant_address,
-          coApplicantCity: userData.co_applicant_city,
-          coApplicantPostalCode: userData.co_applicant_postal_code,
-          coApplicantProvince: userData.co_applicant_province,
+          maritalStatus: null,
+          hasCoApplicant: false,
+          coApplicantFirstName: null,
+          coApplicantLastName: null,
+          coApplicantEmail: null,
+          coApplicantPhone: null,
+          coApplicantIdNumber: null,
+          coApplicantDateOfBirth: null,
+          coApplicantAge: null,
+          coApplicantEmploymentStatus: null,
+          coApplicantEmployerName: null,
+          coApplicantEmploymentSector: null,
+          coApplicantJobTitle: null,
+          coApplicantEmploymentDuration: null,
+          coApplicantMonthlyIncome: null,
+          sameAddress: true,
+          coApplicantAddress: null,
+          coApplicantCity: null,
+          coApplicantPostalCode: null,
+          coApplicantProvince: null,
         };
-        return user;
       }
       return undefined;
     } catch (error) {
@@ -1187,7 +1271,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
-      // Include all the co-applicant fields in the query
+      // First try with just the basic user fields
       const userResult = await db.execute(sql`
         SELECT id, username, password, first_name as "firstName", last_name as "lastName", 
         email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
@@ -1196,47 +1280,89 @@ export class DatabaseStorage implements IStorage {
         employment_sector as "employmentSector", job_title as "jobTitle", 
         employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
         otp_verified as "otpVerified", profile_complete as "profileComplete", 
-        created_at as "createdAt", updated_at as "updatedAt",
-        marital_status, has_co_applicant, 
-        co_applicant_first_name, co_applicant_last_name, co_applicant_email, 
-        co_applicant_phone, co_applicant_id_number, co_applicant_date_of_birth, 
-        co_applicant_age, co_applicant_employment_status, co_applicant_employer_name, 
-        co_applicant_employment_sector, co_applicant_job_title, co_applicant_employment_duration, 
-        co_applicant_monthly_income, same_address, co_applicant_address, co_applicant_city, 
-        co_applicant_postal_code, co_applicant_province
+        created_at as "createdAt", updated_at as "updatedAt"
         FROM users 
         WHERE email = ${email}
         LIMIT 1
       `);
       
-      // Map database column names to JavaScript property names
       if (userResult.rows.length > 0) {
         const userData = userResult.rows[0];
-        const user = {
+        
+        // Check if co-applicant columns exist by attempting a separate query
+        try {
+          const coApplicantResult = await db.execute(sql`
+            SELECT 
+              marital_status, has_co_applicant, 
+              co_applicant_first_name, co_applicant_last_name, co_applicant_email, 
+              co_applicant_phone, co_applicant_id_number, co_applicant_date_of_birth, 
+              co_applicant_age, co_applicant_employment_status, co_applicant_employer_name, 
+              co_applicant_employment_sector, co_applicant_job_title, co_applicant_employment_duration, 
+              co_applicant_monthly_income, same_address, co_applicant_address, co_applicant_city, 
+              co_applicant_postal_code, co_applicant_province
+            FROM users 
+            WHERE id = ${userData.id}
+            LIMIT 1
+          `);
+          
+          if (coApplicantResult.rows.length > 0) {
+            const coApplicantData = coApplicantResult.rows[0];
+            
+            // Map co-applicant database columns to JavaScript properties
+            return {
+              ...userData,
+              maritalStatus: coApplicantData.marital_status,
+              hasCoApplicant: coApplicantData.has_co_applicant,
+              coApplicantFirstName: coApplicantData.co_applicant_first_name,
+              coApplicantLastName: coApplicantData.co_applicant_last_name,
+              coApplicantEmail: coApplicantData.co_applicant_email,
+              coApplicantPhone: coApplicantData.co_applicant_phone,
+              coApplicantIdNumber: coApplicantData.co_applicant_id_number,
+              coApplicantDateOfBirth: coApplicantData.co_applicant_date_of_birth,
+              coApplicantAge: coApplicantData.co_applicant_age,
+              coApplicantEmploymentStatus: coApplicantData.co_applicant_employment_status,
+              coApplicantEmployerName: coApplicantData.co_applicant_employer_name,
+              coApplicantEmploymentSector: coApplicantData.co_applicant_employment_sector,
+              coApplicantJobTitle: coApplicantData.co_applicant_job_title,
+              coApplicantEmploymentDuration: coApplicantData.co_applicant_employment_duration,
+              coApplicantMonthlyIncome: coApplicantData.co_applicant_monthly_income,
+              sameAddress: coApplicantData.same_address,
+              coApplicantAddress: coApplicantData.co_applicant_address,
+              coApplicantCity: coApplicantData.co_applicant_city,
+              coApplicantPostalCode: coApplicantData.co_applicant_postal_code,
+              coApplicantProvince: coApplicantData.co_applicant_province,
+            };
+          }
+        } catch (coApplicantError) {
+          // Co-applicant columns don't exist yet, so just return user with default values
+          console.log("Co-applicant columns don't exist yet, using default values");
+        }
+        
+        // If we get here, either co-applicant columns don't exist or no data was found
+        // Return user with default values for co-applicant fields
+        return {
           ...userData,
-          // Map database column names to JavaScript property names
-          maritalStatus: userData.marital_status,
-          hasCoApplicant: userData.has_co_applicant,
-          coApplicantFirstName: userData.co_applicant_first_name,
-          coApplicantLastName: userData.co_applicant_last_name,
-          coApplicantEmail: userData.co_applicant_email,
-          coApplicantPhone: userData.co_applicant_phone,
-          coApplicantIdNumber: userData.co_applicant_id_number,
-          coApplicantDateOfBirth: userData.co_applicant_date_of_birth,
-          coApplicantAge: userData.co_applicant_age,
-          coApplicantEmploymentStatus: userData.co_applicant_employment_status,
-          coApplicantEmployerName: userData.co_applicant_employer_name,
-          coApplicantEmploymentSector: userData.co_applicant_employment_sector,
-          coApplicantJobTitle: userData.co_applicant_job_title,
-          coApplicantEmploymentDuration: userData.co_applicant_employment_duration,
-          coApplicantMonthlyIncome: userData.co_applicant_monthly_income,
-          sameAddress: userData.same_address,
-          coApplicantAddress: userData.co_applicant_address,
-          coApplicantCity: userData.co_applicant_city,
-          coApplicantPostalCode: userData.co_applicant_postal_code,
-          coApplicantProvince: userData.co_applicant_province,
+          maritalStatus: null,
+          hasCoApplicant: false,
+          coApplicantFirstName: null,
+          coApplicantLastName: null,
+          coApplicantEmail: null,
+          coApplicantPhone: null,
+          coApplicantIdNumber: null,
+          coApplicantDateOfBirth: null,
+          coApplicantAge: null,
+          coApplicantEmploymentStatus: null,
+          coApplicantEmployerName: null,
+          coApplicantEmploymentSector: null,
+          coApplicantJobTitle: null,
+          coApplicantEmploymentDuration: null,
+          coApplicantMonthlyIncome: null,
+          sameAddress: true,
+          coApplicantAddress: null,
+          coApplicantCity: null,
+          coApplicantPostalCode: null,
+          coApplicantProvince: null,
         };
-        return user;
       }
       return undefined;
     } catch (error) {
