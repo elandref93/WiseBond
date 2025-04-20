@@ -358,7 +358,18 @@ export default function Profile() {
                           name="email"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Email Address</FormLabel>
+                              <div className="flex justify-between items-center mb-1">
+                                <FormLabel>Email Address</FormLabel>
+                                {profileData?.otpVerified ? (
+                                  <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+                                    Verified
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
+                                    Unverified
+                                  </Badge>
+                                )}
+                              </div>
                               <FormControl>
                                 <Input {...field} type="email" placeholder="your.email@example.com" />
                               </FormControl>
@@ -372,30 +383,55 @@ export default function Profile() {
                           name="phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Phone Number</FormLabel>
+                              <div className="flex justify-between items-center mb-1">
+                                <FormLabel>Phone Number</FormLabel>
+                                <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
+                                  Unverified
+                                </Badge>
+                              </div>
                               <FormControl>
-                                <Input 
-                                  {...field} 
-                                  placeholder="e.g. 0821234567 or +27821234567"
-                                  pattern="(0[0-9]{9}|\+27[1-9][0-9]{8})"
-                                  maxLength={12}
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    // Allow only digits and plus sign
-                                    const sanitized = value.replace(/[^\d+]/g, '');
-                                    
-                                    // Enforce length constraints
-                                    if (sanitized.startsWith('+27') && sanitized.length > 12) {
-                                      field.onChange(sanitized.substring(0, 12));
-                                    } else if (sanitized.startsWith('0') && sanitized.length > 10) {
-                                      field.onChange(sanitized.substring(0, 10));
-                                    } else {
-                                      field.onChange(sanitized);
-                                    }
-                                  }}
-                                 />
+                                <div className="relative">
+                                  <Input 
+                                    {...field} 
+                                    placeholder="e.g. 0821234567 or +27821234567"
+                                    pattern="(0[0-9]{9}|\+27[1-9][0-9]{8})"
+                                    maxLength={12}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      // Allow only digits and plus sign
+                                      const sanitized = value.replace(/[^\d+]/g, '');
+                                      
+                                      // Enforce length constraints
+                                      if (sanitized.startsWith('+27') && sanitized.length > 12) {
+                                        field.onChange(sanitized.substring(0, 12));
+                                      } else if (sanitized.startsWith('0') && sanitized.length > 10) {
+                                        field.onChange(sanitized.substring(0, 10));
+                                      } else {
+                                        field.onChange(sanitized);
+                                      }
+                                    }}
+                                  />
+                                  {field.value && field.value.length >= 10 && (
+                                    <Button 
+                                      type="button" 
+                                      variant="outline" 
+                                      size="sm"
+                                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 text-xs"
+                                      onClick={() => {
+                                        toast({
+                                          title: "Coming Soon",
+                                          description: "Mobile verification will be available soon using Twilio OTP",
+                                        });
+                                      }}
+                                    >
+                                      Verify
+                                    </Button>
+                                  )}
+                                </div>
                               </FormControl>
-
+                              <FormDescription className="text-xs">
+                                We'll send a verification code to this number
+                              </FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}

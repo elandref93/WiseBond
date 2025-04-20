@@ -164,11 +164,6 @@ export default function Navbar() {
                         My Profile
                       </DropdownMenuItem>
                     </Link>
-                    <Link href="/documents">
-                      <DropdownMenuItem>
-                        My Documents
-                      </DropdownMenuItem>
-                    </Link>
                     <Link href="/agent/dashboard">
                       <DropdownMenuItem>
                         Agent Dashboard
@@ -316,11 +311,6 @@ export default function Navbar() {
                 <Link href="/profile">
                   <Button variant="outline" className="w-full justify-start">
                     My Profile
-                  </Button>
-                </Link>
-                <Link href="/documents">
-                  <Button variant="outline" className="w-full justify-start">
-                    My Documents
                   </Button>
                 </Link>
                 <Link href="/agent/dashboard">
