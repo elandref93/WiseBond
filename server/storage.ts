@@ -1536,6 +1536,48 @@ export class DatabaseStorage implements IStorage {
 
   async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
     try {
+      console.log(`Updating user ID ${id} with fields:`, Object.keys(updates).join(', '));
+      
+      // First modify the database to add co-applicant columns if they don't exist
+      try {
+        // Check if co-applicant columns exist by trying to select a column
+        await db.execute(sql`SELECT marital_status FROM users LIMIT 1`);
+        console.log("Co-applicant columns exist in the database");
+      } catch (e) {
+        console.log("Co-applicant columns don't exist, adding them to the database");
+        
+        try {
+          // Add co-applicant columns to the users table
+          await db.execute(sql`
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS marital_status TEXT,
+            ADD COLUMN IF NOT EXISTS has_co_applicant BOOLEAN DEFAULT FALSE,
+            ADD COLUMN IF NOT EXISTS co_applicant_first_name TEXT,
+            ADD COLUMN IF NOT EXISTS co_applicant_last_name TEXT,
+            ADD COLUMN IF NOT EXISTS co_applicant_email TEXT,
+            ADD COLUMN IF NOT EXISTS co_applicant_phone TEXT,
+            ADD COLUMN IF NOT EXISTS co_applicant_id_number TEXT,
+            ADD COLUMN IF NOT EXISTS co_applicant_date_of_birth TEXT,
+            ADD COLUMN IF NOT EXISTS co_applicant_age INTEGER,
+            ADD COLUMN IF NOT EXISTS co_applicant_employment_status TEXT,
+            ADD COLUMN IF NOT EXISTS co_applicant_employer_name TEXT,
+            ADD COLUMN IF NOT EXISTS co_applicant_employment_sector TEXT,
+            ADD COLUMN IF NOT EXISTS co_applicant_job_title TEXT,
+            ADD COLUMN IF NOT EXISTS co_applicant_employment_duration TEXT,
+            ADD COLUMN IF NOT EXISTS co_applicant_monthly_income INTEGER,
+            ADD COLUMN IF NOT EXISTS same_address BOOLEAN DEFAULT TRUE,
+            ADD COLUMN IF NOT EXISTS co_applicant_address TEXT,
+            ADD COLUMN IF NOT EXISTS co_applicant_city TEXT,
+            ADD COLUMN IF NOT EXISTS co_applicant_postal_code TEXT,
+            ADD COLUMN IF NOT EXISTS co_applicant_province TEXT
+          `);
+          console.log("Successfully added co-applicant columns to users table");
+        } catch (alterError) {
+          console.error("Error adding co-applicant columns:", alterError);
+          // Continue with the update anyway, we'll just not include co-applicant fields
+        }
+      }
+      
       // Create object with only the non-co-applicant fields we know exist in the database
       const existingColumnUpdates: any = {};
       
@@ -1565,10 +1607,10 @@ export class DatabaseStorage implements IStorage {
         existingColumnUpdates.monthly_income = updates.monthlyIncome === 0 ? null : updates.monthlyIncome;
       }
       
-      // Add marital status field
+      // Add marital status field - now safe since we added the column if it was missing
       if (updates.maritalStatus !== undefined) existingColumnUpdates.marital_status = updates.maritalStatus;
       
-      // Add co-applicant fields
+      // Add co-applicant fields - now safe since we added the columns if they were missing
       if (updates.hasCoApplicant !== undefined) existingColumnUpdates.has_co_applicant = updates.hasCoApplicant;
       if (updates.coApplicantFirstName !== undefined) existingColumnUpdates.co_applicant_first_name = updates.coApplicantFirstName;
       if (updates.coApplicantLastName !== undefined) existingColumnUpdates.co_applicant_last_name = updates.coApplicantLastName;
@@ -1609,6 +1651,8 @@ export class DatabaseStorage implements IStorage {
         .join(', ');
       
       const updateValues = updateEntries.map(([_, value]) => value);
+      
+      console.log(`Executing update query for user ${id} with ${updateValues.length} fields`);
       
       const userResult = await db.execute(
         sql`UPDATE users SET ${sql.raw(updateFieldsStr)} WHERE id = ${id} RETURNING 
