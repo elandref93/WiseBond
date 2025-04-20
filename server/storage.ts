@@ -1538,176 +1538,270 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`Updating user ID ${id} with fields:`, Object.keys(updates).join(', '));
       
-      // First modify the database to add co-applicant columns if they don't exist
-      try {
-        // Check if co-applicant columns exist by trying to select a column
-        await db.execute(sql`SELECT marital_status FROM users LIMIT 1`);
-        console.log("Co-applicant columns exist in the database");
-      } catch (e) {
-        console.log("Co-applicant columns don't exist, adding them to the database");
-        
+      // Create a single update query that only includes the fields in the database
+      const updateFields: Record<string, any> = {};
+      
+      // Base user fields
+      if (updates.username !== undefined) updateFields.username = updates.username;
+      if (updates.password !== undefined) updateFields.password = updates.password;
+      if (updates.firstName !== undefined) updateFields.first_name = updates.firstName;
+      if (updates.lastName !== undefined) updateFields.last_name = updates.lastName;
+      if (updates.email !== undefined) updateFields.email = updates.email;
+      if (updates.phone !== undefined) updateFields.phone = updates.phone;
+      if (updates.idNumber !== undefined) updateFields.id_number = updates.idNumber;
+      if (updates.dateOfBirth !== undefined) updateFields.date_of_birth = updates.dateOfBirth;
+      if (updates.age !== undefined) updateFields.age = updates.age;
+      if (updates.address !== undefined) updateFields.address = updates.address;
+      if (updates.city !== undefined) updateFields.city = updates.city;
+      if (updates.postalCode !== undefined) updateFields.postal_code = updates.postalCode;
+      if (updates.province !== undefined) updateFields.province = updates.province;
+      if (updates.employmentStatus !== undefined) updateFields.employment_status = updates.employmentStatus;
+      if (updates.employerName !== undefined) updateFields.employer_name = updates.employerName;
+      if (updates.employmentSector !== undefined) updateFields.employment_sector = updates.employmentSector;
+      if (updates.jobTitle !== undefined) updateFields.job_title = updates.jobTitle;
+      if (updates.employmentDuration !== undefined) updateFields.employment_duration = updates.employmentDuration;
+      if (updates.monthlyIncome !== undefined) {
+        updateFields.monthly_income = updates.monthlyIncome === 0 ? null : updates.monthlyIncome;
+      }
+      if (updates.otpVerified !== undefined) updateFields.otp_verified = updates.otpVerified;
+      if (updates.profileComplete !== undefined) updateFields.profile_complete = updates.profileComplete;
+      updateFields.updated_at = new Date();
+      
+      // Check if we need co-applicant columns
+      let needsCoApplicantColumns = false;
+      
+      if (updates.maritalStatus !== undefined ||
+          updates.hasCoApplicant !== undefined ||
+          updates.coApplicantFirstName !== undefined ||
+          updates.coApplicantLastName !== undefined ||
+          updates.coApplicantEmail !== undefined ||
+          updates.coApplicantPhone !== undefined ||
+          updates.coApplicantIdNumber !== undefined ||
+          updates.coApplicantDateOfBirth !== undefined ||
+          updates.coApplicantAge !== undefined ||
+          updates.coApplicantEmploymentStatus !== undefined ||
+          updates.coApplicantEmployerName !== undefined ||
+          updates.coApplicantEmploymentSector !== undefined ||
+          updates.coApplicantJobTitle !== undefined ||
+          updates.coApplicantEmploymentDuration !== undefined ||
+          updates.coApplicantMonthlyIncome !== undefined ||
+          updates.sameAddress !== undefined ||
+          updates.coApplicantAddress !== undefined ||
+          updates.coApplicantCity !== undefined ||
+          updates.coApplicantPostalCode !== undefined ||
+          updates.coApplicantProvince !== undefined) {
+        needsCoApplicantColumns = true;
+      }
+      
+      // Add co-applicant columns if needed
+      if (needsCoApplicantColumns) {
         try {
-          // Add co-applicant columns to the users table
-          await db.execute(sql`
-            ALTER TABLE users
-            ADD COLUMN IF NOT EXISTS marital_status TEXT,
-            ADD COLUMN IF NOT EXISTS has_co_applicant BOOLEAN DEFAULT FALSE,
-            ADD COLUMN IF NOT EXISTS co_applicant_first_name TEXT,
-            ADD COLUMN IF NOT EXISTS co_applicant_last_name TEXT,
-            ADD COLUMN IF NOT EXISTS co_applicant_email TEXT,
-            ADD COLUMN IF NOT EXISTS co_applicant_phone TEXT,
-            ADD COLUMN IF NOT EXISTS co_applicant_id_number TEXT,
-            ADD COLUMN IF NOT EXISTS co_applicant_date_of_birth TEXT,
-            ADD COLUMN IF NOT EXISTS co_applicant_age INTEGER,
-            ADD COLUMN IF NOT EXISTS co_applicant_employment_status TEXT,
-            ADD COLUMN IF NOT EXISTS co_applicant_employer_name TEXT,
-            ADD COLUMN IF NOT EXISTS co_applicant_employment_sector TEXT,
-            ADD COLUMN IF NOT EXISTS co_applicant_job_title TEXT,
-            ADD COLUMN IF NOT EXISTS co_applicant_employment_duration TEXT,
-            ADD COLUMN IF NOT EXISTS co_applicant_monthly_income INTEGER,
-            ADD COLUMN IF NOT EXISTS same_address BOOLEAN DEFAULT TRUE,
-            ADD COLUMN IF NOT EXISTS co_applicant_address TEXT,
-            ADD COLUMN IF NOT EXISTS co_applicant_city TEXT,
-            ADD COLUMN IF NOT EXISTS co_applicant_postal_code TEXT,
-            ADD COLUMN IF NOT EXISTS co_applicant_province TEXT
-          `);
-          console.log("Successfully added co-applicant columns to users table");
-        } catch (alterError) {
-          console.error("Error adding co-applicant columns:", alterError);
-          // Continue with the update anyway, we'll just not include co-applicant fields
+          // Check if co-applicant columns exist
+          await db.execute(sql`SELECT marital_status FROM users LIMIT 1`);
+          console.log("Co-applicant columns already exist");
+        } catch (e) {
+          console.log("Co-applicant columns don't exist, adding them");
+          
+          try {
+            // Add co-applicant columns to users table
+            await db.execute(sql`
+              ALTER TABLE users
+              ADD COLUMN IF NOT EXISTS marital_status TEXT,
+              ADD COLUMN IF NOT EXISTS has_co_applicant BOOLEAN DEFAULT FALSE,
+              ADD COLUMN IF NOT EXISTS co_applicant_first_name TEXT,
+              ADD COLUMN IF NOT EXISTS co_applicant_last_name TEXT,
+              ADD COLUMN IF NOT EXISTS co_applicant_email TEXT,
+              ADD COLUMN IF NOT EXISTS co_applicant_phone TEXT,
+              ADD COLUMN IF NOT EXISTS co_applicant_id_number TEXT,
+              ADD COLUMN IF NOT EXISTS co_applicant_date_of_birth TEXT,
+              ADD COLUMN IF NOT EXISTS co_applicant_age INTEGER,
+              ADD COLUMN IF NOT EXISTS co_applicant_employment_status TEXT,
+              ADD COLUMN IF NOT EXISTS co_applicant_employer_name TEXT,
+              ADD COLUMN IF NOT EXISTS co_applicant_employment_sector TEXT,
+              ADD COLUMN IF NOT EXISTS co_applicant_job_title TEXT,
+              ADD COLUMN IF NOT EXISTS co_applicant_employment_duration TEXT,
+              ADD COLUMN IF NOT EXISTS co_applicant_monthly_income INTEGER,
+              ADD COLUMN IF NOT EXISTS same_address BOOLEAN DEFAULT TRUE,
+              ADD COLUMN IF NOT EXISTS co_applicant_address TEXT,
+              ADD COLUMN IF NOT EXISTS co_applicant_city TEXT,
+              ADD COLUMN IF NOT EXISTS co_applicant_postal_code TEXT,
+              ADD COLUMN IF NOT EXISTS co_applicant_province TEXT
+            `);
+            console.log("Co-applicant columns added to users table");
+            
+            // Now add co-applicant fields to the update
+            if (updates.maritalStatus !== undefined) updateFields.marital_status = updates.maritalStatus;
+            if (updates.hasCoApplicant !== undefined) updateFields.has_co_applicant = updates.hasCoApplicant;
+            if (updates.coApplicantFirstName !== undefined) updateFields.co_applicant_first_name = updates.coApplicantFirstName;
+            if (updates.coApplicantLastName !== undefined) updateFields.co_applicant_last_name = updates.coApplicantLastName;
+            if (updates.coApplicantEmail !== undefined) updateFields.co_applicant_email = updates.coApplicantEmail;
+            if (updates.coApplicantPhone !== undefined) updateFields.co_applicant_phone = updates.coApplicantPhone;
+            if (updates.coApplicantIdNumber !== undefined) updateFields.co_applicant_id_number = updates.coApplicantIdNumber;
+            if (updates.coApplicantDateOfBirth !== undefined) updateFields.co_applicant_date_of_birth = updates.coApplicantDateOfBirth;
+            if (updates.coApplicantAge !== undefined) updateFields.co_applicant_age = updates.coApplicantAge;
+            if (updates.coApplicantEmploymentStatus !== undefined) updateFields.co_applicant_employment_status = updates.coApplicantEmploymentStatus;
+            if (updates.coApplicantEmployerName !== undefined) updateFields.co_applicant_employer_name = updates.coApplicantEmployerName;
+            if (updates.coApplicantEmploymentSector !== undefined) updateFields.co_applicant_employment_sector = updates.coApplicantEmploymentSector;
+            if (updates.coApplicantJobTitle !== undefined) updateFields.co_applicant_job_title = updates.coApplicantJobTitle;
+            if (updates.coApplicantEmploymentDuration !== undefined) updateFields.co_applicant_employment_duration = updates.coApplicantEmploymentDuration;
+            if (updates.coApplicantMonthlyIncome !== undefined) {
+              updateFields.co_applicant_monthly_income = updates.coApplicantMonthlyIncome === 0 ? null : updates.coApplicantMonthlyIncome;
+            }
+            if (updates.sameAddress !== undefined) updateFields.same_address = updates.sameAddress;
+            if (updates.coApplicantAddress !== undefined) updateFields.co_applicant_address = updates.coApplicantAddress;
+            if (updates.coApplicantCity !== undefined) updateFields.co_applicant_city = updates.coApplicantCity;
+            if (updates.coApplicantPostalCode !== undefined) updateFields.co_applicant_postal_code = updates.coApplicantPostalCode;
+            if (updates.coApplicantProvince !== undefined) updateFields.co_applicant_province = updates.coApplicantProvince;
+          } catch (alterError) {
+            console.error("Error adding co-applicant columns:", alterError);
+            // Continue with just the basic fields
+          }
         }
       }
       
-      // Create object with only the non-co-applicant fields we know exist in the database
-      const existingColumnUpdates: any = {};
-      
-      // Only map fields we know exist in the database
-      if (updates.username !== undefined) existingColumnUpdates.username = updates.username;
-      if (updates.password !== undefined) existingColumnUpdates.password = updates.password;
-      if (updates.firstName !== undefined) existingColumnUpdates.first_name = updates.firstName;
-      if (updates.lastName !== undefined) existingColumnUpdates.last_name = updates.lastName;
-      if (updates.email !== undefined) existingColumnUpdates.email = updates.email;
-      if (updates.phone !== undefined) existingColumnUpdates.phone = updates.phone;
-      if (updates.idNumber !== undefined) existingColumnUpdates.id_number = updates.idNumber;
-      if (updates.dateOfBirth !== undefined) existingColumnUpdates.date_of_birth = updates.dateOfBirth;
-      if (updates.age !== undefined) existingColumnUpdates.age = updates.age;
-      if (updates.address !== undefined) existingColumnUpdates.address = updates.address;
-      if (updates.city !== undefined) existingColumnUpdates.city = updates.city;
-      if (updates.postalCode !== undefined) existingColumnUpdates.postal_code = updates.postalCode;
-      if (updates.province !== undefined) existingColumnUpdates.province = updates.province;
-      if (updates.employmentStatus !== undefined) existingColumnUpdates.employment_status = updates.employmentStatus;
-      if (updates.employerName !== undefined) existingColumnUpdates.employer_name = updates.employerName;
-      if (updates.employmentSector !== undefined) existingColumnUpdates.employment_sector = updates.employmentSector;
-      if (updates.jobTitle !== undefined) existingColumnUpdates.job_title = updates.jobTitle;
-      if (updates.employmentDuration !== undefined) existingColumnUpdates.employment_duration = updates.employmentDuration;
-      
-      // Special handling for monthly income
-      if (updates.monthlyIncome !== undefined) {
-        // If monthlyIncome is 0, set it to null in the database
-        existingColumnUpdates.monthly_income = updates.monthlyIncome === 0 ? null : updates.monthlyIncome;
+      // Now execute the update query with all fields
+      if (Object.keys(updateFields).length === 0) {
+        console.log("No fields to update for user:", id);
+        return await this.getUser(id);
       }
       
-      // Add marital status field - now safe since we added the column if it was missing
-      if (updates.maritalStatus !== undefined) existingColumnUpdates.marital_status = updates.maritalStatus;
-      
-      // Add co-applicant fields - now safe since we added the columns if they were missing
-      if (updates.hasCoApplicant !== undefined) existingColumnUpdates.has_co_applicant = updates.hasCoApplicant;
-      if (updates.coApplicantFirstName !== undefined) existingColumnUpdates.co_applicant_first_name = updates.coApplicantFirstName;
-      if (updates.coApplicantLastName !== undefined) existingColumnUpdates.co_applicant_last_name = updates.coApplicantLastName;
-      if (updates.coApplicantEmail !== undefined) existingColumnUpdates.co_applicant_email = updates.coApplicantEmail;
-      if (updates.coApplicantPhone !== undefined) existingColumnUpdates.co_applicant_phone = updates.coApplicantPhone;
-      if (updates.coApplicantIdNumber !== undefined) existingColumnUpdates.co_applicant_id_number = updates.coApplicantIdNumber;
-      if (updates.coApplicantDateOfBirth !== undefined) existingColumnUpdates.co_applicant_date_of_birth = updates.coApplicantDateOfBirth;
-      if (updates.coApplicantEmploymentStatus !== undefined) existingColumnUpdates.co_applicant_employment_status = updates.coApplicantEmploymentStatus;
-      if (updates.coApplicantEmployerName !== undefined) existingColumnUpdates.co_applicant_employer_name = updates.coApplicantEmployerName;
-      if (updates.coApplicantMonthlyIncome !== undefined) {
-        // Same handling as for main applicant's income
-        existingColumnUpdates.co_applicant_monthly_income = updates.coApplicantMonthlyIncome === 0 ? null : updates.coApplicantMonthlyIncome;
+      try {
+        // Build the update query
+        const fieldEntries = Object.entries(updateFields);
+        const setClause = fieldEntries.map(([key], index) => `${key} = $${index + 1}`).join(', ');
+        const values = fieldEntries.map(([_, value]) => value);
+        values.push(id);  // Add ID for the WHERE clause
+        
+        const query = `
+          UPDATE users 
+          SET ${setClause} 
+          WHERE id = $${values.length}
+          RETURNING 
+            id, username, first_name as "firstName", last_name as "lastName", 
+            email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
+            address, city, postal_code as "postalCode", province, 
+            employment_status as "employmentStatus", employer_name as "employerName", 
+            employment_sector as "employmentSector", job_title as "jobTitle", 
+            employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
+            otp_verified as "otpVerified", profile_complete as "profileComplete", 
+            created_at as "createdAt", updated_at as "updatedAt"
+        `;
+        
+        console.log(`Executing update query for user ${id}`);
+        
+        // Execute query
+        const userResult = await pool.query(query, values);
+        
+        if (userResult.rows.length === 0) {
+          console.log("User not found:", id);
+          return undefined;
+        }
+        
+        const userData = userResult.rows[0];
+        
+        // Add co-applicant fields to the response with default values if needed
+        const user = {
+          ...userData,
+          maritalStatus: updates.maritalStatus || userData.maritalStatus || null,
+          hasCoApplicant: updates.hasCoApplicant !== undefined ? updates.hasCoApplicant : (userData.hasCoApplicant || false),
+          coApplicantFirstName: updates.coApplicantFirstName || userData.coApplicantFirstName || null,
+          coApplicantLastName: updates.coApplicantLastName || userData.coApplicantLastName || null,
+          coApplicantEmail: updates.coApplicantEmail || userData.coApplicantEmail || null,
+          coApplicantPhone: updates.coApplicantPhone || userData.coApplicantPhone || null,
+          coApplicantIdNumber: updates.coApplicantIdNumber || userData.coApplicantIdNumber || null,
+          coApplicantDateOfBirth: updates.coApplicantDateOfBirth || userData.coApplicantDateOfBirth || null,
+          coApplicantAge: updates.coApplicantAge || userData.coApplicantAge || null,
+          coApplicantEmploymentStatus: updates.coApplicantEmploymentStatus || userData.coApplicantEmploymentStatus || null,
+          coApplicantEmployerName: updates.coApplicantEmployerName || userData.coApplicantEmployerName || null,
+          coApplicantEmploymentSector: updates.coApplicantEmploymentSector || userData.coApplicantEmploymentSector || null,
+          coApplicantJobTitle: updates.coApplicantJobTitle || userData.coApplicantJobTitle || null,
+          coApplicantEmploymentDuration: updates.coApplicantEmploymentDuration || userData.coApplicantEmploymentDuration || null,
+          coApplicantMonthlyIncome: updates.coApplicantMonthlyIncome || userData.coApplicantMonthlyIncome || null,
+          sameAddress: updates.sameAddress !== undefined ? updates.sameAddress : (userData.sameAddress !== undefined ? userData.sameAddress : true),
+          coApplicantAddress: updates.coApplicantAddress || userData.coApplicantAddress || null,
+          coApplicantCity: updates.coApplicantCity || userData.coApplicantCity || null,
+          coApplicantPostalCode: updates.coApplicantPostalCode || userData.coApplicantPostalCode || null,
+          coApplicantProvince: updates.coApplicantProvince || userData.coApplicantProvince || null
+        };
+        
+        return user;
+      } catch (error) {
+        console.error("Error in update query:", error);
+        
+        // Fallback to a simpler update without RETURNING clause
+        try {
+          // Build a simpler update query
+          const fieldEntries = Object.entries(updateFields);
+          const setClause = fieldEntries.map(([key], index) => `${key} = $${index + 1}`).join(', ');
+          const values = fieldEntries.map(([_, value]) => value);
+          values.push(id);  // Add ID for the WHERE clause
+          
+          const query = `
+            UPDATE users 
+            SET ${setClause} 
+            WHERE id = $${values.length}
+          `;
+          
+          console.log(`Executing fallback update query for user ${id}`);
+          
+          // Execute update without trying to return data
+          await pool.query(query, values);
+          
+          // Now do a separate query to get the user
+          const userQuery = `
+            SELECT 
+              id, username, first_name as "firstName", last_name as "lastName", 
+              email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
+              address, city, postal_code as "postalCode", province, 
+              employment_status as "employmentStatus", employer_name as "employerName", 
+              employment_sector as "employmentSector", job_title as "jobTitle", 
+              employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
+              otp_verified as "otpVerified", profile_complete as "profileComplete", 
+              created_at as "createdAt", updated_at as "updatedAt"
+            FROM users 
+            WHERE id = $1
+          `;
+          
+          const userResult = await pool.query(userQuery, [id]);
+          
+          if (userResult.rows.length === 0) {
+            console.log("User not found in fallback query:", id);
+            return undefined;
+          }
+          
+          const userData = userResult.rows[0];
+          
+          // Add co-applicant fields to the response with default values
+          const user = {
+            ...userData,
+            maritalStatus: updates.maritalStatus || null,
+            hasCoApplicant: updates.hasCoApplicant || false,
+            coApplicantFirstName: updates.coApplicantFirstName || null,
+            coApplicantLastName: updates.coApplicantLastName || null,
+            coApplicantEmail: updates.coApplicantEmail || null,
+            coApplicantPhone: updates.coApplicantPhone || null,
+            coApplicantIdNumber: updates.coApplicantIdNumber || null,
+            coApplicantDateOfBirth: updates.coApplicantDateOfBirth || null,
+            coApplicantAge: updates.coApplicantAge || null,
+            coApplicantEmploymentStatus: updates.coApplicantEmploymentStatus || null,
+            coApplicantEmployerName: updates.coApplicantEmployerName || null,
+            coApplicantEmploymentSector: updates.coApplicantEmploymentSector || null,
+            coApplicantJobTitle: updates.coApplicantJobTitle || null,
+            coApplicantEmploymentDuration: updates.coApplicantEmploymentDuration || null,
+            coApplicantMonthlyIncome: updates.coApplicantMonthlyIncome || null,
+            sameAddress: updates.sameAddress !== undefined ? updates.sameAddress : true,
+            coApplicantAddress: updates.coApplicantAddress || null,
+            coApplicantCity: updates.coApplicantCity || null,
+            coApplicantPostalCode: updates.coApplicantPostalCode || null,
+            coApplicantProvince: updates.coApplicantProvince || null
+          };
+          
+          return user;
+        } catch (fallbackError) {
+          console.error("Error in fallback update:", fallbackError);
+          return undefined;
+        }
       }
-      if (updates.sameAddress !== undefined) existingColumnUpdates.same_address = updates.sameAddress;
-      if (updates.coApplicantAddress !== undefined) existingColumnUpdates.co_applicant_address = updates.coApplicantAddress;
-      if (updates.coApplicantCity !== undefined) existingColumnUpdates.co_applicant_city = updates.coApplicantCity;
-      if (updates.coApplicantPostalCode !== undefined) existingColumnUpdates.co_applicant_postal_code = updates.coApplicantPostalCode;
-      if (updates.coApplicantProvince !== undefined) existingColumnUpdates.co_applicant_province = updates.coApplicantProvince;
-      
-      if (updates.otpVerified !== undefined) existingColumnUpdates.otp_verified = updates.otpVerified;
-      if (updates.profileComplete !== undefined) existingColumnUpdates.profile_complete = updates.profileComplete;
-      
-      // Always add updated_at
-      existingColumnUpdates.updated_at = new Date();
-      
-      // Only run update if there are fields to update
-      if (Object.keys(existingColumnUpdates).length === 0) {
-        console.log("No valid fields to update for user:", id);
-        return undefined;
-      }
-      
-      // Use SQL query to update only the fields we know exist
-      // Convert the object to a list of SQL parameters instead of using named parameters
-      // This avoids the syntax error with colons in SQL
-      const updateEntries = Object.entries(existingColumnUpdates);
-      const updateFieldsStr = updateEntries
-        .map(([key], index) => `${key} = $${index + 1}`)
-        .join(', ');
-      
-      const updateValues = updateEntries.map(([_, value]) => value);
-      
-      console.log(`Executing update query for user ${id} with ${updateValues.length} fields`);
-      
-      const userResult = await db.execute(
-        sql`UPDATE users SET ${sql.raw(updateFieldsStr)} WHERE id = ${id} RETURNING 
-          id, username, password, first_name as "firstName", last_name as "lastName", 
-          email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
-          address, city, postal_code as "postalCode", province, 
-          employment_status as "employmentStatus", employer_name as "employerName", 
-          employment_sector as "employmentSector", job_title as "jobTitle", 
-          employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
-          marital_status as "maritalStatus", has_co_applicant as "hasCoApplicant",
-          co_applicant_first_name as "coApplicantFirstName", co_applicant_last_name as "coApplicantLastName",
-          co_applicant_email as "coApplicantEmail", co_applicant_phone as "coApplicantPhone",
-          co_applicant_id_number as "coApplicantIdNumber", co_applicant_date_of_birth as "coApplicantDateOfBirth",
-          co_applicant_employment_status as "coApplicantEmploymentStatus", co_applicant_employer_name as "coApplicantEmployerName",
-          co_applicant_monthly_income as "coApplicantMonthlyIncome", same_address as "sameAddress",
-          co_applicant_address as "coApplicantAddress", co_applicant_city as "coApplicantCity",
-          co_applicant_postal_code as "coApplicantPostalCode", co_applicant_province as "coApplicantProvince",
-          otp_verified as "otpVerified", profile_complete as "profileComplete", 
-          created_at as "createdAt", updated_at as "updatedAt"`,
-        updateValues
-      );
-      
-      if (userResult.rows.length === 0) {
-        return undefined;
-      }
-      
-      const userData = userResult.rows[0];
-      
-      // Convert to User type with null values for co-applicant fields
-      const user = {
-        ...userData,
-        // Add null values for co-applicant fields
-        maritalStatus: null,
-        hasCoApplicant: false,
-        coApplicantFirstName: null,
-        coApplicantLastName: null,
-        coApplicantEmail: null,
-        coApplicantPhone: null,
-        coApplicantIdNumber: null,
-        coApplicantDateOfBirth: null,
-        coApplicantAge: null,
-        coApplicantEmploymentStatus: null,
-        coApplicantEmployerName: null,
-        coApplicantEmploymentSector: null,
-        coApplicantJobTitle: null,
-        coApplicantEmploymentDuration: null,
-        coApplicantMonthlyIncome: null,
-        sameAddress: true,
-        coApplicantAddress: null,
-        coApplicantCity: null,
-        coApplicantPostalCode: null,
-        coApplicantProvince: null,
-      };
-      
-      return user;
     } catch (error) {
       console.error("Database error in updateUser:", error);
       return undefined;
