@@ -11,9 +11,18 @@ if (!process.env.DATABASE_URL) {
 
 console.log('Connecting to Replit PostgreSQL database');
 
-// Create simple pool configuration for Replit PostgreSQL
+// Override DATABASE_URL to use Replit PostgreSQL instead of Azure
+const replitDbUrl = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`;
+console.log('Using Replit PostgreSQL URL:', replitDbUrl);
+process.env.DATABASE_URL = replitDbUrl;
+
+// Create pool configuration for Replit PostgreSQL (Neon database)
+// Neon requires SSL, so we need to enable it
 const poolConfig = {
-  connectionString: process.env.DATABASE_URL
+  connectionString: replitDbUrl,
+  ssl: {
+    rejectUnauthorized: true
+  }
 };
 
 export const pool = new Pool(poolConfig);
