@@ -8,6 +8,20 @@ import { sql } from 'drizzle-orm';
 export const runMigrations = async () => {
   console.log('Running database migrations...');
   
+  // Log the actual table structure 
+  try {
+    console.log('Checking actual database table structure...');
+    const tableInfo = await db.execute(sql`
+      SELECT column_name, data_type 
+      FROM information_schema.columns 
+      WHERE table_name = 'users'
+      ORDER BY ordinal_position
+    `);
+    console.log('Current users table structure:', JSON.stringify(tableInfo.rows, null, 2));
+  } catch (e) {
+    console.error('Error checking table structure:', e);
+  }
+  
   try {
     // Check if users table exists by trying to select from it
     try {
