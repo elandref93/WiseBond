@@ -1067,59 +1067,51 @@ export class DatabaseStorage implements IStorage {
   
   async getUser(id: number): Promise<User | undefined> {
     try {
-      // Select all columns explicitly based on the schema to avoid issues with missing columns
-      const query = db.select({
-        id: users.id,
-        username: users.username,
-        password: users.password,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        email: users.email,
-        phone: users.phone,
-        idNumber: users.idNumber,
-        dateOfBirth: users.dateOfBirth,
-        age: users.age,
-        address: users.address,
-        city: users.city,
-        postalCode: users.postalCode,
-        province: users.province,
-        employmentStatus: users.employmentStatus,
-        employerName: users.employerName,
-        employmentSector: users.employmentSector,
-        jobTitle: users.jobTitle,
-        employmentDuration: users.employmentDuration,
-        monthlyIncome: users.monthlyIncome,
-        maritalStatus: users.maritalStatus,
-        hasCoApplicant: users.hasCoApplicant,
-        coApplicantFirstName: users.coApplicantFirstName,
-        coApplicantLastName: users.coApplicantLastName,
-        coApplicantEmail: users.coApplicantEmail,
-        coApplicantPhone: users.coApplicantPhone,
-        coApplicantIdNumber: users.coApplicantIdNumber,
-        coApplicantDateOfBirth: users.coApplicantDateOfBirth,
-        coApplicantAge: users.coApplicantAge,
-        coApplicantEmploymentStatus: users.coApplicantEmploymentStatus,
-        coApplicantEmployerName: users.coApplicantEmployerName,
-        coApplicantEmploymentSector: users.coApplicantEmploymentSector,
-        coApplicantJobTitle: users.coApplicantJobTitle,
-        coApplicantEmploymentDuration: users.coApplicantEmploymentDuration,
-        coApplicantMonthlyIncome: users.coApplicantMonthlyIncome,
-        sameAddress: users.sameAddress,
-        coApplicantAddress: users.coApplicantAddress,
-        coApplicantCity: users.coApplicantCity,
-        coApplicantPostalCode: users.coApplicantPostalCode,
-        coApplicantProvince: users.coApplicantProvince,
-        otpVerified: users.otpVerified,
-        profileComplete: users.profileComplete,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt
-      })
-      .from(users)
-      .where(eq(users.id, id))
-      .limit(1);
+      // Use a simple query that only requests fields we know exist
+      const userResult = await db.execute(sql`
+        SELECT id, username, password, first_name as "firstName", last_name as "lastName", 
+        email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
+        address, city, postal_code as "postalCode", province, 
+        employment_status as "employmentStatus", employer_name as "employerName", 
+        employment_sector as "employmentSector", job_title as "jobTitle", 
+        employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
+        otp_verified as "otpVerified", profile_complete as "profileComplete", 
+        created_at as "createdAt", updated_at as "updatedAt"
+        FROM users 
+        WHERE id = ${id}
+        LIMIT 1
+      `);
       
-      const [user] = await query;
-      return user;
+      // Convert to User type with null values for co-applicant fields
+      if (userResult.rows.length > 0) {
+        const userData = userResult.rows[0];
+        const user = {
+          ...userData,
+          // Add null values for co-applicant fields
+          maritalStatus: null,
+          hasCoApplicant: false,
+          coApplicantFirstName: null,
+          coApplicantLastName: null,
+          coApplicantEmail: null,
+          coApplicantPhone: null,
+          coApplicantIdNumber: null,
+          coApplicantDateOfBirth: null,
+          coApplicantAge: null,
+          coApplicantEmploymentStatus: null,
+          coApplicantEmployerName: null,
+          coApplicantEmploymentSector: null,
+          coApplicantJobTitle: null,
+          coApplicantEmploymentDuration: null,
+          coApplicantMonthlyIncome: null,
+          sameAddress: true,
+          coApplicantAddress: null,
+          coApplicantCity: null,
+          coApplicantPostalCode: null,
+          coApplicantProvince: null,
+        };
+        return user;
+      }
+      return undefined;
     } catch (error) {
       console.error("Database error in getUser:", error);
       return undefined;
@@ -1128,59 +1120,51 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
-      // Select all columns explicitly based on the schema to avoid issues with missing columns
-      const query = db.select({
-        id: users.id,
-        username: users.username,
-        password: users.password,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        email: users.email,
-        phone: users.phone,
-        idNumber: users.idNumber,
-        dateOfBirth: users.dateOfBirth,
-        age: users.age,
-        address: users.address,
-        city: users.city,
-        postalCode: users.postalCode,
-        province: users.province,
-        employmentStatus: users.employmentStatus,
-        employerName: users.employerName,
-        employmentSector: users.employmentSector,
-        jobTitle: users.jobTitle,
-        employmentDuration: users.employmentDuration,
-        monthlyIncome: users.monthlyIncome,
-        maritalStatus: users.maritalStatus,
-        hasCoApplicant: users.hasCoApplicant,
-        coApplicantFirstName: users.coApplicantFirstName,
-        coApplicantLastName: users.coApplicantLastName,
-        coApplicantEmail: users.coApplicantEmail,
-        coApplicantPhone: users.coApplicantPhone,
-        coApplicantIdNumber: users.coApplicantIdNumber,
-        coApplicantDateOfBirth: users.coApplicantDateOfBirth,
-        coApplicantAge: users.coApplicantAge,
-        coApplicantEmploymentStatus: users.coApplicantEmploymentStatus,
-        coApplicantEmployerName: users.coApplicantEmployerName,
-        coApplicantEmploymentSector: users.coApplicantEmploymentSector,
-        coApplicantJobTitle: users.coApplicantJobTitle,
-        coApplicantEmploymentDuration: users.coApplicantEmploymentDuration,
-        coApplicantMonthlyIncome: users.coApplicantMonthlyIncome,
-        sameAddress: users.sameAddress,
-        coApplicantAddress: users.coApplicantAddress,
-        coApplicantCity: users.coApplicantCity,
-        coApplicantPostalCode: users.coApplicantPostalCode,
-        coApplicantProvince: users.coApplicantProvince,
-        otpVerified: users.otpVerified,
-        profileComplete: users.profileComplete,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt
-      })
-      .from(users)
-      .where(eq(users.username, username))
-      .limit(1);
+      // Use a simple query that only requests fields we know exist
+      const userResult = await db.execute(sql`
+        SELECT id, username, password, first_name as "firstName", last_name as "lastName", 
+        email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
+        address, city, postal_code as "postalCode", province, 
+        employment_status as "employmentStatus", employer_name as "employerName", 
+        employment_sector as "employmentSector", job_title as "jobTitle", 
+        employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
+        otp_verified as "otpVerified", profile_complete as "profileComplete", 
+        created_at as "createdAt", updated_at as "updatedAt"
+        FROM users 
+        WHERE username = ${username}
+        LIMIT 1
+      `);
       
-      const [user] = await query;
-      return user;
+      // Convert to User type with null values for co-applicant fields
+      if (userResult.rows.length > 0) {
+        const userData = userResult.rows[0];
+        const user = {
+          ...userData,
+          // Add null values for co-applicant fields
+          maritalStatus: null,
+          hasCoApplicant: false,
+          coApplicantFirstName: null,
+          coApplicantLastName: null,
+          coApplicantEmail: null,
+          coApplicantPhone: null,
+          coApplicantIdNumber: null,
+          coApplicantDateOfBirth: null,
+          coApplicantAge: null,
+          coApplicantEmploymentStatus: null,
+          coApplicantEmployerName: null,
+          coApplicantEmploymentSector: null,
+          coApplicantJobTitle: null,
+          coApplicantEmploymentDuration: null,
+          coApplicantMonthlyIncome: null,
+          sameAddress: true,
+          coApplicantAddress: null,
+          coApplicantCity: null,
+          coApplicantPostalCode: null,
+          coApplicantProvince: null,
+        };
+        return user;
+      }
+      return undefined;
     } catch (error) {
       console.error("Database error in getUserByUsername:", error);
       return undefined;
@@ -1189,59 +1173,51 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
-      // Select all columns explicitly based on the schema to avoid issues with missing columns
-      const query = db.select({
-        id: users.id,
-        username: users.username,
-        password: users.password,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        email: users.email,
-        phone: users.phone,
-        idNumber: users.idNumber,
-        dateOfBirth: users.dateOfBirth,
-        age: users.age,
-        address: users.address,
-        city: users.city,
-        postalCode: users.postalCode,
-        province: users.province,
-        employmentStatus: users.employmentStatus,
-        employerName: users.employerName,
-        employmentSector: users.employmentSector,
-        jobTitle: users.jobTitle,
-        employmentDuration: users.employmentDuration,
-        monthlyIncome: users.monthlyIncome,
-        maritalStatus: users.maritalStatus,
-        hasCoApplicant: users.hasCoApplicant,
-        coApplicantFirstName: users.coApplicantFirstName,
-        coApplicantLastName: users.coApplicantLastName,
-        coApplicantEmail: users.coApplicantEmail,
-        coApplicantPhone: users.coApplicantPhone,
-        coApplicantIdNumber: users.coApplicantIdNumber,
-        coApplicantDateOfBirth: users.coApplicantDateOfBirth,
-        coApplicantAge: users.coApplicantAge,
-        coApplicantEmploymentStatus: users.coApplicantEmploymentStatus,
-        coApplicantEmployerName: users.coApplicantEmployerName,
-        coApplicantEmploymentSector: users.coApplicantEmploymentSector,
-        coApplicantJobTitle: users.coApplicantJobTitle,
-        coApplicantEmploymentDuration: users.coApplicantEmploymentDuration,
-        coApplicantMonthlyIncome: users.coApplicantMonthlyIncome,
-        sameAddress: users.sameAddress,
-        coApplicantAddress: users.coApplicantAddress,
-        coApplicantCity: users.coApplicantCity,
-        coApplicantPostalCode: users.coApplicantPostalCode,
-        coApplicantProvince: users.coApplicantProvince,
-        otpVerified: users.otpVerified,
-        profileComplete: users.profileComplete,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt
-      })
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
+      // Use a simple query that only requests fields we know exist
+      const userResult = await db.execute(sql`
+        SELECT id, username, password, first_name as "firstName", last_name as "lastName", 
+        email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
+        address, city, postal_code as "postalCode", province, 
+        employment_status as "employmentStatus", employer_name as "employerName", 
+        employment_sector as "employmentSector", job_title as "jobTitle", 
+        employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
+        otp_verified as "otpVerified", profile_complete as "profileComplete", 
+        created_at as "createdAt", updated_at as "updatedAt"
+        FROM users 
+        WHERE email = ${email}
+        LIMIT 1
+      `);
       
-      const [user] = await query;
-      return user;
+      // Convert to User type with null values for co-applicant fields
+      if (userResult.rows.length > 0) {
+        const userData = userResult.rows[0];
+        const user = {
+          ...userData,
+          // Add null values for co-applicant fields
+          maritalStatus: null,
+          hasCoApplicant: false,
+          coApplicantFirstName: null,
+          coApplicantLastName: null,
+          coApplicantEmail: null,
+          coApplicantPhone: null,
+          coApplicantIdNumber: null,
+          coApplicantDateOfBirth: null,
+          coApplicantAge: null,
+          coApplicantEmploymentStatus: null,
+          coApplicantEmployerName: null,
+          coApplicantEmploymentSector: null,
+          coApplicantJobTitle: null,
+          coApplicantEmploymentDuration: null,
+          coApplicantMonthlyIncome: null,
+          sameAddress: true,
+          coApplicantAddress: null,
+          coApplicantCity: null,
+          coApplicantPostalCode: null,
+          coApplicantProvince: null,
+        };
+        return user;
+      }
+      return undefined;
     } catch (error) {
       console.error("Database error in getUserByEmail:", error);
       return undefined;
@@ -1253,34 +1229,80 @@ export class DatabaseStorage implements IStorage {
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(insertUser.password, saltRounds);
       
-      // Initialize with default values for co-applicant fields
-      const [user] = await db.insert(users).values({
-        ...insertUser,
-        password: hashedPassword,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        // Co-applicant fields with default values
-        maritalStatus: insertUser.maritalStatus || null,
-        hasCoApplicant: insertUser.hasCoApplicant || false,
-        coApplicantFirstName: insertUser.coApplicantFirstName || null,
-        coApplicantLastName: insertUser.coApplicantLastName || null,
-        coApplicantEmail: insertUser.coApplicantEmail || null,
-        coApplicantPhone: insertUser.coApplicantPhone || null,
-        coApplicantIdNumber: insertUser.coApplicantIdNumber || null,
-        coApplicantDateOfBirth: insertUser.coApplicantDateOfBirth || null,
-        coApplicantAge: insertUser.coApplicantAge || null,
-        coApplicantEmploymentStatus: insertUser.coApplicantEmploymentStatus || null,
-        coApplicantEmployerName: insertUser.coApplicantEmployerName || null,
-        coApplicantEmploymentSector: insertUser.coApplicantEmploymentSector || null,
-        coApplicantJobTitle: insertUser.coApplicantJobTitle || null,
-        coApplicantEmploymentDuration: insertUser.coApplicantEmploymentDuration || null,
-        coApplicantMonthlyIncome: insertUser.coApplicantMonthlyIncome || null,
-        sameAddress: insertUser.sameAddress || false,
-        coApplicantAddress: insertUser.coApplicantAddress || null,
-        coApplicantCity: insertUser.coApplicantCity || null,
-        coApplicantPostalCode: insertUser.coApplicantPostalCode || null,
-        coApplicantProvince: insertUser.coApplicantProvince || null
-      }).returning();
+      // Use raw SQL to create user with only fields we know exist
+      const userResult = await db.execute(sql`
+        INSERT INTO users (
+          username, password, first_name, last_name, email, phone, 
+          id_number, date_of_birth, age, address, city, postal_code, 
+          province, employment_status, employer_name, employment_sector, 
+          job_title, employment_duration, monthly_income, 
+          otp_verified, profile_complete, created_at, updated_at
+        ) VALUES (
+          ${insertUser.username}, 
+          ${hashedPassword}, 
+          ${insertUser.firstName}, 
+          ${insertUser.lastName}, 
+          ${insertUser.email}, 
+          ${insertUser.phone}, 
+          ${insertUser.idNumber}, 
+          ${insertUser.dateOfBirth}, 
+          ${insertUser.age}, 
+          ${insertUser.address}, 
+          ${insertUser.city}, 
+          ${insertUser.postalCode}, 
+          ${insertUser.province}, 
+          ${insertUser.employmentStatus}, 
+          ${insertUser.employerName}, 
+          ${insertUser.employmentSector}, 
+          ${insertUser.jobTitle}, 
+          ${insertUser.employmentDuration}, 
+          ${insertUser.monthlyIncome}, 
+          ${insertUser.otpVerified}, 
+          ${insertUser.profileComplete}, 
+          NOW(), 
+          NOW()
+        ) RETURNING 
+          id, username, password, first_name as "firstName", last_name as "lastName", 
+          email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
+          address, city, postal_code as "postalCode", province, 
+          employment_status as "employmentStatus", employer_name as "employerName", 
+          employment_sector as "employmentSector", job_title as "jobTitle", 
+          employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
+          otp_verified as "otpVerified", profile_complete as "profileComplete", 
+          created_at as "createdAt", updated_at as "updatedAt"
+      `);
+      
+      if (userResult.rows.length === 0) {
+        throw new Error("User insertion did not return a result");
+      }
+      
+      const userData = userResult.rows[0];
+      
+      // Convert to User type with null values for co-applicant fields
+      const user = {
+        ...userData,
+        // Add null values for co-applicant fields
+        maritalStatus: null,
+        hasCoApplicant: false,
+        coApplicantFirstName: null,
+        coApplicantLastName: null,
+        coApplicantEmail: null,
+        coApplicantPhone: null,
+        coApplicantIdNumber: null,
+        coApplicantDateOfBirth: null,
+        coApplicantAge: null,
+        coApplicantEmploymentStatus: null,
+        coApplicantEmployerName: null,
+        coApplicantEmploymentSector: null,
+        coApplicantJobTitle: null,
+        coApplicantEmploymentDuration: null,
+        coApplicantMonthlyIncome: null,
+        sameAddress: true,
+        coApplicantAddress: null,
+        coApplicantCity: null,
+        coApplicantPostalCode: null,
+        coApplicantProvince: null,
+      };
       
       return user;
     } catch (error) {
@@ -1367,23 +1389,98 @@ export class DatabaseStorage implements IStorage {
 
   async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
     try {
-      // Handle monthly income explicitly to allow null values
-      const updatesWithNulls = { ...updates };
+      // Create object with only the non-co-applicant fields we know exist in the database
+      const existingColumnUpdates: any = {};
       
-      // If monthlyIncome is 0, set it to null in the database
-      if (updates.monthlyIncome === 0) {
-        updatesWithNulls.monthlyIncome = null;
+      // Only map fields we know exist in the database
+      if (updates.username !== undefined) existingColumnUpdates.username = updates.username;
+      if (updates.password !== undefined) existingColumnUpdates.password = updates.password;
+      if (updates.firstName !== undefined) existingColumnUpdates.first_name = updates.firstName;
+      if (updates.lastName !== undefined) existingColumnUpdates.last_name = updates.lastName;
+      if (updates.email !== undefined) existingColumnUpdates.email = updates.email;
+      if (updates.phone !== undefined) existingColumnUpdates.phone = updates.phone;
+      if (updates.idNumber !== undefined) existingColumnUpdates.id_number = updates.idNumber;
+      if (updates.dateOfBirth !== undefined) existingColumnUpdates.date_of_birth = updates.dateOfBirth;
+      if (updates.age !== undefined) existingColumnUpdates.age = updates.age;
+      if (updates.address !== undefined) existingColumnUpdates.address = updates.address;
+      if (updates.city !== undefined) existingColumnUpdates.city = updates.city;
+      if (updates.postalCode !== undefined) existingColumnUpdates.postal_code = updates.postalCode;
+      if (updates.province !== undefined) existingColumnUpdates.province = updates.province;
+      if (updates.employmentStatus !== undefined) existingColumnUpdates.employment_status = updates.employmentStatus;
+      if (updates.employerName !== undefined) existingColumnUpdates.employer_name = updates.employerName;
+      if (updates.employmentSector !== undefined) existingColumnUpdates.employment_sector = updates.employmentSector;
+      if (updates.jobTitle !== undefined) existingColumnUpdates.job_title = updates.jobTitle;
+      if (updates.employmentDuration !== undefined) existingColumnUpdates.employment_duration = updates.employmentDuration;
+      
+      // Special handling for monthly income
+      if (updates.monthlyIncome !== undefined) {
+        // If monthlyIncome is 0, set it to null in the database
+        existingColumnUpdates.monthly_income = updates.monthlyIncome === 0 ? null : updates.monthlyIncome;
       }
       
-      const [updatedUser] = await db.update(users)
-        .set({
-          ...updatesWithNulls,
-          updatedAt: new Date()
-        })
-        .where(eq(users.id, id))
-        .returning();
+      if (updates.otpVerified !== undefined) existingColumnUpdates.otp_verified = updates.otpVerified;
+      if (updates.profileComplete !== undefined) existingColumnUpdates.profile_complete = updates.profileComplete;
       
-      return updatedUser;
+      // Always add updated_at
+      existingColumnUpdates.updated_at = new Date();
+      
+      // Only run update if there are fields to update
+      if (Object.keys(existingColumnUpdates).length === 0) {
+        console.log("No valid fields to update for user:", id);
+        return undefined;
+      }
+      
+      // Use SQL query to update only the fields we know exist
+      const updateFieldsStr = Object.entries(existingColumnUpdates)
+        .map(([key, _]) => `${key} = :${key}`)
+        .join(', ');
+      
+      const userResult = await db.execute(
+        sql`UPDATE users SET ${sql.raw(updateFieldsStr)} WHERE id = ${id} RETURNING 
+          id, username, password, first_name as "firstName", last_name as "lastName", 
+          email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
+          address, city, postal_code as "postalCode", province, 
+          employment_status as "employmentStatus", employer_name as "employerName", 
+          employment_sector as "employmentSector", job_title as "jobTitle", 
+          employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
+          otp_verified as "otpVerified", profile_complete as "profileComplete", 
+          created_at as "createdAt", updated_at as "updatedAt"
+        `.append(sql.raw(updateFieldsStr, existingColumnUpdates))
+      );
+      
+      if (userResult.rows.length === 0) {
+        return undefined;
+      }
+      
+      const userData = userResult.rows[0];
+      
+      // Convert to User type with null values for co-applicant fields
+      const user = {
+        ...userData,
+        // Add null values for co-applicant fields
+        maritalStatus: null,
+        hasCoApplicant: false,
+        coApplicantFirstName: null,
+        coApplicantLastName: null,
+        coApplicantEmail: null,
+        coApplicantPhone: null,
+        coApplicantIdNumber: null,
+        coApplicantDateOfBirth: null,
+        coApplicantAge: null,
+        coApplicantEmploymentStatus: null,
+        coApplicantEmployerName: null,
+        coApplicantEmploymentSector: null,
+        coApplicantJobTitle: null,
+        coApplicantEmploymentDuration: null,
+        coApplicantMonthlyIncome: null,
+        sameAddress: true,
+        coApplicantAddress: null,
+        coApplicantCity: null,
+        coApplicantPostalCode: null,
+        coApplicantProvince: null,
+      };
+      
+      return user;
     } catch (error) {
       console.error("Database error in updateUser:", error);
       return undefined;
