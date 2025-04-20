@@ -286,7 +286,9 @@ export default function Profile() {
   const watchedCoApplicantIdNumber = form.watch('coApplicantIdNumber');
   const watchedMaritalStatus = form.watch('maritalStatus');
   const watchedHasCoApplicant = form.watch('hasCoApplicant');
-  const showCoApplicantSection = watchedMaritalStatus === 'Married' || watchedHasCoApplicant;
+  
+  // Only show co-applicant section when they explicitly choose to add a co-applicant
+  const showCoApplicantSection = watchedHasCoApplicant;
   
   // Tab navigation items with disabled flag type
   const tabs: Array<{ id: string; label: string; icon: React.ReactNode; disabled?: boolean }> = [
@@ -633,7 +635,7 @@ export default function Profile() {
                       <Separator className="my-6" />
                       <h3 className="text-lg font-medium mb-4">Marital Status & Co-Application</h3>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 gap-6">
                         <FormField
                           control={form.control}
                           name="maritalStatus"
@@ -641,7 +643,13 @@ export default function Profile() {
                             <FormItem>
                               <FormLabel>Marital Status</FormLabel>
                               <Select
-                                onValueChange={field.onChange}
+                                onValueChange={(value) => {
+                                  // When changing from "Married" to another status, reset hasCoApplicant
+                                  if (field.value === 'Married' && value !== 'Married') {
+                                    form.setValue('hasCoApplicant', false);
+                                  }
+                                  field.onChange(value);
+                                }}
                                 value={field.value || undefined}
                               >
                                 <FormControl>
@@ -664,28 +672,70 @@ export default function Profile() {
                           )}
                         />
                         
-                        <FormField
-                          control={form.control}
-                          name="hasCoApplicant"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                              <div className="space-y-0.5">
-                                <FormLabel className="text-base">
-                                  Apply with a Co-Applicant
-                                </FormLabel>
-                                <FormDescription>
-                                  Add a spouse or partner to your application
-                                </FormDescription>
-                              </div>
-                              <FormControl>
-                                <Switch
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
+                        {/* Show co-applicant option when married */}
+                        {watchedMaritalStatus === 'Married' && (
+                          <div className="p-4 border border-blue-100 bg-blue-50 rounded-lg">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Info className="h-5 w-5 text-blue-500" />
+                              <h4 className="text-sm font-medium text-blue-700">
+                                You indicated that you're married
+                              </h4>
+                            </div>
+                            <p className="text-sm text-blue-600 mb-4">
+                              Would you like to include your spouse as a co-applicant on your home loan application? 
+                              This may increase your chances of approval and potentially qualify you for a higher loan amount.
+                            </p>
+                            
+                            <FormField
+                              control={form.control}
+                              name="hasCoApplicant"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-blue-200 bg-white p-4">
+                                  <div className="space-y-0.5">
+                                    <FormLabel className="text-base">
+                                      Include spouse as co-applicant
+                                    </FormLabel>
+                                    <FormDescription>
+                                      We'll need some basic information about your spouse
+                                    </FormDescription>
+                                  </div>
+                                  <FormControl>
+                                    <Switch
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        )}
+                        
+                        {/* Show standalone co-applicant option when not married */}
+                        {watchedMaritalStatus !== 'Married' && watchedMaritalStatus !== undefined && (
+                          <FormField
+                            control={form.control}
+                            name="hasCoApplicant"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                <div className="space-y-0.5">
+                                  <FormLabel className="text-base">
+                                    Apply with a Co-Applicant
+                                  </FormLabel>
+                                  <FormDescription>
+                                    Add a partner to your application
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        )}
                       </div>
                       
                       {showCoApplicantSection && (
