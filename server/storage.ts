@@ -1,4 +1,4 @@
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, gte } from "drizzle-orm";
 import { db, pool } from "./db";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
@@ -1494,6 +1494,33 @@ export class DatabaseStorage implements IStorage {
 
   async saveCalculationResult(insertResult: InsertCalculationResult): Promise<CalculationResult> {
     try {
+      // Check for duplicate calculations to prevent saving identical ones
+      if (insertResult.userId) {
+        // Get recent calculations for this user and type (last 24 hours)
+        const recentCalculations = await db.select()
+          .from(calculationResults)
+          .where(
+            and(
+              eq(calculationResults.userId, insertResult.userId),
+              eq(calculationResults.calculationType, insertResult.calculationType),
+              // Use a date comparison for the last 24 hours
+              gte(calculationResults.createdAt, new Date(Date.now() - 24 * 60 * 60 * 1000)) // Last 24 hours
+            )
+          );
+        
+        // Check if we already have an identical calculation
+        const isDuplicate = recentCalculations.some(calc => 
+          calc.inputData === insertResult.inputData && 
+          calc.resultData === insertResult.resultData
+        );
+        
+        if (isDuplicate) {
+          console.log('Skipping duplicate calculation save - found existing identical calculation');
+          return recentCalculations[0]; // Return the existing calculation
+        }
+      }
+      
+      // If no duplicate found, insert new calculation
       const [result] = await db.insert(calculationResults).values({
         ...insertResult,
         createdAt: new Date()

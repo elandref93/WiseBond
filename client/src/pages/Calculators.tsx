@@ -500,37 +500,63 @@ export default function Calculators() {
               <div className="text-center py-8">Loading saved calculations...</div>
             ) : Array.isArray(savedCalculations) && savedCalculations.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {savedCalculations.map((calc: any, index: number) => {
-                  const parsedResult = JSON.parse(calc.resultData);
-                  const parsedInput = JSON.parse(calc.inputData);
+                {/* Process calculations to avoid duplicates */}
+                {(() => {
+                  // Create a map to track unique calculations by type and result signature
+                  const uniqueCalculations = new Map();
                   
-                  return (
-                    <Card key={index}>
-                      <CardHeader>
-                        <CardTitle>
-                          {calc.calculationType === 'bond' && 'Bond Repayment'}
-                          {calc.calculationType === 'affordability' && 'Affordability'}
-                          {calc.calculationType === 'deposit' && 'Deposit Savings'}
-                        </CardTitle>
-                        <CardDescription>
-                          Saved on {new Date(calc.createdAt).toLocaleDateString()}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {parsedResult.displayResults && 
-                            parsedResult.displayResults.map((result: any, i: number) => (
-                              <div key={i} className="flex justify-between">
-                                <span className="text-gray-500">{result.label}:</span>
-                                <span className="font-medium">{result.value}</span>
-                              </div>
-                            ))
-                          }
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                  // Process all calculations to find the most recent unique ones
+                  savedCalculations.forEach((calc: any) => {
+                    const calcType = calc.calculationType;
+                    const resultSignature = calc.resultData; // Use the full result as the signature
+                    
+                    const key = `${calcType}-${resultSignature}`;
+                    
+                    // If we haven't seen this calculation or this one is newer, keep it
+                    if (!uniqueCalculations.has(key) || 
+                        new Date(calc.createdAt) > new Date(uniqueCalculations.get(key).createdAt)) {
+                      uniqueCalculations.set(key, calc);
+                    }
+                  });
+                  
+                  // Get all unique calculations and sort by date (newest first)
+                  const filteredCalculations = Array.from(uniqueCalculations.values())
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .slice(0, 6); // Show only the 6 most recent unique calculations
+                  
+                  // Return the mapped components
+                  return filteredCalculations.map((calc: any, index: number) => {
+                    const parsedResult = JSON.parse(calc.resultData);
+                    const parsedInput = JSON.parse(calc.inputData);
+                    
+                    return (
+                      <Card key={index}>
+                        <CardHeader>
+                          <CardTitle>
+                            {calc.calculationType === 'bond' && 'Bond Repayment'}
+                            {calc.calculationType === 'affordability' && 'Affordability'}
+                            {calc.calculationType === 'deposit' && 'Deposit Savings'}
+                          </CardTitle>
+                          <CardDescription>
+                            Saved on {new Date(calc.createdAt).toLocaleDateString()}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            {parsedResult.displayResults && 
+                              parsedResult.displayResults.map((result: any, i: number) => (
+                                <div key={i} className="flex justify-between">
+                                  <span className="text-gray-500">{result.label}:</span>
+                                  <span className="font-medium">{result.value}</span>
+                                </div>
+                              ))
+                            }
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  });
+                })()}
               </div>
             ) : (
               <Alert>
