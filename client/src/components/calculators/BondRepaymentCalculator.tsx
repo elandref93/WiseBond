@@ -24,6 +24,7 @@ import AmortizationChart from "./charts/AmortizationChart";
 import { FinancialTermTooltip } from "@/components/ui/financial-term-tooltip";
 import { FinancialTermsHighlighter } from "@/components/ui/financial-terms-highlighter";
 import { financialTerms } from "@/lib/financialTerms";
+import EmailCalculationButton from "./EmailCalculationButton";
 
 // Form schema with validation
 const formSchema = z.object({
@@ -565,49 +566,29 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                 <h4 className="text-sm font-medium text-gray-700">Calculation Results</h4>
                 
                 <div className="flex space-x-2">
-                  <button 
-                    onClick={() => {
-                      if (loanDetails) {
-                        const fullResults = {
-                          type: "bond",
-                          results: {
-                            monthlyPayment: calculateMonthlyPayment(),
-                            totalRepayment: calculateTotalRepayment(),
-                            totalInterest: calculateTotalInterest(),
-                            transferCosts: calculateTotalTransferCosts() || "R0",
-                          },
-                          input: {
-                            propertyValue: formatCurrency(loanDetails.propertyValue),
-                            deposit: formatCurrency(loanDetails.deposit),
-                            interestRate: `${loanDetails.interestRate}%`,
-                            loanTerm: `${loanDetails.loanTerm} years`,
-                            includeBondFees: form.watch("includeBondFees"),
-                          }
-                        };
-                        
-                        // Send email with results
-                        if (user) {
-                          apiRequest("/api/email-results", {
-                            method: "POST",
-                            body: JSON.stringify({
-                              calculationType: "bond",
-                              calculationData: fullResults,
-                            })
-                          });
-                        } else {
-                          // Show sign-in prompt for non-logged-in users
-                          window.location.href = "/auth?redirect=calculators";
+                  {loanDetails && (
+                    <EmailCalculationButton
+                      result={{
+                        type: "bond",
+                        displayResults: [
+                          { label: "Monthly Repayment", value: calculateMonthlyPayment() },
+                          { label: "Total Repayment", value: calculateTotalRepayment() },
+                          { label: "Total Interest", value: calculateTotalInterest() },
+                          { label: "Transfer & Registration Costs", value: calculateTotalTransferCosts() || "R0" },
+                        ],
+                        input: {
+                          propertyValue: formatCurrency(loanDetails.propertyValue),
+                          deposit: formatCurrency(loanDetails.deposit),
+                          interestRate: `${loanDetails.interestRate}%`,
+                          loanTerm: `${loanDetails.loanTerm} years`,
+                          includeBondFees: form.watch("includeBondFees"),
                         }
-                      }
-                    }}
-                    className="flex items-center justify-center space-x-1 py-1 px-3 text-sm bg-white border rounded hover:bg-gray-50"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="4" width="20" height="16" rx="2" />
-                      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                    </svg>
-                    <span>Email Results</span>
-                  </button>
+                      }}
+                      size="sm"
+                      variant="outline"
+                      className="text-sm"
+                    />
+                  )}
                   
                   <button 
                     onClick={() => {
