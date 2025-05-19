@@ -50,7 +50,7 @@ export default function Navbar() {
             <div className="flex-shrink-0 flex items-center">
               <Link href="/">
                 <span className="text-primary font-bold text-2xl cursor-pointer">
-                  HomeBond<span className="text-secondary-700">SA</span>
+                  Wise Bond
                 </span>
               </Link>
             </div>

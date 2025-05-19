@@ -326,8 +326,8 @@ function formatVerificationEmailHtml(data: VerificationEmailData, variation: 1 |
           </div>
           
           <div style="text-align: center; color: #666666; font-size: 12px; margin-top: 30px;">
-            <p>If you didn't create an account with WiseBond, please disregard this email.</p>
-            <p>&copy; ${new Date().getFullYear()} WiseBond. All rights reserved.</p>
+            <p>If you didn't create an account with Wise Bond, please disregard this email.</p>
+            <p>&copy; ${new Date().getFullYear()} Wise Bond (Pty) Ltd. Registration No: 2025/291726/07. All rights reserved.</p>
             <p>
               <a href="https://wisebond.co.za/privacy" style="color: #1a3d6c; text-decoration: none;">Privacy Policy</a> | 
               <a href="https://wisebond.co.za/terms" style="color: #1a3d6c; text-decoration: none;">Terms of Service</a>
