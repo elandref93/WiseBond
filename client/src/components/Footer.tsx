@@ -12,7 +12,7 @@ export default function Footer() {
           <div className="space-y-8 xl:col-span-1">
             <Link href="/">
               <span className="text-primary font-bold text-2xl cursor-pointer">
-                WiseBond
+                Wise Bond
               </span>
             </Link>
             <p className="text-gray-500 text-base">
@@ -195,8 +195,8 @@ export default function Footer() {
         </div>
         <div className="mt-12 border-t border-gray-200 pt-8">
           <p className="text-base text-gray-400 xl:text-center">
-            &copy; {new Date().getFullYear()} WiseBond. All rights reserved.
-            WiseBond is a registered Financial Service Provider (FSP12345).
+            &copy; {new Date().getFullYear()} Wise Bond (Pty) Ltd. All rights reserved.
+            Registration No: 2025/291726/07. Wise Bond is a registered Financial Service Provider (FSP12345).
           </p>
         </div>
       </div>

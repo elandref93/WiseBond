@@ -86,7 +86,7 @@ export function FinancialTermsHighlighter({
   return (
     <span className={className}>
       {parts.map((part, i) => (
-        <React.Fragment key={i}>{part}</React.Fragment>
+        <React.Fragment key={i.toString()}>{part}</React.Fragment>
       ))}
     </span>
   );
