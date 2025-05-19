@@ -100,7 +100,7 @@ export default function BankingPartners() {
               </h2>
               <div className="prose prose-lg text-gray-500">
                 <p>
-                  WiseBond works with all the major banks to get you the best possible interest rate on your home loan. 
+                  Wise Bond (Pty) Ltd works with all the major banks to get you the best possible interest rate on your home loan. 
                   Whether you're looking for a Standard Bank, FNB, Absa, Nedbank, Investec, RMB, Sentinal Homes or HIP 
                   home loan, we can help you.
                 </p>
@@ -110,7 +110,7 @@ export default function BankingPartners() {
                   to know how much you can afford, use our online bond repayment calculator to find out your home loan affordability.
                 </p>
                 <p>
-                  We also offer a free, home loan pre-approval which provides an accurate indication of what the banks 
+                  Wise Bond (Pty) Ltd also offers a free, home loan pre-approval which provides an accurate indication of what the banks 
                   could offer you based on your credit score, income and expenses. Our pre-approval certificate also 
                   gives you an indication of bond and transfer costs, and transfer duty payable (if applicable). 
                   It's valid for three months and tells sellers and agents you're a serious buyer.

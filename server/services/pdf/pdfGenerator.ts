@@ -1127,7 +1127,7 @@ function _createDynamicAdditionalPaymentTemplate(): string {
   <div style="max-width: 800px; margin: 0 auto; padding: 10px;">
     <div style="padding: 5px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
       <div style="line-height: 1.1;">
-        <div style="font-size: 18px; font-weight: bold; color: hsl(26, 79%, 51%);">WiseBond</div>
+        <div style="font-size: 18px; font-weight: bold; color: hsl(26, 79%, 51%);">Wise Bond</div>
         <div style="color: #6c757d; font-size: 11px;">Bond Origination Specialists</div>
       </div>
       <div style="text-align: right; line-height: 1.1;">
