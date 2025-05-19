@@ -25,17 +25,17 @@ export default function FAQSection() {
     {
       question: "Will applying to multiple banks through WiseBond affect my credit score?",
       answer:
-        "No. When you apply through WiseBond, the banks recognize this as a home loan comparison rather than multiple separate applications. Credit bureaus typically count multiple home loan inquiries within a short period as a single inquiry, minimizing the impact on your credit score.",
+        "No. When you apply through Wise Bond, the banks recognize this as a home loan comparison rather than multiple separate applications. Credit bureaus typically count multiple home loan inquiries within a short period as a single inquiry, minimizing the impact on your credit score.",
     },
     {
-      question: "How much does it cost to use WiseBond?",
+      question: "How much does it cost to use Wise Bond?",
       answer:
         "Our service is completely free to you as the home buyer. We are paid a commission by the bank when your home loan is successfully approved. This commission does not affect your interest rate or loan terms in any way.",
     },
     {
       question: "What happens after the banks respond to my application?",
       answer:
-        "Once the banks respond, your dedicated WiseBond consultant will compile all offers and present them to you in a clear, comparable format. We'll explain the differences in interest rates, terms, and conditions. You can then select the offer that best suits your needs, and we'll help finalize the application with your chosen bank.",
+        "Once the banks respond, your dedicated Wise Bond consultant will compile all offers and present them to you in a clear, comparable format. We'll explain the differences in interest rates, terms, and conditions. You can then select the offer that best suits your needs, and we'll help finalize the application with your chosen bank.",
     },
   ];
 

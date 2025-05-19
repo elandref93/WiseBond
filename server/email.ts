@@ -488,7 +488,7 @@ function formatWelcomeEmailHtml(data: WelcomeEmailData, variation: 1 | 2): strin
           </div>
           
           <div style="margin-bottom: 30px;">
-            <h2 style="color: #1a3d6c; border-bottom: 2px solid #1a3d6c; padding-bottom: 10px;">Discover WiseBond Tools</h2>
+            <h2 style="color: #1a3d6c; border-bottom: 2px solid #1a3d6c; padding-bottom: 10px;">Discover Wise Bond Tools</h2>
             
             <div style="display: flex; margin-bottom: 20px;">
               <div style="background-color: #f0f7ff; border-radius: 8px; padding: 20px; margin-right: 10px; flex: 1;">
@@ -665,7 +665,7 @@ function formatPasswordResetEmailHtml(data: PasswordResetEmailData, variation: 1
           <div style="background-color: #f7f7f7; border-radius: 8px; padding: 30px; margin-bottom: 20px; border: 1px solid #eeeeee;">
             <h1 style="color: #1a3d6c; margin-top: 0; text-align: center;">Password Reset Request</h1>
             <p>Hi ${data.firstName},</p>
-            <p>We received a request to reset the password for your WiseBond account. To proceed with this request, please click the button below:</p>
+            <p>We received a request to reset the password for your Wise Bond account. To proceed with this request, please click the button below:</p>
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="${data.resetUrl}" style="display: inline-block; background-color: #1a3d6c; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">
@@ -681,7 +681,7 @@ function formatPasswordResetEmailHtml(data: PasswordResetEmailData, variation: 1
             <ul>
               <li>Create a strong password that includes uppercase and lowercase letters, numbers, and special characters</li>
               <li>Never share your password with anyone</li>
-              <li>Use a unique password for your WiseBond account</li>
+              <li>Use a unique password for your Wise Bond account</li>
             </ul>
           </div>
           
