@@ -37,12 +37,12 @@ interface PdfGenerationOptions {
 
 // Default options
 const defaultOptions: PdfGenerationOptions = {
-  title: 'WiseBond Report',
+  title: 'Wise Bond (Pty) Ltd Report',
   includeDate: true,
   includeTimestamp: false,
   orientation: 'portrait',
   footerTemplate: '<div style="width: 100%; font-size: 8px; text-align: center; color: #999; padding: 10px;">' +
-                  '<span>WiseBond | www.wisebond.co.za | Generated on {{date}}</span>' +
+                  '<span>Wise Bond (Pty) Ltd | Reg No: 2025/291726/07 | www.wisebond.co.za | Generated on {{date}}</span>' +
                   '<span style="float: right;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>' +
                   '</div>'
 };
@@ -405,7 +405,7 @@ function createDynamicBondRepaymentTemplate(): string {
   <div style="max-width: 800px; margin: 0 auto; padding: 8px;">
     <div style="padding: 3px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
       <div style="line-height: 1.1;">
-        <div style="font-size: 16px; font-weight: bold; color: hsl(26, 79%, 51%);">WiseBond</div>
+        <div style="font-size: 16px; font-weight: bold; color: hsl(26, 79%, 51%);">Wise Bond</div>
         <div style="color: #6c757d; font-size: 10px;">Bond Origination Specialists</div>
       </div>
       <div style="text-align: right; line-height: 1.1;">
