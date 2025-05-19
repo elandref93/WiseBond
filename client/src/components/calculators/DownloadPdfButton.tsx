@@ -33,7 +33,7 @@ export default function DownloadPdfButton({
           description: "Please log in to download PDF reports. Your calculation data will be saved.",
           variant: "default",
         });
-        window.location.href = "/auth?redirect=calculators";
+        window.location.href = "/login?redirect=calculators";
         return;
       }
       
@@ -66,7 +66,7 @@ export default function DownloadPdfButton({
           description: "Your session has expired. Please log in again to download PDFs.",
           variant: "destructive",
         });
-        window.location.href = "/auth?redirect=calculators";
+        window.location.href = "/login?redirect=calculators";
         return;
       }
       

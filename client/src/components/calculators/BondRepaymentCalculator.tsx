@@ -649,7 +649,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                         });
                       } else {
                         // Show sign-in prompt for non-logged-in users
-                        window.location.href = "/auth?redirect=calculators";
+                        window.location.href = "/login?redirect=calculators";
                       }
                     }}
                     className="flex items-center justify-center space-x-1 py-1 px-3 text-sm bg-white border rounded hover:bg-gray-50"
