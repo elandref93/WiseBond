@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import {
-  AreaChart,
+  ComposedChart,
   Area,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -37,11 +38,7 @@ export default function AmortizationChart({
     const generateChartData = () => {
       const amortizationData = generateAmortizationData(loanAmount, interestRate, loanTerm);
       
-      // Debug: Check if balance is actually decreasing
-      console.log('Balance check - first 6 years:');
-      amortizationData.slice(0, 7).forEach(year => {
-        console.log(`Year ${year.year}: Balance R${Math.round(year.balance).toLocaleString()}`);
-      });
+
       
       // Format data for the chart
       return amortizationData.map(yearData => ({
@@ -83,7 +80,7 @@ export default function AmortizationChart({
   return (
     <div className="w-full h-full">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart
+        <ComposedChart
           data={chartData}
           margin={{
             top: 10,
@@ -123,15 +120,16 @@ export default function AmortizationChart({
             fill="#86efac"
             name="Interest Paid"
           />
-          <Area
+          <Line
             type="monotone"
             dataKey="balance"
-            stackId="2"
             stroke="#eab308"
-            fill="#fef08a"
+            strokeWidth={3}
+            strokeDasharray="5 5"
+            dot={false}
             name="Remaining Balance"
           />
-        </AreaChart>
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );
