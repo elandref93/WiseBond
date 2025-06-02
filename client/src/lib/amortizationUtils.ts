@@ -43,9 +43,6 @@ export function generateAmortizationData(
   const monthlyRate = interestRate / 100 / 12;
   const monthlyPayment = calculateMonthlyPayment(loanAmount, interestRate, loanTerm);
   
-  console.log(`=== CALCULATION DEBUG ===`);
-  console.log(`Loan: ${loanAmount}, Rate: ${interestRate}%, Monthly Payment: ${monthlyPayment.toFixed(2)}`);
-
   // Start with the original loan amount
   let currentBalance = loanAmount;
   let cumulativeInterest = 0;
@@ -98,11 +95,6 @@ export function generateAmortizationData(
     // Update cumulative totals
     cumulativeInterest += yearlyInterest;
     cumulativePrincipal += yearlyPrincipal;
-
-    // Log debug info for problematic years
-    if (year <= 6) {
-      console.log(`Year ${year}: Balance ${currentBalance.toFixed(2)}, Principal ${yearlyPrincipal.toFixed(2)}, Interest ${yearlyInterest.toFixed(2)}`);
-    }
 
     // Add year data
     data.push({
