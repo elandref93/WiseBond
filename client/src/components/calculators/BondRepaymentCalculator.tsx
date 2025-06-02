@@ -289,15 +289,22 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
       let yearInterest = 0;
       let yearPrincipal = 0;
       
-      for (let month = 1; month <= 12; month++) {
-        if ((year - 1) * 12 + month <= loanDetails.loanTerm * 12) {
-          const interestPayment = balance * monthlyRate;
-          const principalPayment = monthlyPayment - interestPayment;
-          
-          yearInterest += interestPayment;
-          yearPrincipal += principalPayment;
-          balance -= principalPayment;
-        }
+      const startMonth = (year - 1) * 12 + 1;
+      const endMonth = Math.min(year * 12, loanDetails.loanTerm * 12);
+      
+      for (let monthNumber = startMonth; monthNumber <= endMonth; monthNumber++) {
+        // Break if we've reached the end of the loan term
+        if (balance <= 0.01) break;
+        
+        const interestPayment = balance * monthlyRate;
+        const principalPayment = Math.min(monthlyPayment - interestPayment, balance);
+        
+        yearInterest += interestPayment;
+        yearPrincipal += principalPayment;
+        balance -= principalPayment;
+        
+        // Prevent negative balance from floating point errors
+        if (balance < 0.01) balance = 0;
       }
       
       totalInterestPaid += yearInterest;

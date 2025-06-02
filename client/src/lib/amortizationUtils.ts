@@ -66,18 +66,22 @@ export function generateAmortizationData(
     let yearlyInterest = 0;
 
     // Calculate monthly payments for the year
-    for (let month = 1; month <= 12; month++) {
-      if ((year - 1) * 12 + month <= loanTerm * 12) {
-        const monthlyInterest = remainingBalance * (interestRate / 100 / 12);
-        const monthlyPrincipal = monthlyPayment - monthlyInterest;
+    const startMonth = (year - 1) * 12 + 1;
+    const endMonth = Math.min(year * 12, loanTerm * 12);
+    
+    for (let monthNumber = startMonth; monthNumber <= endMonth; monthNumber++) {
+      // Break if we've reached the end of the loan term
+      if (remainingBalance <= 0.01) break;
+      
+      const monthlyInterest = remainingBalance * (interestRate / 100 / 12);
+      const monthlyPrincipal = Math.min(monthlyPayment - monthlyInterest, remainingBalance);
 
-        yearlyInterest += monthlyInterest;
-        yearlyPrincipal += monthlyPrincipal;
-        remainingBalance -= monthlyPrincipal;
+      yearlyInterest += monthlyInterest;
+      yearlyPrincipal += monthlyPrincipal;
+      remainingBalance -= monthlyPrincipal;
 
-        // Prevent negative balance from floating point errors
-        if (remainingBalance < 0.01) remainingBalance = 0;
-      }
+      // Prevent negative balance from floating point errors
+      if (remainingBalance < 0.01) remainingBalance = 0;
     }
 
     cumulativeInterest += yearlyInterest;
