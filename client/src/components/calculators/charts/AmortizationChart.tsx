@@ -38,15 +38,27 @@ export default function AmortizationChart({
     const generateChartData = () => {
       const amortizationData = generateAmortizationData(loanAmount, interestRate, loanTerm);
       
-
+      // Debug: Check what data is being passed to the chart
+      console.log('=== CHART DATA DEBUG ===');
+      console.log(`First 8 years of amortization data:`);
+      amortizationData.slice(0, 9).forEach(year => {
+        console.log(`Year ${year.year}: Raw Balance = ${year.balance.toFixed(2)}, Cumulative Principal = ${(year.cumulativePrincipal || 0).toFixed(2)}`);
+      });
       
       // Format data for the chart
-      return amortizationData.map(yearData => ({
+      const chartData = amortizationData.map(yearData => ({
         name: yearData.year === 0 ? "Start" : `Year ${yearData.year}`,
         principal: yearData.cumulativePrincipal || 0,
         interest: yearData.cumulativeInterest || 0,
         balance: yearData.balance,
       }));
+      
+      console.log('Chart formatted data (first 8):');
+      chartData.slice(0, 9).forEach(item => {
+        console.log(`${item.name}: Balance = ${item.balance.toFixed(2)}`);
+      });
+      
+      return chartData;
     };
 
     setChartData(generateChartData());
