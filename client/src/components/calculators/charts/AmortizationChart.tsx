@@ -37,6 +37,12 @@ export default function AmortizationChart({
     const generateChartData = () => {
       const amortizationData = generateAmortizationData(loanAmount, interestRate, loanTerm);
       
+      // Debug: Log balance progression to verify calculations
+      console.log('Balance progression check:');
+      amortizationData.slice(0, 16).forEach(year => {
+        console.log(`Year ${year.year}: Balance ${Math.round(year.balance).toLocaleString()}`);
+      });
+      
       // Format data for the chart
       return amortizationData.map(yearData => ({
         name: yearData.year === 0 ? "Start" : `Year ${yearData.year}`,
@@ -120,6 +126,7 @@ export default function AmortizationChart({
           <Area
             type="monotone"
             dataKey="balance"
+            stackId="2"
             stroke="#eab308"
             fill="#fef08a"
             name="Remaining Balance"
