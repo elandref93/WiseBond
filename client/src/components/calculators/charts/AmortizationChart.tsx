@@ -39,10 +39,28 @@ export default function AmortizationChart({
       const amortizationData = generateAmortizationData(loanAmount, interestRate, loanTerm);
       
       // Debug: Check what data is being passed to the chart
-      console.log('=== CHART DATA DEBUG ===');
-      console.log(`First 8 years of amortization data:`);
-      amortizationData.slice(0, 9).forEach(year => {
-        console.log(`Year ${year.year}: Raw Balance = ${year.balance.toFixed(2)}, Cumulative Principal = ${(year.cumulativePrincipal || 0).toFixed(2)}`);
+      console.log('=== CHART COMPONENT DEBUG ===');
+      console.log(`Chart Props: Loan=${loanAmount}, Rate=${interestRate}%, Term=${loanTerm} years`);
+      
+      // Compare the calculation directly
+      console.log('Direct calculation check for Year 4:');
+      const monthlyRate = interestRate / 100 / 12;
+      const monthlyPayment = (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, loanTerm * 12)) / (Math.pow(1 + monthlyRate, loanTerm * 12) - 1);
+      console.log(`Monthly Payment: ${monthlyPayment.toFixed(2)}`);
+      
+      let testBalance = loanAmount;
+      for (let year = 1; year <= 5; year++) {
+        for (let month = 1; month <= 12; month++) {
+          const monthlyInterest = testBalance * monthlyRate;
+          const monthlyPrincipal = monthlyPayment - monthlyInterest;
+          testBalance -= monthlyPrincipal;
+        }
+        console.log(`Direct calc Year ${year}: Balance = ${testBalance.toFixed(2)}`);
+      }
+      
+      console.log('Amortization function result:');
+      amortizationData.slice(0, 6).forEach(year => {
+        console.log(`Year ${year.year}: Balance = ${year.balance.toFixed(2)}`);
       });
       
       // Format data for the chart
@@ -52,11 +70,6 @@ export default function AmortizationChart({
         interest: yearData.cumulativeInterest || 0,
         balance: yearData.balance,
       }));
-      
-      console.log('Chart formatted data (first 8):');
-      chartData.slice(0, 9).forEach(item => {
-        console.log(`${item.name}: Balance = ${item.balance.toFixed(2)}`);
-      });
       
       return chartData;
     };
