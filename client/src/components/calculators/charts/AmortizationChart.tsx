@@ -37,7 +37,11 @@ export default function AmortizationChart({
     const generateChartData = () => {
       const amortizationData = generateAmortizationData(loanAmount, interestRate, loanTerm);
       
-
+      // Debug: Check if balance is actually decreasing
+      console.log('Balance check - first 6 years:');
+      amortizationData.slice(0, 7).forEach(year => {
+        console.log(`Year ${year.year}: Balance R${Math.round(year.balance).toLocaleString()}`);
+      });
       
       // Format data for the chart
       return amortizationData.map(yearData => ({
