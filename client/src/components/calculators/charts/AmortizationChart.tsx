@@ -37,10 +37,11 @@ export default function AmortizationChart({
     const generateChartData = () => {
       const amortizationData = generateAmortizationData(loanAmount, interestRate, loanTerm);
       
-      // Debug: Log balance progression to verify calculations
-      console.log('Balance progression check:');
-      amortizationData.slice(0, 16).forEach(year => {
-        console.log(`Year ${year.year}: Balance ${Math.round(year.balance).toLocaleString()}`);
+      // Debug: Log detailed balance progression to identify the bug
+      console.log('=== DETAILED AMORTIZATION DEBUG ===');
+      console.log(`Loan: ${loanAmount.toLocaleString()}, Rate: ${interestRate}%, Term: ${loanTerm} years`);
+      amortizationData.slice(0, 8).forEach(year => {
+        console.log(`Year ${year.year}: Balance ${Math.round(year.balance).toLocaleString()}, Principal ${Math.round(year.principal).toLocaleString()}, Interest ${Math.round(year.interest).toLocaleString()}`);
       });
       
       // Format data for the chart

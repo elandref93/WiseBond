@@ -32,7 +32,7 @@ export function calculateMonthlyPayment(
 
 /**
  * Generate yearly amortization data for charts and tables
- * Uses month-by-month calculation for accuracy
+ * Calculates month by month, ensuring balance only decreases
  */
 export function generateAmortizationData(
   loanAmount: number,
@@ -41,11 +41,13 @@ export function generateAmortizationData(
 ): YearlyData[] {
   const data: YearlyData[] = [];
   const monthlyRate = interestRate / 100 / 12;
-  const totalMonths = loanTerm * 12;
   const monthlyPayment = calculateMonthlyPayment(loanAmount, interestRate, loanTerm);
+  
+  console.log(`=== CALCULATION DEBUG ===`);
+  console.log(`Loan: ${loanAmount}, Rate: ${interestRate}%, Monthly Payment: ${monthlyPayment.toFixed(2)}`);
 
-  // Calculate month-by-month, then aggregate to yearly
-  let remainingBalance = loanAmount;
+  // Start with the original loan amount
+  let currentBalance = loanAmount;
   let cumulativeInterest = 0;
   let cumulativePrincipal = 0;
 
@@ -59,40 +61,37 @@ export function generateAmortizationData(
     cumulativeInterest: 0
   });
 
-  // Calculate each year
+  // Process each year
   for (let year = 1; year <= loanTerm; year++) {
     let yearlyPrincipal = 0;
     let yearlyInterest = 0;
     
-    // Calculate 12 months for this year
+    // Process 12 months for this year
     for (let month = 1; month <= 12; month++) {
-      const currentMonth = (year - 1) * 12 + month;
+      // If balance is already zero, no more payments needed
+      if (currentBalance <= 0) break;
       
-      // Stop if we've exceeded the loan term
-      if (currentMonth > totalMonths) break;
+      // Calculate monthly interest on current balance
+      const monthlyInterest = currentBalance * monthlyRate;
       
-      // Stop if balance is already paid off
-      if (remainingBalance <= 0.01) break;
-      
-      // Calculate this month's interest and principal
-      const monthlyInterest = remainingBalance * monthlyRate;
+      // Calculate monthly principal payment
       let monthlyPrincipal = monthlyPayment - monthlyInterest;
       
-      // Ensure we don't pay more principal than remaining balance
-      if (monthlyPrincipal > remainingBalance) {
-        monthlyPrincipal = remainingBalance;
+      // If monthly principal would exceed remaining balance, adjust it
+      if (monthlyPrincipal > currentBalance) {
+        monthlyPrincipal = currentBalance;
       }
       
-      // Update yearly totals
+      // Add to yearly totals
       yearlyInterest += monthlyInterest;
       yearlyPrincipal += monthlyPrincipal;
       
-      // Update remaining balance
-      remainingBalance -= monthlyPrincipal;
+      // Reduce the balance by the principal payment
+      currentBalance -= monthlyPrincipal;
       
-      // Prevent negative balance from floating point errors
-      if (remainingBalance < 0.01) {
-        remainingBalance = 0;
+      // Ensure balance doesn't go negative due to floating point errors
+      if (currentBalance < 0.01) {
+        currentBalance = 0;
       }
     }
 
@@ -100,18 +99,23 @@ export function generateAmortizationData(
     cumulativeInterest += yearlyInterest;
     cumulativePrincipal += yearlyPrincipal;
 
+    // Log debug info for problematic years
+    if (year <= 6) {
+      console.log(`Year ${year}: Balance ${currentBalance.toFixed(2)}, Principal ${yearlyPrincipal.toFixed(2)}, Interest ${yearlyInterest.toFixed(2)}`);
+    }
+
     // Add year data
     data.push({
       year,
       principal: yearlyPrincipal,
       interest: yearlyInterest,
-      balance: remainingBalance,
+      balance: currentBalance,
       cumulativePrincipal,
       cumulativeInterest
     });
 
-    // Stop if loan is paid off
-    if (remainingBalance <= 0.01) break;
+    // Stop if loan is fully paid off
+    if (currentBalance <= 0) break;
   }
 
   return data;
