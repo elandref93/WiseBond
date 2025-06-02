@@ -32,7 +32,7 @@ export function calculateMonthlyPayment(
 
 /**
  * Generate yearly amortization data for charts and tables
- * Follows the same logic used in AmortizationChart component
+ * Uses month-by-month calculation for accuracy
  */
 export function generateAmortizationData(
   loanAmount: number,
@@ -40,61 +40,78 @@ export function generateAmortizationData(
   loanTerm: number
 ): YearlyData[] {
   const data: YearlyData[] = [];
+  const monthlyRate = interestRate / 100 / 12;
+  const totalMonths = loanTerm * 12;
+  const monthlyPayment = calculateMonthlyPayment(loanAmount, interestRate, loanTerm);
+
+  // Calculate month-by-month, then aggregate to yearly
   let remainingBalance = loanAmount;
   let cumulativeInterest = 0;
   let cumulativePrincipal = 0;
 
-  const monthlyPayment = calculateMonthlyPayment(loanAmount, interestRate, loanTerm);
+  // Add year 0 starting point
+  data.push({
+    year: 0,
+    principal: 0,
+    interest: 0,
+    balance: loanAmount,
+    cumulativePrincipal: 0,
+    cumulativeInterest: 0
+  });
 
-  // Calculate yearly data
-  // Include year 0 for charts on the website
-  for (let year = 0; year <= loanTerm; year++) {
-    if (year === 0) {
-      // Starting point
-      data.push({
-        year,
-        principal: 0,
-        interest: 0,
-        balance: loanAmount,
-        cumulativePrincipal: 0,
-        cumulativeInterest: 0
-      });
-      continue;
-    }
-
+  // Calculate each year
+  for (let year = 1; year <= loanTerm; year++) {
     let yearlyPrincipal = 0;
     let yearlyInterest = 0;
-
-    // Calculate monthly payments for the year
-    const startMonth = (year - 1) * 12 + 1;
-    const endMonth = Math.min(year * 12, loanTerm * 12);
     
-    for (let monthNumber = startMonth; monthNumber <= endMonth; monthNumber++) {
-      // Break if we've reached the end of the loan term
+    // Calculate 12 months for this year
+    for (let month = 1; month <= 12; month++) {
+      const currentMonth = (year - 1) * 12 + month;
+      
+      // Stop if we've exceeded the loan term
+      if (currentMonth > totalMonths) break;
+      
+      // Stop if balance is already paid off
       if (remainingBalance <= 0.01) break;
       
-      const monthlyInterest = remainingBalance * (interestRate / 100 / 12);
-      const monthlyPrincipal = Math.min(monthlyPayment - monthlyInterest, remainingBalance);
-
+      // Calculate this month's interest and principal
+      const monthlyInterest = remainingBalance * monthlyRate;
+      let monthlyPrincipal = monthlyPayment - monthlyInterest;
+      
+      // Ensure we don't pay more principal than remaining balance
+      if (monthlyPrincipal > remainingBalance) {
+        monthlyPrincipal = remainingBalance;
+      }
+      
+      // Update yearly totals
       yearlyInterest += monthlyInterest;
       yearlyPrincipal += monthlyPrincipal;
+      
+      // Update remaining balance
       remainingBalance -= monthlyPrincipal;
-
+      
       // Prevent negative balance from floating point errors
-      if (remainingBalance < 0.01) remainingBalance = 0;
+      if (remainingBalance < 0.01) {
+        remainingBalance = 0;
+      }
     }
 
+    // Update cumulative totals
     cumulativeInterest += yearlyInterest;
     cumulativePrincipal += yearlyPrincipal;
 
+    // Add year data
     data.push({
       year,
       principal: yearlyPrincipal,
       interest: yearlyInterest,
-      balance: Math.max(0, remainingBalance),
+      balance: remainingBalance,
       cumulativePrincipal,
       cumulativeInterest
     });
+
+    // Stop if loan is paid off
+    if (remainingBalance <= 0.01) break;
   }
 
   return data;

@@ -17,6 +17,7 @@ import {
   displayCurrencyValue,
   type CalculationResult 
 } from "@/lib/calculators";
+import { generateAmortizationData } from "@/lib/amortizationUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -272,52 +273,37 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     return transferDuty + transferAttorneyFees + bondRegistrationFee + deedsOfficeFee;
   };
 
-  // Generate yearly amortization data for table
+  // Generate yearly amortization data for table using shared utility
   const generateYearlyData = () => {
     if (!loanDetails) return [];
     
+    // Use the shared amortization utility for consistency
+    const amortizationData = generateAmortizationData(
+      loanDetails.loanAmount,
+      loanDetails.interestRate,
+      loanDetails.loanTerm
+    );
+    
+    // Convert to the format expected by the table (limit to 7 years)
     const yearlyData = [];
-    let balance = loanDetails.loanAmount;
     let totalInterestPaid = 0;
     let totalPrincipalPaid = 0;
     
-    const monthlyRate = loanDetails.interestRate / 100 / 12;
-    const monthlyPayment = (loanDetails.loanAmount * Math.pow(1 + monthlyRate, loanDetails.loanTerm * 12) * 
-      monthlyRate) / (Math.pow(1 + monthlyRate, loanDetails.loanTerm * 12) - 1);
-    
-    for (let year = 1; year <= Math.min(7, loanDetails.loanTerm); year++) {
-      let yearInterest = 0;
-      let yearPrincipal = 0;
-      
-      const startMonth = (year - 1) * 12 + 1;
-      const endMonth = Math.min(year * 12, loanDetails.loanTerm * 12);
-      
-      for (let monthNumber = startMonth; monthNumber <= endMonth; monthNumber++) {
-        // Break if we've reached the end of the loan term
-        if (balance <= 0.01) break;
+    for (let i = 1; i <= Math.min(7, loanDetails.loanTerm); i++) {
+      const yearData = amortizationData.find(data => data.year === i);
+      if (yearData) {
+        totalInterestPaid += yearData.interest;
+        totalPrincipalPaid += yearData.principal;
         
-        const interestPayment = balance * monthlyRate;
-        const principalPayment = Math.min(monthlyPayment - interestPayment, balance);
-        
-        yearInterest += interestPayment;
-        yearPrincipal += principalPayment;
-        balance -= principalPayment;
-        
-        // Prevent negative balance from floating point errors
-        if (balance < 0.01) balance = 0;
+        yearlyData.push({
+          year: yearData.year,
+          yearlyInterest: yearData.interest,
+          yearlyPrincipal: yearData.principal,
+          balance: yearData.balance,
+          totalInterestPaid,
+          totalPrincipalPaid,
+        });
       }
-      
-      totalInterestPaid += yearInterest;
-      totalPrincipalPaid += yearPrincipal;
-      
-      yearlyData.push({
-        year,
-        yearlyInterest: yearInterest,
-        yearlyPrincipal: yearPrincipal,
-        balance: Math.max(0, balance),
-        totalInterestPaid,
-        totalPrincipalPaid,
-      });
     }
     
     return yearlyData;
