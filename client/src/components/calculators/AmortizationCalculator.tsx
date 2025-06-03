@@ -64,9 +64,9 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
       // Create amortization schedule
       let remainingPrincipal = loanAmount;
       
-      // Calculate values for specific years to display
+      // Calculate values for all years to display
       const yearlyData = [];
-      const yearsToShow = [1, 5, 10, 15, 20, 25, 30].filter(year => year <= loanTermYears);
+      const yearsToShow = Array.from({length: loanTermYears}, (_, i) => i + 1);
       
       let totalInterestPaid = 0;
       let interestPaidByYear: Record<number, number> = {};
