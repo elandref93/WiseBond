@@ -277,7 +277,21 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
                 <FormItem>
                   <FormLabel>Loan Term (Years)</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="e.g., 20" />
+                    <Input 
+                      {...field} 
+                      type="number"
+                      min="1"
+                      max="30"
+                      placeholder="e.g., 20" 
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value);
+                        if (value > 30) {
+                          field.onChange("30");
+                        } else {
+                          field.onChange(e.target.value);
+                        }
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
