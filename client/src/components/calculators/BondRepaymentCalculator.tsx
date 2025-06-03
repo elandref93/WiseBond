@@ -36,9 +36,7 @@ const formSchema = z.object({
     message: "Interest rate must be between 0 and 100",
   }),
   loanTerm: z.string(),
-  deposit: z.string().refine((val) => !isNaN(Number(val.replace(/[^0-9]/g, ""))), {
-    message: "Deposit must be a number",
-  }),
+  deposit: z.string().optional().default("0"),
   includeBondFees: z.boolean().default(false),
 });
 
@@ -187,24 +185,19 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   };
 
   // For deposit slider
-  const handleDepositSliderChange = (value: number[]) => {
-    form.setValue("deposit", value[0].toString(), { shouldValidate: true });
-  };
+
 
   // For interest rate slider
   const handleInterestRateSliderChange = (value: number[]) => {
     form.setValue("interestRate", value[0].toFixed(2), { shouldValidate: true });
   };
 
-  // Get current property value and deposit for sliders
+  // Get current property value for sliders (no deposit needed)
   const currentPropertyValue = parseCurrency(form.watch("propertyValue")) || 1000000;
-  const currentDeposit = parseCurrency(form.watch("deposit")) || 100000;
   const currentInterestRate = Number(form.watch("interestRate")) || 11.25;
 
   // For rendering displayed values with currency formatting
   const displayPropertyValue = displayCurrencyValue(currentPropertyValue);
-  const displayDeposit = displayCurrencyValue(currentDeposit);
-  const displayMaxDeposit = displayCurrencyValue(Math.min(5000000, currentPropertyValue * 0.5));
 
   // Calculate monthly payment - no monthly admin fee
   const calculateMonthlyPayment = () => {
@@ -269,8 +262,8 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     const includeBondFees = form.watch("includeBondFees");
     if (!loanDetails || !includeBondFees) return 0;
     
-    // Use base loan amount for calculation
-    const baseLoanAmount = loanDetails.propertyValue - loanDetails.deposit;
+    // For Bond Repayment Calculator, use full property value as base loan amount
+    const baseLoanAmount = loanDetails.propertyValue;
     
     const transferDuty = Math.round(baseLoanAmount * 0.08);
     const transferAttorneyFees = Math.round(baseLoanAmount * 0.015);
