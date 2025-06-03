@@ -102,7 +102,7 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
       
       // Create data for the selected years to show
       for (const year of yearsToShow) {
-        yearlyData.push({
+        const yearData = {
           year,
           interestPaid: interestPaidByYear[year],
           principalPaid: principalPaidByYear[year],
@@ -114,7 +114,17 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
           principalToDate: Object.keys(principalPaidByYear)
             .filter(y => parseInt(y) <= year)
             .reduce((sum, y) => sum + principalPaidByYear[parseInt(y)], 0),
-        });
+        };
+        
+        if (year <= 5) {
+          console.log(`Chart Data Year ${year}:`, {
+            remainingPrincipal: yearData.remainingPrincipal.toFixed(2),
+            principalPaid: yearData.principalPaid.toFixed(2),
+            interestPaid: yearData.interestPaid.toFixed(2)
+          });
+        }
+        
+        yearlyData.push(yearData);
       }
       
       // Total payments
