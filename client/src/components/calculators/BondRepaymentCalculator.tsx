@@ -115,6 +115,14 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         }
         
         // Store loan details for chart
+        console.log('=== LOAN DETAILS BEING SET ===');
+        console.log(`Property Value: R${propertyValue.toLocaleString()}`);
+        console.log(`Deposit: R${deposit.toLocaleString()}`);
+        console.log(`Calculated Loan Amount: R${loanAmount.toLocaleString()}`);
+        console.log(`Interest Rate: ${interestRate}%`);
+        console.log(`Loan Term: ${loanTerm} years`);
+        console.log(`Bond Fees Included: ${formValues.includeBondFees}`);
+        
         setLoanDetails({
           loanAmount: loanAmount,
           interestRate,
