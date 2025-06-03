@@ -50,6 +50,10 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
       const loanTermYears = parseFloat(values.loanTerm);
       const loanTermMonths = loanTermYears * 12;
       
+      console.log('=== AMORTIZATION CALCULATOR DEBUG ===');
+      console.log(`Input Values: Loan=${values.loanAmount}, Rate=${values.interestRate}%, Term=${values.loanTerm} years`);
+      console.log(`Parsed Values: Loan=${loanAmount}, Rate=${interestRate * 100}%, Term=${loanTermYears} years`);
+      
       // Calculate monthly payment
       const monthlyRate = interestRate / 12;
       const monthlyPayment = (loanAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -loanTermMonths));
