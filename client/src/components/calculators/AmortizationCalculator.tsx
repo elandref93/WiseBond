@@ -58,6 +58,9 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
       const monthlyRate = interestRate / 12;
       const monthlyPayment = (loanAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -loanTermMonths));
       
+      console.log(`Monthly Rate: ${(monthlyRate * 100).toFixed(4)}%`);
+      console.log(`Monthly Payment: R${monthlyPayment.toFixed(2)}`);
+      
       // Create amortization schedule
       let remainingPrincipal = loanAmount;
       
@@ -76,7 +79,7 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
         principalPaidByYear[year] = 0;
       }
       
-      // Calculate amortization schedule
+      // Calculate amortization schedule with detailed debugging
       for (let month = 1; month <= loanTermMonths; month++) {
         const interest = remainingPrincipal * monthlyRate;
         const principal = Math.min(monthlyPayment - interest, remainingPrincipal);
@@ -88,9 +91,12 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
         interestPaidByYear[currentYear] += interest;
         principalPaidByYear[currentYear] += principal;
         
-        // Save remaining loan amount at the end of each year
+        // Save remaining loan amount at the end of each year and debug
         if (month % 12 === 0) {
           remainingByYear[month / 12] = remainingPrincipal;
+          if (month / 12 <= 5) { // Log first 5 years
+            console.log(`Year ${month/12}: Remaining Balance = R${remainingPrincipal.toFixed(2)}, Interest Paid = R${interestPaidByYear[currentYear].toFixed(2)}, Principal Paid = R${principalPaidByYear[currentYear].toFixed(2)}`);
+          }
         }
       }
       
