@@ -64,8 +64,8 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   const defaultValues: BondRepaymentFormValues = {
     propertyValue: "1000000",
     interestRate: "11.25",
-    loanTerm: "25",
-    deposit: "100000",
+    loanTerm: "20",
+    deposit: "0",
     includeBondFees: false,
   };
 
@@ -86,7 +86,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
       try {
         // Make sure all required values are present
         if (!formValues.propertyValue || !formValues.interestRate || 
-            !formValues.loanTerm || !formValues.deposit) {
+            !formValues.loanTerm) {
           return;
         }
         
@@ -94,13 +94,13 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         const propertyValue = parseCurrency(formValues.propertyValue);
         const interestRate = Number(formValues.interestRate);
         const loanTerm = Number(formValues.loanTerm);
-        const deposit = parseCurrency(formValues.deposit);
+        const deposit = 0; // Bond Repayment Calculator assumes no deposit
 
         // Calculate results
         const results = calculateBondRepayment(propertyValue, interestRate, loanTerm, deposit, formValues.includeBondFees);
         
-        // Calculate loan amount
-        let loanAmount = propertyValue - deposit;
+        // For Bond Repayment Calculator, use full property value as loan amount
+        let loanAmount = propertyValue;
         
         // If including bond fees, add the costs to the loan amount
         if (formValues.includeBondFees) {
@@ -155,7 +155,6 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                 propertyValue: formValues.propertyValue || "",
                 interestRate: formValues.interestRate || "",
                 loanTerm: formValues.loanTerm || "",
-                deposit: formValues.deposit || "",
                 includeBondFees: formValues.includeBondFees
               };
               setLastSavedValues(safeFormValues);
@@ -252,8 +251,8 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     const includeBondFees = form.watch("includeBondFees");
     if (!loanDetails || !includeBondFees) return null;
     
-    // We need to use the base loan amount before fees are added to calculate transfer costs
-    const baseLoanAmount = loanDetails.propertyValue - loanDetails.deposit;
+    // For Bond Repayment Calculator, use full property value as base loan amount
+    const baseLoanAmount = loanDetails.propertyValue;
     
     // Approximate values based on the property example
     const transferDuty = Math.round(baseLoanAmount * 0.08); // Approximate transfer duty percentage
@@ -470,54 +469,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                 )}
               />
 
-              {/* Deposit Field with Slider */}
-              <FormField
-                control={form.control}
-                name="deposit"
-                render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <FormLabel className="text-sm font-medium">Deposit</FormLabel>
-                      <FinancialTermTooltip
-                        term="deposit"
-                        definition={financialTerms["deposit"]}
-                        showIcon={true}
-                        iconClass="h-4 w-4 text-gray-400"
-                      />
-                    </div>
-                    <FormControl>
-                      <div className="space-y-2">
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-gray-500 sm:text-sm">R</span>
-                          </div>
-                          <Input
-                            {...field}
-                            className="pl-8"
-                            onChange={(e) => {
-                              // Keep only digits by removing any non-numeric characters
-                              const numericValue = handleCurrencyInput(e.target.value);
-                              field.onChange(numericValue);
-                            }}
-                          />
-                        </div>
-                        <div className="flex items-center">
-                          <span className="text-xs text-gray-500 mr-1">R0</span>
-                          <Slider
-                            defaultValue={[currentDeposit]}
-                            max={Math.min(5000000, currentPropertyValue * 0.5)}
-                            step={10000}
-                            onValueChange={handleDepositSliderChange}
-                            className="flex-grow mx-2"
-                          />
-                          <span className="text-xs text-gray-500 ml-1">{displayMaxDeposit}</span>
-                        </div>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
 
               {/* Bond Fees Checkbox */}
               <FormField
