@@ -178,29 +178,32 @@ export default function AmortizationResults({ results }: AmortizationResultsProp
         <CardContent className="p-6">
           <h3 className="text-lg font-semibold mb-4">Yearly Breakdown</h3>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Principal Paid</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Paid</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Paid</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining Balance</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {yearlyData.map((data: YearlyDataItem, index: number) => (
-                  <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Year {data.year}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.principalToDate)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.interestToDate)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.principalToDate + data.interestToDate)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(loanAmount - data.principalToDate)}</td>
+            <div className="max-h-80 overflow-y-auto border border-gray-200 rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50 sticky top-0 z-10">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Principal Paid</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interest Paid</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Paid</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining Balance</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {yearlyData.map((data: YearlyDataItem, index: number) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Year {data.year}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.principalToDate)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.interestToDate)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(data.principalToDate + data.interestToDate)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(loanAmount - data.principalToDate)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
+          <p className="text-xs text-gray-400 mt-2">Scroll to view all {yearlyData.length} years</p>
         </CardContent>
       </Card>
 
