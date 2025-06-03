@@ -61,42 +61,18 @@ export default function AmortizationResults({ results }: AmortizationResultsProp
     balance: number;
   }
   
-  // Prepare data for the chart, but create yearly breakdown data for entire loan term
-  // This will give us a full amortization schedule per year for the chart
-  const chartData: ChartDataItem[] = [];
-  const yearsArray: number[] = [];
+  // Use the actual calculated yearly data for the chart
+  const chartData: ChartDataItem[] = yearlyData.map(data => ({
+    name: data.year.toString(),
+    year: data.year,
+    interest: Math.round(data.interestToDate),
+    principal: Math.round(data.principalToDate),
+    balance: Math.round(data.remainingPrincipal),
+  }));
   
-  // Create array with all years from 1 to loan term
-  for (let year = 1; year <= loanTermYears; year++) {
-    yearsArray.push(year);
-  }
-  
-  // Construct complete yearly data set
-  let cumulativeInterest = 0;
-  let cumulativePrincipal = 0;
-  
-  // Find the matching year data or estimate if not found
-  yearsArray.forEach(year => {
-    const yearData = yearlyData.find(data => data.year === year);
-    
-    if (yearData) {
-      cumulativeInterest = yearData.interestToDate;
-      cumulativePrincipal = yearData.principalToDate;
-    } else if (year > 1) {
-      // If we don't have data for this year, estimate based on proportional calculation
-      // This is to create a smooth chart even if we don't have data for every year
-      const yearFraction = year / loanTermYears;
-      cumulativeInterest = totalInterest * yearFraction;
-      cumulativePrincipal = loanAmount * yearFraction;
-    }
-    
-    chartData.push({
-      name: year.toString(),
-      year: year,
-      interest: Math.round(cumulativeInterest),
-      principal: Math.round(cumulativePrincipal),
-      balance: Math.max(0, Math.round(loanAmount - cumulativePrincipal)),
-    });
+  console.log('AmortizationResults Chart Data Debug:');
+  chartData.slice(0, 5).forEach(item => {
+    console.log(`Year ${item.year}: Balance=${item.balance}, Principal=${item.principal}, Interest=${item.interest}`);
   });
 
   return (
