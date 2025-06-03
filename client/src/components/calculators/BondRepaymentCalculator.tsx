@@ -36,7 +36,9 @@ const formSchema = z.object({
     message: "Interest rate must be between 0 and 100",
   }),
   loanTerm: z.string(),
-  deposit: z.string().optional().default("0"),
+  deposit: z.string().refine((val) => !isNaN(Number(val.replace(/[^0-9]/g, ""))), {
+    message: "Deposit must be a number",
+  }),
   includeBondFees: z.boolean().default(false),
 });
 
@@ -62,8 +64,8 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   const defaultValues: BondRepaymentFormValues = {
     propertyValue: "1000000",
     interestRate: "11.25",
-    loanTerm: "20",
-    deposit: "0",
+    loanTerm: "25",
+    deposit: "100000",
     includeBondFees: false,
   };
 
@@ -84,7 +86,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
       try {
         // Make sure all required values are present
         if (!formValues.propertyValue || !formValues.interestRate || 
-            !formValues.loanTerm) {
+            !formValues.loanTerm || !formValues.deposit) {
           return;
         }
         
@@ -92,13 +94,13 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         const propertyValue = parseCurrency(formValues.propertyValue);
         const interestRate = Number(formValues.interestRate);
         const loanTerm = Number(formValues.loanTerm);
-        const deposit = 0; // Bond Repayment Calculator assumes no deposit
+        const deposit = parseCurrency(formValues.deposit);
 
         // Calculate results
         const results = calculateBondRepayment(propertyValue, interestRate, loanTerm, deposit, formValues.includeBondFees);
         
-        // For Bond Repayment Calculator, use full property value as loan amount
-        let loanAmount = propertyValue;
+        // Calculate loan amount
+        let loanAmount = propertyValue - deposit;
         
         // If including bond fees, add the costs to the loan amount
         if (formValues.includeBondFees) {
@@ -185,19 +187,24 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   };
 
   // For deposit slider
-
+  const handleDepositSliderChange = (value: number[]) => {
+    form.setValue("deposit", value[0].toString(), { shouldValidate: true });
+  };
 
   // For interest rate slider
   const handleInterestRateSliderChange = (value: number[]) => {
     form.setValue("interestRate", value[0].toFixed(2), { shouldValidate: true });
   };
 
-  // Get current property value for sliders (no deposit needed)
+  // Get current property value and deposit for sliders
   const currentPropertyValue = parseCurrency(form.watch("propertyValue")) || 1000000;
+  const currentDeposit = parseCurrency(form.watch("deposit")) || 100000;
   const currentInterestRate = Number(form.watch("interestRate")) || 11.25;
 
   // For rendering displayed values with currency formatting
   const displayPropertyValue = displayCurrencyValue(currentPropertyValue);
+  const displayDeposit = displayCurrencyValue(currentDeposit);
+  const displayMaxDeposit = displayCurrencyValue(Math.min(5000000, currentPropertyValue * 0.5));
 
   // Calculate monthly payment - no monthly admin fee
   const calculateMonthlyPayment = () => {
@@ -462,7 +469,54 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                 )}
               />
 
-
+              {/* Deposit Field with Slider */}
+              <FormField
+                control={form.control}
+                name="deposit"
+                render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <FormLabel className="text-sm font-medium">Deposit</FormLabel>
+                      <FinancialTermTooltip
+                        term="deposit"
+                        definition={financialTerms["deposit"]}
+                        showIcon={true}
+                        iconClass="h-4 w-4 text-gray-400"
+                      />
+                    </div>
+                    <FormControl>
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span className="text-gray-500 sm:text-sm">R</span>
+                          </div>
+                          <Input
+                            {...field}
+                            className="pl-8"
+                            onChange={(e) => {
+                              // Keep only digits by removing any non-numeric characters
+                              const numericValue = handleCurrencyInput(e.target.value);
+                              field.onChange(numericValue);
+                            }}
+                          />
+                        </div>
+                        <div className="flex items-center">
+                          <span className="text-xs text-gray-500 mr-1">R0</span>
+                          <Slider
+                            defaultValue={[currentDeposit]}
+                            max={Math.min(5000000, currentPropertyValue * 0.5)}
+                            step={10000}
+                            onValueChange={handleDepositSliderChange}
+                            className="flex-grow mx-2"
+                          />
+                          <span className="text-xs text-gray-500 ml-1">{displayMaxDeposit}</span>
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* Bond Fees Checkbox */}
               <FormField
