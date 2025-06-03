@@ -291,12 +291,12 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
       loanDetails.loanTerm
     );
     
-    // Convert to the format expected by the table (limit to 7 years)
+    // Convert to the format expected by the table (show all years for full term)
     const yearlyData = [];
     let totalInterestPaid = 0;
     let totalPrincipalPaid = 0;
     
-    for (let i = 1; i <= Math.min(7, loanDetails.loanTerm); i++) {
+    for (let i = 1; i <= loanDetails.loanTerm; i++) {
       const yearData = amortizationData.find(data => data.year === i);
       if (yearData) {
         totalInterestPaid += yearData.interest;
