@@ -97,4 +97,4 @@ jobs:
           app-name: 'WiseBond'
           resource-group-name: 'WiseBond'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_YOUR_PROFILE_ID }}
-          package: .
+          package: deployment.zip
