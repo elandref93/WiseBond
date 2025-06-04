@@ -1,4 +1,4 @@
-# Development files
+# Development filesMore actions
 .git/
 .github/
 *.md
@@ -30,12 +30,11 @@ coverage/
 # Development scripts
 test-*.js
 test-*.ts
-<<<<<<< HEAD
 test-*.mjs
 scripts/debug-*.js
 fix-*.js
-=======
-**/tests/
+
+**/tests/Add commentMore actions
 **/test/
 **/specs/
 **/__tests__/
@@ -81,7 +80,7 @@ Thumbs.db
 # Scripts not needed in production
 scripts/
 # Include startup.sh but exclude other shell scripts
->>>>>>> 7515b1daa9a4499fa565e3cb59b82d43ebc73a56
+
 update-dependencies.js
 set-test-env.js
 generate-side-by-side.js
@@ -92,7 +91,10 @@ complete-security-fix.js
 package.json.backup
 package-lock.json.backup
 
-# Docker files were removed - using native Node.js deployment
+# Docker files (not needed for native deployment)
+Dockerfile
+.dockerignore
+startup.sh
 
 # Development assets
 attached_assets/
@@ -118,4 +120,3 @@ Thumbs.db
 
 # Temporary files
 *.tmp
-*.temp
