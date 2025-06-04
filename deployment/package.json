@@ -11,6 +11,10 @@
     "db:push": "drizzle-kit push",
     "postinstall": "npm run build"
   },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "dependencies": {
     "@azure/identity": "^4.10.0",
     "@azure/keyvault-secrets": "^4.9.0",
