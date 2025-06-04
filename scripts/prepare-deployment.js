@@ -9,25 +9,26 @@
  * Usage: node scripts/prepare-deployment.js
  */
 
-import fs from 'fs';
-import path from 'path';
-import { execSync } from 'child_process';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, copyFileSync, statSync, readdirSync } from 'fs';
+import { join, dirname, relative } from 'path';
+import { fileURLToPath } from 'url';
 
-// Configuration
-const SOURCE_DIR = '.';
-const OUTPUT_DIR = './deployment';
-const DEPLOYIGNORE_FILE = '.deployignore';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const rootDir = join(__dirname, '..');
+const outputDir = join(rootDir, 'deployment');
 
 /**
  * Reads the .deployignore file and returns an array of patterns
  */
 function readDeployIgnore() {
-  if (!fs.existsSync(DEPLOYIGNORE_FILE)) {
-    console.error(`.deployignore file not found at ${DEPLOYIGNORE_FILE}`);
-    process.exit(1);
+  const deployIgnorePath = join(rootDir, '.deployignore');
+  if (!existsSync(deployIgnorePath)) {
+    console.log('No .deployignore file found, including all files');
+    return [];
   }
-
-  const content = fs.readFileSync(DEPLOYIGNORE_FILE, 'utf8');
+  
+  const content = readFileSync(deployIgnorePath, 'utf8');
   return content
     .split('\n')
     .map(line => line.trim())
@@ -38,13 +39,10 @@ function readDeployIgnore() {
  * Cleans and creates the output directory
  */
 function prepareOutputDirectory() {
-  if (fs.existsSync(OUTPUT_DIR)) {
-    console.log(`Cleaning existing output directory: ${OUTPUT_DIR}`);
-    fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
+  if (existsSync(outputDir)) {
+    rmSync(outputDir, { recursive: true });
   }
-  
-  console.log(`Creating output directory: ${OUTPUT_DIR}`);
-  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  mkdirSync(outputDir, { recursive: true });
 }
 
 /**
@@ -53,25 +51,38 @@ function prepareOutputDirectory() {
  * @returns {string[]} List of file paths to include
  */
 function getFilesToInclude(ignorePatterns) {
-  // Create a temporary .gitignore-like file for deployment
-  const tempIgnoreFile = '.temp-deployignore';
-  fs.writeFileSync(tempIgnoreFile, ignorePatterns.join('\n'));
+  const files = [];
   
-  try {
-    // Get all files that would be included in git (respecting .gitignore)
-    // and then exclude files matching patterns in our temporary ignore file
-    const result = execSync(`git ls-files | grep -v -f ${tempIgnoreFile}`, { encoding: 'utf8' });
+  function walkDir(dir) {
+    const items = readdirSync(dir);
     
-    return result.split('\n').filter(Boolean);
-  } catch (error) {
-    console.error('Error getting files:', error.message);
-    return [];
-  } finally {
-    // Clean up the temporary file
-    if (fs.existsSync(tempIgnoreFile)) {
-      fs.unlinkSync(tempIgnoreFile);
+    for (const item of items) {
+      const fullPath = join(dir, item);
+      const relativePath = relative(rootDir, fullPath);
+      
+      // Check if this path should be ignored
+      const shouldIgnore = ignorePatterns.some(pattern => {
+        if (pattern.endsWith('/')) {
+          return relativePath.startsWith(pattern) || relativePath === pattern.slice(0, -1);
+        }
+        return relativePath === pattern || relativePath.includes(pattern);
+      });
+      
+      if (shouldIgnore) {
+        continue;
+      }
+      
+      const stat = statSync(fullPath);
+      if (stat.isDirectory()) {
+        walkDir(fullPath);
+      } else {
+        files.push(relativePath);
+      }
     }
   }
+  
+  walkDir(rootDir);
+  return files;
 }
 
 /**
@@ -79,82 +90,68 @@ function getFilesToInclude(ignorePatterns) {
  * @param {string[]} files - List of files to copy
  */
 function copyFilesToOutput(files) {
-  console.log(`Copying ${files.length} files to ${OUTPUT_DIR}`);
-  
-  files.forEach(file => {
-    const sourcePath = path.join(SOURCE_DIR, file);
-    const outputPath = path.join(OUTPUT_DIR, file);
+  for (const file of files) {
+    const srcPath = join(rootDir, file);
+    const destPath = join(outputDir, file);
     
     // Create directory if it doesn't exist
-    const dir = path.dirname(outputPath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+    const destDir = dirname(destPath);
+    if (!existsSync(destDir)) {
+      mkdirSync(destDir, { recursive: true });
     }
     
-    // Copy the file
-    fs.copyFileSync(sourcePath, outputPath);
-  });
+    copyFileSync(srcPath, destPath);
+  }
 }
 
 /**
  * Prepares production-ready package.json and updates package-lock.json
  */
 function preparePackageJson() {
-  if (!fs.existsSync('package.json')) {
-    console.error('package.json not found');
-    return;
+  const packageJsonPath = join(rootDir, 'package.json');
+  const deployPackageJsonPath = join(outputDir, 'package.json');
+  
+  if (existsSync(packageJsonPath)) {
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+    
+    // Add Azure-specific configuration
+    packageJson.engines = {
+      node: ">=20.0.0",
+      npm: ">=10.0.0"
+    };
+    
+    // Add postinstall script for Azure
+    if (!packageJson.scripts.postinstall) {
+      packageJson.scripts.postinstall = "npm run build";
+    }
+    
+    writeFileSync(deployPackageJsonPath, JSON.stringify(packageJson, null, 2));
+    console.log('✅ Prepared production package.json');
   }
-
-  const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-  
-  // Remove devDependencies and scripts
-  delete packageJson.devDependencies;
-  
-  // Keep only necessary scripts
-  const necessaryScripts = {
-    start: packageJson.scripts.start,
-    build: packageJson.scripts.build
-  };
-  
-  packageJson.scripts = necessaryScripts;
-  
-  // Write the cleaned package.json to the output directory
-  fs.writeFileSync(
-    path.join(OUTPUT_DIR, 'package.json'),
-    JSON.stringify(packageJson, null, 2)
-  );
-  
-  // Handle package-lock.json if it exists
-  if (fs.existsSync('package-lock.json')) {
-    console.log('Copying package-lock.json to deployment directory');
-    fs.copyFileSync('package-lock.json', path.join(OUTPUT_DIR, 'package-lock.json'));
-  } else {
-    console.warn('Warning: package-lock.json not found');
-  }
-  
-  console.log('Prepared production package.json and synchronized package-lock.json');
 }
 
 /**
  * Main function
  */
 function main() {
-  console.log('Starting deployment preparation...');
+  console.log('🚀 Preparing deployment package...');
   
   const ignorePatterns = readDeployIgnore();
-  console.log(`Read ${ignorePatterns.length} ignore patterns from .deployignore`);
+  console.log(`📋 Found ${ignorePatterns.length} ignore patterns`);
   
   prepareOutputDirectory();
+  console.log('🗂️  Cleaned deployment directory');
   
   const filesToInclude = getFilesToInclude(ignorePatterns);
-  console.log(`Found ${filesToInclude.length} files to include in deployment`);
+  console.log(`📁 Found ${filesToInclude.length} files to include`);
   
   copyFilesToOutput(filesToInclude);
+  console.log('📋 Copied files to deployment directory');
   
   preparePackageJson();
   
-  console.log('Deployment preparation completed! Output directory:', OUTPUT_DIR);
+  console.log(`✅ Deployment package ready in: ${outputDir}`);
+  console.log('📦 Ready for ZIP deployment to Azure App Service');
 }
 
-// Run the script
 main();
