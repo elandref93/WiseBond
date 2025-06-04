@@ -92,10 +92,7 @@ complete-security-fix.js
 package.json.backup
 package-lock.json.backup
 
-# Docker files (not needed for native deployment)
-Dockerfile
-.dockerignore
-startup.sh
+# Docker files were removed - using native Node.js deployment
 
 # Development assets
 attached_assets/
