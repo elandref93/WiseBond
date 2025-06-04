@@ -1,40 +1,15 @@
-# Development filesMore actions
+# Development files
+node_modules/
+*.log
 .git/
 .github/
-*.md
-README.md
-AZURE-DEPLOYMENT.md
-AZURE-DATABASE.md
-MAILGUN-SETUP.md
-NATIVE-AZURE-DEPLOYMENT.md
-SECURITY-UPDATE-REPORT.md
-
-# Development tools and configs
 .vscode/
 .idea/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Test files
-test/
-tests/
-**/*.test.js
-**/*.test.ts
-**/*.spec.js
-**/*.spec.ts
-coverage/
-.nyc_output/
-
-# Development scripts
 test-*.js
 test-*.ts
-test-*.mjs
-scripts/debug-*.js
-fix-*.js
-
-**/tests/Add commentMore actions
+**/tests/
 **/test/
 **/specs/
 **/__tests__/
@@ -80,43 +55,30 @@ Thumbs.db
 # Scripts not needed in production
 scripts/
 # Include startup.sh but exclude other shell scripts
-
 update-dependencies.js
 set-test-env.js
 generate-side-by-side.js
-complete-security-fix.js
 
-# Backup files
-*.backup
-package.json.backup
-package-lock.json.backup
+# Environment variable examples/templates
+.env.example
+.env.local.example
+.env.development
+
+# Assets not needed in production
+attached_assets/
+**/*.psd
+**/*.ai
+**/*.sketch
+**/*.fig
+
+# Other unnecessary files
+.npmrc
+.yarnrc
+# We now include package-lock.json for dependency tracking
+# package-lock.json
+yarn.lock
 
 # Docker files (not needed for native deployment)
 Dockerfile
 .dockerignore
 startup.sh
-
-# Development assets
-attached_assets/
-
-# Build artifacts (will be rebuilt)
-dist/
-node_modules/
-
-# Environment files (secrets handled by Azure)
-.env
-.env.local
-.env.development
-.env.test
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# IDE files
-*.swp
-*.swo
-*~
-
-# Temporary files
-*.tmp
