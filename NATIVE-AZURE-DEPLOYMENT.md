@@ -20,43 +20,61 @@ This guide covers deploying the WiseBond application directly to Azure App Servi
 
 ### Method 1: GitHub Actions (Recommended)
 
-Create `.github/workflows/azure-webapp.yml`:
+The GitHub Actions workflow in `.github/workflows/main_wisebond.yml` is configured for native Node.js deployment:
 
 ```yaml
-name: Deploy to Azure App Service
+name: Deploy to Azure App Service (Native Node.js)
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  AZURE_WEBAPP_NAME: WiseBond
+  NODE_VERSION: '20.x'
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
     
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
     
     - name: Install dependencies
       run: npm ci
     
+    - name: Run type checking
+      run: npm run check
+    
     - name: Build application
       run: npm run build
     
+    - name: Remove dev dependencies and create deployment package
+      run: |
+        npm prune --production
+        rm -rf .git node_modules/.cache coverage .nyc_output
+        find . -name "*.test.js" -delete
+        find . -name "*.spec.js" -delete
+    
     - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v2
+      uses: azure/webapps-deploy@v3
       with:
-        app-name: 'WiseBond'
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
         slot-name: 'production'
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         package: .
 ```
+
+**Required GitHub Secrets:**
+- `AZURE_WEBAPP_PUBLISH_PROFILE` - Download from Azure Portal > App Service > Get publish profile
 
 ### Method 2: Azure CLI Deployment
 
