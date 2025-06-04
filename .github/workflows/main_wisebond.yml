@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+<<<<<<< HEAD
     - name: Checkout code
       uses: actions/checkout@v4
     
@@ -52,3 +53,85 @@ jobs:
         slot-name: 'production'
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         package: .
+=======
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js version
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install dependencies and update package-lock.json
+        run: |
+          rm -f package-lock.json
+          npm install --no-audit --legacy-peer-deps
+
+      - name: Prepare deployment package
+        run: |
+          chmod +x scripts/prepare-deployment.sh
+          ./scripts/prepare-deployment.sh
+
+      - name: List contents of build folder
+        run: |
+          echo "Contents of build directory:"
+          find dist -type f
+
+      - name: List contents of deployment folder
+        run: |
+          echo "Contents of deployment directory:"
+          find deployment -type f
+
+      - name: Zip deployment package
+        run: |
+          cd deployment
+          zip -r ../deployment.zip .
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-app
+          path: deployment.zip
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: node-app
+
+      - name: Unzip artifact
+        run: |
+          unzip deployment.zip
+      
+      - name: Install production dependencies
+        run: |
+          echo "Installing production dependencies..."
+          npm ci --omit=dev
+
+      - name: List files in deployment folder
+        run: |
+          echo "Listing deployment contents..."
+          find . -type f
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: 'Deploy to Azure Web App'
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'WiseBond'
+          resource-group-name: 'WiseBond'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_YOUR_PROFILE_ID }}
+          package: deployment.zip
+>>>>>>> 7515b1daa9a4499fa565e3cb59b82d43ebc73a56

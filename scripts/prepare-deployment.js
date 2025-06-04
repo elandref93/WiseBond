@@ -9,6 +9,7 @@
  * Usage: node scripts/prepare-deployment.js
  */
 
+<<<<<<< HEAD
 import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, copyFileSync, statSync, readdirSync } from 'fs';
 import { join, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
@@ -17,6 +18,22 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const rootDir = join(__dirname, '..');
 const outputDir = join(rootDir, 'deployment');
+=======
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import path from 'path';
+import { execSync } from 'child_process';
+
+// Resolve __dirname for ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+
+// Configuration
+const SOURCE_DIR = path.resolve(__dirname, '../dist');
+const OUTPUT_DIR = path.resolve(__dirname, '../deployment');
+const DEPLOYIGNORE_FILE = path.resolve(__dirname, '../.deployignore');
+>>>>>>> 7515b1daa9a4499fa565e3cb59b82d43ebc73a56
 
 /**
  * Reads the .deployignore file and returns an array of patterns
@@ -43,6 +60,23 @@ function prepareOutputDirectory() {
     rmSync(outputDir, { recursive: true });
   }
   mkdirSync(outputDir, { recursive: true });
+}
+
+function getAllFiles(dirPath, arrayOfFiles = []) {
+  const files = fs.readdirSync(dirPath);
+
+  files.forEach(file => {
+    const fullPath = path.join(dirPath, file);
+    if (fs.statSync(fullPath).isDirectory()) {
+      getAllFiles(fullPath, arrayOfFiles);
+    } else {
+      // Remove SOURCE_DIR prefix for consistent relative paths
+      const relativePath = path.relative(SOURCE_DIR, fullPath);
+      arrayOfFiles.push(relativePath);
+    }
+  });
+
+  return arrayOfFiles;
 }
 
 /**
@@ -105,6 +139,32 @@ function getFilesToInclude(ignorePatterns) {
 }
 
 /**
+ * Recursively copies files and directories from source to destination.
+ * @param {string} sourcePath - The source directory/file path.
+ * @param {string} destPath - The destination directory path.
+ */
+function copyRecursiveSync(sourcePath, destPath) {
+  const stats = fs.statSync(sourcePath);
+
+  // If sourcePath is a directory, create the directory at destination and recursively copy contents
+  if (stats.isDirectory()) {
+    if (!fs.existsSync(destPath)) {
+      fs.mkdirSync(destPath, { recursive: true });
+    }
+
+    const items = fs.readdirSync(sourcePath);
+    items.forEach(item => {
+      const currentSource = path.join(sourcePath, item);
+      const currentDest = path.join(destPath, item);
+      copyRecursiveSync(currentSource, currentDest);  // Recursively copy each item
+    });
+  } else {
+    // If it's a file, copy it to the destination
+    fs.copyFileSync(sourcePath, destPath);
+  }
+}
+
+/**
  * Copies files to the output directory
  * @param {string[]} files - List of files to copy
  */
@@ -119,8 +179,15 @@ function copyFilesToOutput(files) {
       mkdirSync(destDir, { recursive: true });
     }
     
+<<<<<<< HEAD
     copyFileSync(srcPath, destPath);
   }
+=======
+    // Copy the file
+    // copyRecursiveSync(sourcePath, outputPath);
+    fs.copyFileSync(sourcePath, outputPath);
+  });
+>>>>>>> 7515b1daa9a4499fa565e3cb59b82d43ebc73a56
 }
 
 /**
@@ -147,22 +214,73 @@ function preparePackageJson() {
     writeFileSync(deployPackageJsonPath, JSON.stringify(packageJson, null, 2));
     console.log('✅ Prepared production package.json');
   }
+<<<<<<< HEAD
+=======
+
+  const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  
+  // Remove devDependencies and scripts
+  delete packageJson.devDependencies;
+  
+  // Keep only necessary scripts
+  const necessaryScripts = {
+    start: packageJson.scripts.serve,
+    build: packageJson.scripts.build
+  };
+  
+  packageJson.scripts = necessaryScripts;
+  
+  // Write the cleaned package.json to the output directory
+  fs.writeFileSync(
+    path.join(OUTPUT_DIR, 'package.json'),
+    JSON.stringify(packageJson, null, 2)
+  );
+  
+  // Handle package-lock.json if it exists
+  if (fs.existsSync('package-lock.json')) {
+    console.log('Copying package-lock.json to deployment directory');
+    fs.copyFileSync('package-lock.json', path.join(OUTPUT_DIR, 'package-lock.json'));
+  } else {
+    console.warn('Warning: package-lock.json not found');
+  }
+  
+  console.log('Prepared production package.json and synchronized package-lock.json');
+>>>>>>> 7515b1daa9a4499fa565e3cb59b82d43ebc73a56
 }
 
 /**
  * Main function
  */
 function main() {
+<<<<<<< HEAD
   console.log('🚀 Preparing deployment package...');
   
   const ignorePatterns = readDeployIgnore();
   console.log(`📋 Found ${ignorePatterns.length} ignore patterns`);
+=======
+  console.log("Source Dir -> ", SOURCE_DIR)
+  console.log("Deployment Dir -> ", OUTPUT_DIR)
+  console.log("Ignore File -> ", DEPLOYIGNORE_FILE)
+  console.log('Starting deployment preparation...');
+
+  console.log('Running React build...on -> ', SOURCE_DIR);
+  execSync('npm run build', { stdio: 'inherit' });
+  
+  // const ignorePatterns = readDeployIgnore();
+  // console.log(`Read ${ignorePatterns.length} ignore patterns from .deployignore`);
+>>>>>>> 7515b1daa9a4499fa565e3cb59b82d43ebc73a56
   
   prepareOutputDirectory();
   console.log('🗂️  Cleaned deployment directory');
   
+<<<<<<< HEAD
   const filesToInclude = getFilesToInclude(ignorePatterns);
   console.log(`📁 Found ${filesToInclude.length} files to include`);
+=======
+  // const filesToInclude = getFilesToInclude(ignorePatterns);
+  const filesToInclude = getAllFiles(SOURCE_DIR);
+  console.log(`Found ${filesToInclude.length} files to include in deployment`);
+>>>>>>> 7515b1daa9a4499fa565e3cb59b82d43ebc73a56
   
   copyFilesToOutput(filesToInclude);
   console.log('📋 Copied files to deployment directory');
