@@ -57,3 +57,4 @@ jobs:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
         slot-name: 'production'
         package: .
+        clean: true
