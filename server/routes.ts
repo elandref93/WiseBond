@@ -16,6 +16,7 @@ import crypto from "crypto";
 import { generateBondRepaymentReport, generateAdditionalPaymentReport } from "./services/pdf/reportController";
 import { getPrimeRateHandler } from "./services/primeRate/primeRateController";
 import { initPrimeRateService } from "./services/primeRate/primeRateService";
+import { getServerSession } from "./auth";
 
 // Extend the session type to include userId
 declare module 'express-session' {
