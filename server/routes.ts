@@ -587,6 +587,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // OAuth Authentication Routes
+  app.get("/api/auth/signin/:provider", async (req, res) => {
+    try {
+      const { provider } = req.params;
+      const { generateAuthUrl } = await import('./auth');
+      
+      if (!['google', 'facebook'].includes(provider)) {
+        return res.status(400).json({ error: 'Unsupported OAuth provider' });
+      }
+      
+      const redirectUri = `${process.env.NEXTAUTH_URL || 'http://localhost:5000'}/api/auth/callback/${provider}`;
+      const authUrl = generateAuthUrl(provider, redirectUri);
+      
+      res.json({ url: authUrl });
+    } catch (error) {
+      console.error('OAuth signin error:', error);
+      res.status(500).json({ error: 'Failed to generate OAuth URL' });
+    }
+  });
+
+  app.get("/api/auth/callback/:provider", async (req, res) => {
+    try {
+      const { provider } = req.params;
+      const { code, state, error } = req.query;
+      
+      if (error) {
+        return res.redirect(`/auth/error?error=${encodeURIComponent(error as string)}`);
+      }
+      
+      if (!code) {
+        return res.redirect('/auth/error?error=missing_code');
+      }
+      
+      const { exchangeCodeForToken, getUserInfo, createOrUpdateOAuthUser } = await import('./auth');
+      
+      const redirectUri = `${process.env.NEXTAUTH_URL || 'http://localhost:5000'}/api/auth/callback/${provider}`;
+      
+      // Exchange code for access token
+      const tokenData = await exchangeCodeForToken(provider, code as string, redirectUri);
+      
+      // Get user info from OAuth provider
+      const userInfo = await getUserInfo(provider, tokenData.access_token);
+      
+      // Create or update user in database
+      const user = await createOrUpdateOAuthUser(provider, userInfo);
+      
+      // Set session
+      req.session.userId = user.id;
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+          return res.redirect('/auth/error?error=session_error');
+        }
+        
+        // Redirect to dashboard or profile completion page
+        if (user.profileComplete) {
+          res.redirect('/dashboard');
+        } else {
+          res.redirect('/profile/complete');
+        }
+      });
+      
+    } catch (error) {
+      console.error('OAuth callback error:', error);
+      res.redirect('/auth/error?error=oauth_failed');
+    }
+  });
+
+  app.post("/api/auth/signout", async (req, res) => {
+    const { callbackUrl = '/' } = req.body;
+    
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destroy error:', err);
+        return res.status(500).json({ error: 'Failed to sign out' });
+      }
+      
+      res.clearCookie('connect.sid');
+      res.json({ url: callbackUrl });
+    });
+  });
+
+  app.get("/api/auth/providers", (req, res) => {
+    const providers = {
+      google: {
+        id: 'google',
+        name: 'Google',
+        type: 'oauth',
+        signinUrl: '/api/auth/signin/google',
+        callbackUrl: '/api/auth/callback/google',
+      },
+      facebook: {
+        id: 'facebook',
+        name: 'Facebook',
+        type: 'oauth',
+        signinUrl: '/api/auth/signin/facebook',
+        callbackUrl: '/api/auth/callback/facebook',
+      },
+    };
+    
+    res.json({ providers });
+  });
+
   // User profile routes
   app.get("/api/user/profile", isAuthenticated, async (req, res) => {
     try {

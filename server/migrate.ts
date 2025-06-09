@@ -113,6 +113,30 @@ export const runMigrations = async () => {
       `);
       console.log('✅ Created users table with co-applicant columns');
     }
+
+    // Add OAuth columns to existing users table
+    try {
+      console.log('Checking for OAuth columns in users table...');
+      await db.execute(sql`SELECT provider_id FROM users LIMIT 1`);
+      console.log('✅ OAuth columns already exist');
+    } catch (e) {
+      console.log('Adding OAuth columns to users table...');
+      await db.execute(sql`
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS provider_id TEXT,
+        ADD COLUMN IF NOT EXISTS provider_account_id TEXT,
+        ADD COLUMN IF NOT EXISTS image TEXT
+      `);
+      
+      // Make username and password nullable for OAuth users
+      await db.execute(sql`
+        ALTER TABLE users
+        ALTER COLUMN username DROP NOT NULL,
+        ALTER COLUMN password DROP NOT NULL
+      `);
+      
+      console.log('✅ Added OAuth columns to users table');
+    }
     
     // Check if calculation_results table exists
     try {
