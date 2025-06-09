@@ -16,7 +16,7 @@ import crypto from "crypto";
 import { generateBondRepaymentReport, generateAdditionalPaymentReport } from "./services/pdf/reportController";
 import { getPrimeRateHandler } from "./services/primeRate/primeRateController";
 import { initPrimeRateService } from "./services/primeRate/primeRateService";
-import { getServerSession } from "./auth";
+import { getServerSession, generateAuthUrl, exchangeCodeForToken, getUserInfo, createOrUpdateOAuthUser } from "./auth";
 
 // Extend the session type to include userId
 declare module 'express-session' {
@@ -1401,6 +1401,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error marking all notifications as read:", error);
       res.status(500).json({ message: "Failed to mark all notifications as read" });
     }
+  });
+
+  // OAuth Authentication Routes
+  app.get('/api/auth/signin/:provider', async (req: Request, res: Response) => {
+    try {
+      const { provider } = req.params;
+      
+      if (!['google', 'facebook'].includes(provider)) {
+        return res.status(400).json({ error: 'Unsupported provider' });
+      }
+
+      // Generate OAuth authorization URL
+      const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/callback/${provider}`;
+      const authUrl = generateAuthUrl(provider, redirectUri);
+      
+      res.json({ url: authUrl });
+    } catch (error) {
+      console.error(`OAuth ${req.params.provider} signin error:`, error);
+      res.status(500).json({ error: 'Authentication failed' });
+    }
+  });
+
+  app.get('/api/auth/callback/:provider', async (req: Request, res: Response) => {
+    try {
+      const { provider } = req.params;
+      const { code, error } = req.query;
+
+      if (error) {
+        console.error(`OAuth ${provider} callback error:`, error);
+        return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/auth/error?error=oauth_error`);
+      }
+
+      if (!code) {
+        return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/auth/error?error=no_code`);
+      }
+
+      // Exchange code for token
+      const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/callback/${provider}`;
+      const tokenData = await exchangeCodeForToken(provider, code as string, redirectUri);
+      
+      if (!tokenData.access_token) {
+        throw new Error('No access token received');
+      }
+
+      // Get user info from provider
+      const userProfile = await getUserInfo(provider, tokenData.access_token);
+      
+      // Create or update user in database
+      const user = await createOrUpdateOAuthUser(provider, userProfile);
+      
+      // Set up session
+      req.session.userId = user.id;
+      
+      // Redirect to success page or original location
+      const redirectUrl = req.session.oauth_redirect || '/';
+      delete req.session.oauth_redirect;
+      
+      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}${redirectUrl}`);
+    } catch (error) {
+      console.error(`OAuth ${req.params.provider} callback error:`, error);
+      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/auth/error?error=callback_failed`);
+    }
+  });
+
+  app.get('/api/auth/providers', (req: Request, res: Response) => {
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    
+    const providers = {
+      google: {
+        id: 'google',
+        name: 'Google',
+        type: 'oauth',
+        signinUrl: `${baseUrl}/api/auth/signin/google`,
+        callbackUrl: `${baseUrl}/api/auth/callback/google`
+      },
+      facebook: {
+        id: 'facebook',
+        name: 'Facebook',
+        type: 'oauth',
+        signinUrl: `${baseUrl}/api/auth/signin/facebook`,
+        callbackUrl: `${baseUrl}/api/auth/callback/facebook`
+      }
+    };
+
+    res.json({ providers });
+  });
+
+  app.post('/api/auth/signout', (req: Request, res: Response) => {
+    const { callbackUrl = '/' } = req.body;
+    
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destruction error:', err);
+        return res.status(500).json({ error: 'Sign out failed' });
+      }
+      
+      res.json({ url: callbackUrl });
+    });
   });
 
   // Initialize prime rate service
