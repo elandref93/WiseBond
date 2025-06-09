@@ -162,11 +162,11 @@ export default function SignUpForm() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-          <FormField
-            control={form.control}
-            name="firstName"
-            render={({ field }) => (
-              <FormItem className="sm:col-span-3">
+            <FormField
+              control={form.control}
+              name="firstName"
+              render={({ field }) => (
+                <FormItem className="sm:col-span-3">
                 <FormLabel>First name</FormLabel>
                 <FormControl>
                   <Input 
