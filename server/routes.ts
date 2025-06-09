@@ -22,6 +22,7 @@ import { getServerSession, generateAuthUrl, exchangeCodeForToken, getUserInfo, c
 declare module 'express-session' {
   interface SessionData {
     userId?: number;
+    oauth_redirect?: string;
   }
 }
 
