@@ -1421,7 +1421,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         redirectUri = `${req.protocol}://${req.get('host')}/api/auth/callback/${provider}`;
       }
       
-      console.log(`OAuth ${provider} signin - redirect URI: ${redirectUri}`);
       const authUrl = generateAuthUrl(provider, redirectUri);
       
       res.json({ url: authUrl });
@@ -1524,7 +1523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: 'Google',
         type: 'oauth',
         signinUrl: `${baseUrl}/api/auth/signin/google`,
-        callbackUrl: `${baseUrl}/api/auth/callback/google`
+        callbackUrl: `${baseUrl}/auth/google/callback`
       },
       facebook: {
         id: 'facebook',
