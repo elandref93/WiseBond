@@ -1413,14 +1413,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Unsupported provider' });
       }
 
-      // Generate OAuth authorization URL
-      const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/callback/${provider}`;
+      // Generate OAuth authorization URL with correct callback path
+      let redirectUri;
+      if (provider === 'google') {
+        redirectUri = `${req.protocol}://${req.get('host')}/auth/google/callback`;
+      } else {
+        redirectUri = `${req.protocol}://${req.get('host')}/api/auth/callback/${provider}`;
+      }
+      
+      console.log(`OAuth ${provider} signin - redirect URI: ${redirectUri}`);
       const authUrl = generateAuthUrl(provider, redirectUri);
       
       res.json({ url: authUrl });
     } catch (error) {
       console.error(`OAuth ${req.params.provider} signin error:`, error);
       res.status(500).json({ error: 'Authentication failed' });
+    }
+  });
+
+  // Google-specific callback route to match Google Cloud Console configuration
+  app.get('/auth/google/callback', async (req: Request, res: Response) => {
+    try {
+      const { code, error } = req.query;
+
+      if (error) {
+        console.error(`OAuth Google callback error:`, error);
+        return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5000'}/auth/error?error=oauth_error`);
+      }
+
+      if (!code) {
+        return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5000'}/auth/error?error=no_code`);
+      }
+
+      // Exchange code for token
+      const redirectUri = `${req.protocol}://${req.get('host')}/auth/google/callback`;
+      const tokenData = await exchangeCodeForToken('google', code as string, redirectUri);
+      
+      if (!tokenData.access_token) {
+        throw new Error('No access token received');
+      }
+
+      // Get user info from provider
+      const userProfile = await getUserInfo('google', tokenData.access_token);
+      
+      // Create or update user in database
+      const user = await createOrUpdateOAuthUser('google', userProfile);
+      
+      // Set up session
+      req.session.userId = user.id;
+      
+      // Redirect to success page or original location
+      const redirectUrl = req.session.oauth_redirect || '/';
+      delete req.session.oauth_redirect;
+      
+      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5000'}${redirectUrl}`);
+    } catch (error) {
+      console.error(`OAuth Google callback error:`, error);
+      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5000'}/auth/error?error=callback_failed`);
     }
   });
 
@@ -1431,11 +1480,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (error) {
         console.error(`OAuth ${provider} callback error:`, error);
-        return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/auth/error?error=oauth_error`);
+        return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5000'}/auth/error?error=oauth_error`);
       }
 
       if (!code) {
-        return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/auth/error?error=no_code`);
+        return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5000'}/auth/error?error=no_code`);
       }
 
       // Exchange code for token
@@ -1459,10 +1508,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const redirectUrl = req.session.oauth_redirect || '/';
       delete req.session.oauth_redirect;
       
-      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}${redirectUrl}`);
+      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5000'}${redirectUrl}`);
     } catch (error) {
       console.error(`OAuth ${req.params.provider} callback error:`, error);
-      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/auth/error?error=callback_failed`);
+      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5000'}/auth/error?error=callback_failed`);
     }
   });
 
