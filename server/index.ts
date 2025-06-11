@@ -118,11 +118,21 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    const { setupVite } = await import("./viteDev"); // <-- note: new file for dev-only code!
-    await setupVite(app, server);
+  if (process.env.NODE_ENV !== 'production') {
+    try {
+      const { setupVite } = await import("./viteDev"); // <-- note: new file for dev-only code!
+      await setupVite(app, server);
+    } catch (error) {
+      console.error('Error setting up development Vite:', error);
+      console.log('Vite setup failed. Continuing without it.');
+    }
   } else {
-    serveStatic(app);
+    try {
+      serveStatic(app);
+    } catch (error) {
+      console.error('Error serving static files:', error);
+      console.log('Static file serving failed. Continuing without it.');
+    }
   }
 
   // Use the environment's PORT variable
