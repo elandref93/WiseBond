@@ -1320,9 +1320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         redirectUri = `${req.protocol}://${req.get('host')}/api/auth/callback/${provider}`;
       }
       
-      console.log(`[DEBUG] OAuth ${provider} redirect URI: ${redirectUri}`);
       const authUrl = generateAuthUrl(provider, redirectUri);
-      console.log(`[DEBUG] Generated auth URL: ${authUrl}`);
       
       res.json({ url: authUrl });
     } catch (error) {
