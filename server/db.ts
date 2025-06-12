@@ -22,6 +22,10 @@ if (process.env.NODE_ENV === 'production') {
   ) {
     dbUrl = `postgresql://${process.env.AZURE_POSTGRESQL_USER}:${process.env.AZURE_POSTGRESQL_PASSWORD}@${process.env.AZURE_POSTGRESQL_HOST}:${process.env.AZURE_POSTGRESQL_PORT}/${process.env.AZURE_POSTGRESQL_DATABASE}`;
     console.log('Using constructed Azure PostgreSQL URL for production');
+    if (process.env.AZURE_POSTGRESQL_SSL === 'true' && !dbUrl.includes('sslmode') && !dbUrl.includes('ssl=')) 
+    {
+      dbUrl += '?sslmode=require';
+    }
   }
   else {
     throw new Error(
@@ -48,7 +52,7 @@ const poolConfig = {
     // Determine SSL configuration based on environment and connection string
     if (process.env.NODE_ENV === 'production') {
       // For production, enable SSL by default unless explicitly disabled
-      if (process.env.DATABASE_SSL === 'false' || dbUrl.includes('ssl=false')) {
+      if (process.env.AZURE_POSTGRESQL_SSL === 'false' || dbUrl.includes('ssl=false')) {
         return false;
       }
       return {
