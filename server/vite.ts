@@ -1,7 +1,5 @@
 import type { Express } from "express";
 import type { Server } from "http";
-import { createServer as createViteServer, createLogger } from "vite";
-import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
 import path from "path";
 import fs from "fs";
@@ -10,14 +8,16 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const viteLogger = createLogger();
-
 export async function setupVite(app: Express, server: Server) {
+  const { createServer: createViteServer, createLogger } = await import("vite");
+  const { default: viteConfig } = await import("../vite.config");
+  const viteLogger = createLogger();
+
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
     allowedHosts: true as true,
-  };
+  };  
 
   const vite = await createViteServer({
     ...viteConfig,
@@ -42,13 +42,13 @@ export async function setupVite(app: Express, server: Server) {
         __dirname,
         "..",
         "client",
-        "index.html",
+        "index.html"
       );
 
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,
-        `src="/src/main.tsx?v=${nanoid()}"`,
+        `src="/src/main.tsx?v=${nanoid()}"`
       );
       const page = await vite.transformIndexHtml(url, template);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
