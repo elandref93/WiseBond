@@ -13,11 +13,17 @@ if (process.env.NODE_ENV === 'production') {
   if (process.env.DATABASE_URL) {
     dbUrl = process.env.DATABASE_URL;
     console.log('Using production DATABASE_URL');
-  } else if (process.env.PGUSER && process.env.PGPASSWORD && process.env.PGHOST && process.env.PGPORT && process.env.PGDATABASE) {
-    // Construct connection string from individual PostgreSQL environment variables
-    dbUrl = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`;
-    console.log('Using constructed PostgreSQL URL for production');
-  } else {
+  }else if (
+    process.env.AZURE_POSTGRESQL_USER &&
+    process.env.AZURE_POSTGRESQL_PASSWORD &&
+    process.env.AZURE_POSTGRESQL_HOST &&
+    process.env.AZURE_POSTGRESQL_PORT &&
+    process.env.AZURE_POSTGRESQL_DATABASE
+  ) {
+    dbUrl = `postgresql://${process.env.AZURE_POSTGRESQL_USER}:${process.env.AZURE_POSTGRESQL_PASSWORD}@${process.env.AZURE_POSTGRESQL_HOST}:${process.env.AZURE_POSTGRESQL_PORT}/${process.env.AZURE_POSTGRESQL_DATABASE}`;
+    console.log('Using constructed Azure PostgreSQL URL for production');
+  }
+  else {
     throw new Error(
       "Production environment requires either DATABASE_URL or all PostgreSQL environment variables (PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE)"
     );
