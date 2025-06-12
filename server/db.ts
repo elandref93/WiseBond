@@ -2,27 +2,62 @@ import pkg from 'pg';
 const { Pool } = pkg;
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
+import dotenv from 'dotenv';
+dotenv.config(); 
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
+let dbUrl: string;
+
+// Determine environment and set appropriate connection string
+if (process.env.NODE_ENV === 'production') {
+  // For production, try DATABASE_URL first, then construct from individual vars
+  if (process.env.DATABASE_URL) {
+    dbUrl = process.env.DATABASE_URL;
+    console.log('Using production DATABASE_URL');
+  } else if (process.env.PGUSER && process.env.PGPASSWORD && process.env.PGHOST && process.env.PGPORT && process.env.PGDATABASE) {
+    // Construct connection string from individual PostgreSQL environment variables
+    dbUrl = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`;
+    console.log('Using constructed PostgreSQL URL for production');
+  } else {
+    throw new Error(
+      "Production environment requires either DATABASE_URL or all PostgreSQL environment variables (PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE)"
+    );
+  }
+} else {
+  // For development and other environments
+  if (!process.env.DATABASE_URL) {
+    throw new Error(
+      "DATABASE_URL must be set. Did you forget to provision a database?"
+    );
+  }
+  dbUrl = process.env.DATABASE_URL;
+  console.log('Using development DATABASE_URL');
 }
 
-console.log('Connecting to Replit PostgreSQL database');
+console.log('Connecting to database...');
 
-// Override DATABASE_URL to use Replit PostgreSQL instead of Azure
-const replitDbUrl = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`;
-console.log('Using Replit PostgreSQL URL:', replitDbUrl);
-process.env.DATABASE_URL = replitDbUrl;
-
-// Create pool configuration for Replit PostgreSQL (Neon database)
-// Neon requires SSL, so we need to enable it
+// Create pool configuration with appropriate SSL settings
 const poolConfig = {
-  connectionString: replitDbUrl,
-  ssl: {
-    rejectUnauthorized: true
-  }
+  connectionString: dbUrl,
+  ssl: (() => {
+    // Determine SSL configuration based on environment and connection string
+    if (process.env.NODE_ENV === 'production') {
+      // For production, enable SSL by default unless explicitly disabled
+      if (process.env.DATABASE_SSL === 'false' || dbUrl.includes('ssl=false')) {
+        return false;
+      }
+      return {
+        rejectUnauthorized: false // Allow self-signed certificates for cloud databases
+      };
+    } else {
+      // For development, disable SSL by default unless connection string requires it
+      if (dbUrl.includes('ssl=true') || dbUrl.includes('sslmode=require')) {
+        return {
+          rejectUnauthorized: false
+        };
+      }
+      return false;
+    }
+  })()
 };
 
 export const pool = new Pool(poolConfig);
@@ -36,8 +71,9 @@ export const testDatabaseConnection = async (): Promise<boolean> => {
     client.release();
     
     console.log('✅ Database connection successful');
-    console.log(`Connected to: ${process.env.DATABASE_URL?.split('@')[1]?.split('/')[0] || 'Unknown database'}`);
+    console.log(`Connected to: ${dbUrl.split('@')[1]?.split('/')[0] || 'Unknown database'}`);
     console.log(`Server time: ${result.rows[0].now}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     
     return true;
   } catch (unknownError: unknown) {
@@ -66,12 +102,23 @@ export const testDatabaseConnection = async (): Promise<boolean> => {
         syscall: errorDetails.syscall || 'none'
       });
       
-      // If this is a DNS resolution error, provide more specific guidance
+      // Provide specific guidance based on error type
       if (errorDetails.code === 'ENOTFOUND') {
         console.error('DNS lookup failed. This could mean:');
         console.error('1. The database URL is incorrect');
         console.error('2. The database server is not accessible');
-        console.error('3. Check if the Replit PostgreSQL database is provisioned correctly');
+        console.error('3. Check if the database is provisioned correctly');
+        console.error('4. Verify network connectivity');
+      } else if (errorDetails.code === 'ECONNREFUSED') {
+        console.error('Connection refused. This could mean:');
+        console.error('1. The database server is not running');
+        console.error('2. Wrong port or host specified');
+        console.error('3. Firewall blocking the connection');
+      } else if (errorDetails.message?.includes('SSL')) {
+        console.error('SSL connection issue. Try:');
+        console.error('1. Setting DATABASE_SSL=false environment variable');
+        console.error('2. Adding ?ssl=false to your connection string');
+        console.error('3. Check if your database requires SSL');
       }
     }
     

@@ -7,7 +7,7 @@ dotenv.config();
 
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { serveStatic, log } from "./viteProcuction";
+import { serveStatic, log } from "./staticServer";
 
 const app = express();
 app.use(express.json());
@@ -118,23 +118,20 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  // if (app.get("env") === "development") {
-  //   try {
-  //     const { setupVite } = await import("./viteDev"); // <-- note: new file for dev-only code!
-  //     await setupVite(app, server);
-  //   } catch (error) {
-  //     console.error('Error setting up development Vite:', error);
-  //     console.log('Vite setup failed. Continuing without it.');
-  //   }
-  // } else {
-  //   try {
-  //     console.log('Error serving static method :serveStatic' );
-  //     serveStatic(app);
-  //   } catch (error) {
-  //     console.error('Error serving static files:', error);
-  //     console.log('Static file serving failed. Continuing without it.');
-  //   }
-  // }
+  if (process.env.NODE_ENV === "development") {
+    try {
+      const { setupVite } = await import("./vite"); // <-- development Vite setup
+      await setupVite(app, server);
+    } catch (error) {
+      console.error('Error setting up development Vite:', error);
+    }
+  } else {
+    try {
+      serveStatic(app);
+    } catch (error) {
+      console.error('Error serving static files:', error);
+    }
+  }
 
   // Use the environment's PORT variable
   // Azure App Service (native Node.js) sets PORT automatically

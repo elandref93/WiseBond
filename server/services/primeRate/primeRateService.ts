@@ -6,6 +6,7 @@
  */
 
 import axios from 'axios';
+import https from 'https';
 
 interface SARBRateEntry {
   Name: string;
@@ -45,9 +46,24 @@ async function fetchPrimeRateFromAPI(useBackupAPI: boolean = false): Promise<Pri
   
   try {
     console.log(`Fetching prime rate from ${useBackupAPI ? 'backup' : 'primary'} SARB API...`);
-    const response = await axios.get<SARBRateEntry[]>(apiUrl, { 
-      timeout: 10000 // 10 second timeout
-    });
+    
+    // Configure axios to handle certificate issues with SARB's SSL certificate
+    const axiosConfig = {
+      timeout: 10000, // 10 second timeout
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false, // Allow self-signed certificates for SARB API
+        keepAlive: true,
+        timeout: 10000
+      }),
+      headers: {
+        'User-Agent': 'WiseBond/1.0',
+        'Accept': 'application/json',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive'
+      }
+    };
+    
+    const response = await axios.get<SARBRateEntry[]>(apiUrl, axiosConfig);
     
     const primeRateEntry = response.data.find(entry => entry.Name === 'Prime lending rate');
     
