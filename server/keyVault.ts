@@ -67,8 +67,7 @@ export async function initializeSecretsFromKeyVault(): Promise<void> {
       'google-maps-api-key',
       'mailgun-api-key',
       'mailgun-domain',
-      'mailgun-from-email',
-      'sendgrid-api-key'
+      'mailgun-from-email'
     ];
     
     for (const secretName of secretsToRetrieve) {
