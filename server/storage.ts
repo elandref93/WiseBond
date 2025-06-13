@@ -1388,22 +1388,22 @@ export class DatabaseStorage implements IStorage {
           ${insertUser.username}, 
           ${hashedPassword}, 
           ${insertUser.firstName}, 
-          ${insertUser.lastName}, 
+          ${insertUser.lastName},
           ${insertUser.email}, 
-          ${insertUser.phone}, 
-          ${insertUser.idNumber}, 
-          ${insertUser.dateOfBirth}, 
-          ${insertUser.age}, 
-          ${insertUser.address}, 
-          ${insertUser.city}, 
-          ${insertUser.postalCode}, 
-          ${insertUser.province}, 
-          ${insertUser.employmentStatus}, 
-          ${insertUser.employerName}, 
-          ${insertUser.employmentSector}, 
-          ${insertUser.jobTitle}, 
-          ${insertUser.employmentDuration}, 
-          ${insertUser.monthlyIncome}, 
+          ${insertUser.phone ? insertUser.phone : ''}, 
+          ${insertUser.idNumber ? insertUser.idNumber : ''}, 
+          ${insertUser.dateOfBirth ? insertUser.dateOfBirth : ''}, 
+          ${insertUser.age ? insertUser.age : 0}, 
+          ${insertUser.address ? insertUser.address : ''}, 
+          ${insertUser.city ? insertUser.city : ''}, 
+          ${insertUser.postalCode ? insertUser.postalCode : ''}, 
+          ${insertUser.province ? insertUser.province : ''}, 
+          ${insertUser.employmentStatus ? insertUser.employmentStatus : ''}, 
+          ${insertUser.employerName ? insertUser.employerName : ''}, 
+          ${insertUser.employmentSector ? insertUser.employmentSector : ''}, 
+          ${insertUser.jobTitle ? insertUser.jobTitle : ''}, 
+          ${insertUser.employmentDuration ? insertUser.employmentDuration : ''}, 
+          ${insertUser.monthlyIncome ? insertUser.monthlyIncome : 0}, 
           ${insertUser.otpVerified}, 
           ${insertUser.profileComplete}, 
           NOW(), 
@@ -1454,7 +1454,7 @@ export class DatabaseStorage implements IStorage {
       return user;
     } catch (error) {
       console.error("Database error in createUser:", error);
-      throw new Error("Failed to create user");
+      throw new Error(`Failed to create user:  ${insertUser.username}`);
     }
   }
 
