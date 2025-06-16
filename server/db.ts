@@ -3,7 +3,6 @@ const { Pool } = pkg;
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 import dotenv from 'dotenv';
-import { readFileSync } from 'fs';
 dotenv.config(); 
 
 let dbUrl: string;
