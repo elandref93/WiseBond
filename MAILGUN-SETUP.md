@@ -93,6 +93,5 @@ It's important to follow consistent naming conventions for secrets across differ
 | Mailgun Domain | `mailgun-domain` | `MAILGUN_DOMAIN` |
 | Mailgun From Email | `mailgun-from-email` | `MAILGUN_FROM_EMAIL` |
 | Google Maps API Key | `google-maps-api-key` | `GOOGLE_MAPS_API_KEY` / `VITE_GOOGLE_MAPS_API_KEY` |
-| SendGrid API Key | `sendgrid-api-key` | `SENDGRID_API_KEY` |
 
 The application automatically converts between these formats as needed.
