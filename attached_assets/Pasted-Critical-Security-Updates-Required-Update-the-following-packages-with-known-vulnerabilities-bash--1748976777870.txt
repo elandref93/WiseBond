@@ -78,7 +78,6 @@ Remove or update deprecated packages:
 
 Consider replacing html-pdf-node with puppeteer PDF generation (you already have puppeteer)
 Update mailgun-js to mailgun.js (you have both, remove the deprecated one)
-Consider updating pdfkit to a more modern alternative if PDF generation issues arise
 
 Security Best Practices
 
@@ -100,7 +99,6 @@ Ensure the following work correctly:
  Session management
  Database operations (CRUD)
  PDF generation
- Email sending (SendGrid/Mailgun)
  File uploads
  WebSocket connections
  Azure KeyVault integration
