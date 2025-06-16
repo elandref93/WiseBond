@@ -3,6 +3,7 @@ const { Pool } = pkg;
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 import dotenv from 'dotenv';
+import { readFileSync } from 'fs';
 dotenv.config(); 
 
 let dbUrl: string;
@@ -58,7 +59,7 @@ const poolConfig = {
       return {
         rejectUnauthorized: true,
         ca: process.env.AZURE_POSTGRESQL_SSL_CA_PATH ? 
-          require('fs').readFileSync(process.env.AZURE_POSTGRESQL_SSL_CA_PATH).toString() : 
+            readFileSync(process.env.AZURE_POSTGRESQL_SSL_CA_PATH, 'utf-8') : 
           undefined
       };
     } else {
