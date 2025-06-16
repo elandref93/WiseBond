@@ -56,7 +56,10 @@ const poolConfig = {
         return false;
       }
       return {
-        rejectUnauthorized: false // Allow self-signed certificates for cloud databases
+        rejectUnauthorized: true,
+        ca: process.env.AZURE_POSTGRESQL_SSL_CA_PATH ? 
+          require('fs').readFileSync(process.env.AZURE_POSTGRESQL_SSL_CA_PATH).toString() : 
+          undefined
       };
     } else {
       // For development, disable SSL by default unless connection string requires it
