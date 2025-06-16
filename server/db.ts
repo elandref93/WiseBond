@@ -58,7 +58,6 @@ const poolConfig = {
       }
       return {
         rejectUnauthorized: false // Allow self-signed certificates for cloud databases
-        
       };
     } else {
       // For development, disable SSL by default unless connection string requires it
