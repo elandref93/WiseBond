@@ -2661,18 +2661,28 @@ const isProduction = !isDevelopment;
 // Create memory storage
 const memStorage = new MemStorage();
 
-// Use database storage for both development and production to ensure data persistence
+// Use in-memory storage for development environment
 let storageImplementation: IStorage;
 
-try {
-  // Use database storage to ensure data persistence
-  storageImplementation = new DatabaseStorage();
-  console.log('Using PostgreSQL database storage for data persistence');
-} catch (error) {
-  // Fallback to in-memory in case of database error
-  console.error('❌ CRITICAL: Database initialization failed:', error);
+// Check if we're in a development environment or if database is not accessible
+const isDevEnvironment = process.env.NODE_ENV !== 'production';
+const hasValidDatabase = process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('privatelink');
+
+if (isDevEnvironment || !hasValidDatabase) {
+  // Use in-memory storage for development
   storageImplementation = memStorage;
-  console.log('CRITICAL: Using in-memory storage as fallback. User data will not persist between restarts!');
+  console.log('Using in-memory storage for development environment');
+} else {
+  try {
+    // Use database storage for production
+    storageImplementation = new DatabaseStorage();
+    console.log('Using PostgreSQL database storage for data persistence');
+  } catch (error) {
+    // Fallback to in-memory in case of database error
+    console.error('❌ CRITICAL: Database initialization failed:', error);
+    storageImplementation = memStorage;
+    console.log('CRITICAL: Using in-memory storage as fallback. User data will not persist between restarts!');
+  }
 }
 
 // Export the selected storage implementation
