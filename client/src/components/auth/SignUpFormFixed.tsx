@@ -111,7 +111,7 @@ export default function SignUpForm() {
         
         // Redirect to login page after a short delay
         setTimeout(() => {
-          setLocation('/auth?tab=login');
+          setLocation('/login');
         }, 2000);
       } else {
         toast({
