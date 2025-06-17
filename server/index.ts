@@ -44,12 +44,6 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Force correct database URL for development
-  if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-    process.env.DATABASE_URL = 'postgresql://neondb_owner:npg_Iz9uNjrZ5aoM@ep-nameless-haze-a5g9lax5.us-east-2.aws.neon.tech:5432/neondb?sslmode=require';
-    console.log('Set development DATABASE_URL to Neon PostgreSQL');
-  }
-
   // Prioritize environment variables (Replit secrets) over Azure Key Vault
   // Log available environment variables for debugging (without revealing values)
   const envVars = [
