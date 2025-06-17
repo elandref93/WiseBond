@@ -5,43 +5,9 @@ import * as schema from "@shared/schema";
 import dotenv from 'dotenv';
 dotenv.config(); 
 
-let dbUrl: string;
-
-// Determine environment and set appropriate connection string
-if (process.env.NODE_ENV === 'production') {
-  // For production, try DATABASE_URL first, then construct from individual vars
-  if (process.env.DATABASE_URL) {
-    dbUrl = process.env.DATABASE_URL;
-    console.log('Using production DATABASE_URL');
-  }else if (
-    process.env.AZURE_POSTGRESQL_USER &&
-    process.env.AZURE_POSTGRESQL_PASSWORD &&
-    process.env.AZURE_POSTGRESQL_HOST &&
-    process.env.AZURE_POSTGRESQL_PORT &&
-    process.env.AZURE_POSTGRESQL_DATABASE
-  ) {
-    dbUrl = `postgresql://${process.env.AZURE_POSTGRESQL_USER}:${process.env.AZURE_POSTGRESQL_PASSWORD}@${process.env.AZURE_POSTGRESQL_HOST}:${process.env.AZURE_POSTGRESQL_PORT}/${process.env.AZURE_POSTGRESQL_DATABASE}`;
-    console.log('Using constructed Azure PostgreSQL URL for production');
-    if (process.env.AZURE_POSTGRESQL_SSL === 'true' && !dbUrl.includes('sslmode') && !dbUrl.includes('ssl=')) 
-    {
-      dbUrl += '?sslmode=require';
-    }
-  }
-  else {
-    throw new Error(
-      "Production environment requires either DATABASE_URL or all PostgreSQL environment variables (PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE)"
-    );
-  }
-} else {
-  // For development and other environments
-  if (!process.env.DATABASE_URL) {
-    throw new Error(
-      "DATABASE_URL must be set. Did you forget to provision a database?"
-    );
-  }
-  dbUrl = process.env.DATABASE_URL;
-  console.log('Using development DATABASE_URL');
-}
+// Force use of correct Neon database URL for all environments
+const dbUrl = 'postgresql://neondb_owner:npg_Iz9uNjrZ5aoM@ep-nameless-haze-a5g9lax5.us-east-2.aws.neon.tech:5432/neondb?sslmode=require';
+console.log('Using forced Neon PostgreSQL URL');
 
 console.log('Connecting to database...');
 
