@@ -89,28 +89,37 @@ export default function SignUpForm() {
         password: values.password,
       });
 
-      if (result.success && result.userId) {
-        setUserId(result.userId);
-        setRegistrationStep('otp');
-        
+      setUserId(result.id);
+      setRegistrationStep('otp');
+      
+      toast({
+        title: "Account created!",
+        description: "Please check your email for the verification code.",
+      });
+    } catch (error) {
+      console.error('Registration error:', error);
+      
+      // Check if the error is about duplicate email
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      
+      if (errorMessage.includes('Email already exists') || errorMessage.includes('already exists')) {
         toast({
-          title: "Account created!",
-          description: "Please check your email for the verification code.",
+          title: "Account already exists",
+          description: "An account with this email already exists. Redirecting you to the login page...",
+          variant: "destructive",
         });
+        
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+          setLocation('/auth?tab=login');
+        }, 2000);
       } else {
         toast({
           title: "Registration failed",
-          description: result.error || "An error occurred during registration.",
+          description: errorMessage,
           variant: "destructive",
         });
       }
-    } catch (error) {
-      console.error('Registration error:', error);
-      toast({
-        title: "Registration failed",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
     } finally {
       setIsSubmitting(false);
     }
