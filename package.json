@@ -123,6 +123,7 @@
     "bufferutil": "^4.0.8"
   },
   "overrides": {
-  "esbuild": "^0.25.5"
+  "esbuild": "^0.25.5",
+  "node-fetch": "^3.3.2"
 }
 }
