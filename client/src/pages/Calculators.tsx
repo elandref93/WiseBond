@@ -355,9 +355,9 @@ export default function Calculators() {
 
                 <TabsContent value="additional">
                   {calculationResults && calculationResults.type === 'additional' ? (
-                    <div className="flex flex-col space-y-8">
+                    <div className="flex flex-col space-y-6 sm:space-y-8">
                       {/* Top section: Calculator form and basic results side by side */}
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
                         <div className="lg:col-span-1">
                           <AdditionalPaymentCalculator onCalculate={handleCalculationComplete} />
                         </div>
@@ -367,7 +367,7 @@ export default function Calculators() {
                       </div>
                       
                       {/* Bottom section: Full-width chart area */}
-                      <div className="w-full bg-white p-6 rounded-xl shadow-sm">
+                      <div className="w-full bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
                         <AdditionalPaymentChart 
                           loanAmount={calculationResults.loanAmount}
                           interestRate={calculationResults.interestRate}
@@ -377,17 +377,17 @@ export default function Calculators() {
                       </div>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
                       <div className="lg:col-span-1">
                         <AdditionalPaymentCalculator onCalculate={handleCalculationComplete} />
                       </div>
                       <div className="lg:col-span-2">
-                        <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
+                        <div className="h-full min-h-[300px] flex items-center justify-center bg-gray-50 rounded-lg p-6 sm:p-8">
                           <div className="text-center">
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                            <h3 className="text-base font-medium text-gray-900 mb-2 sm:text-lg">
                               Calculate Additional Payment Benefits
                             </h3>
-                            <p className="text-gray-500">
+                            <p className="text-sm text-gray-500 sm:text-base">
                               See how making additional payments on your bond can
                               save you time and money over the loan term.
                             </p>
@@ -399,20 +399,20 @@ export default function Calculators() {
                 </TabsContent>
 
                 <TabsContent value="amortisation">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="md:col-span-1">
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
+                    <div className="lg:col-span-1">
                       <AmortizationCalculator onCalculate={handleCalculationComplete} />
                     </div>
-                    <div className="md:col-span-2">
+                    <div className="lg:col-span-2">
                       {calculationResults && calculationResults.type === 'amortisation' ? (
                         <CalculationResults results={calculationResults} formValues={formValues} />
                       ) : (
-                        <div className="h-full flex items-center justify-center bg-gray-50 rounded-lg p-8">
+                        <div className="h-full min-h-[300px] flex items-center justify-center bg-gray-50 rounded-lg p-6 sm:p-8">
                           <div className="text-center">
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                            <h3 className="text-base font-medium text-gray-900 mb-2 sm:text-lg">
                               Understand Your Loan Amortisation
                             </h3>
-                            <p className="text-gray-500">
+                            <p className="text-sm text-gray-500 sm:text-base">
                               See how your loan payments break down between principal and
                               interest over the life of your loan.
                             </p>
@@ -424,20 +424,20 @@ export default function Calculators() {
                 </TabsContent>
 
                 <TabsContent value="comparison">
-                  <div className="space-y-6">
-                    <div className="flex items-center mb-4">
-                      <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-white mr-4">
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center mb-4">
+                      <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-white mr-0 sm:mr-4 mb-2 sm:mb-0 self-center sm:self-auto">
                         <LineChartIcon className="h-5 w-5" />
                       </div>
-                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      <h3 className="text-base leading-6 font-medium text-gray-900 text-center sm:text-left sm:text-lg">
                         Interactive Loan Comparison Simulator
                       </h3>
                     </div>
                     
-                    <div className="bg-blue-50 rounded-lg p-4 mb-6">
+                    <div className="bg-blue-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
                       <div className="flex">
-                        <InfoIcon className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
-                        <div className="text-sm text-blue-700">
+                        <InfoIcon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <div className="text-xs sm:text-sm text-blue-700">
                           This comprehensive interactive tool allows you to compare both different interest rates and loan terms. Use the tabs to toggle between term and rate comparisons. Adjust the loan amount, interest rate, and term using the sliders to see the impact on your loan costs in real-time with detailed visualizations.
                         </div>
                       </div>
@@ -449,18 +449,18 @@ export default function Calculators() {
                       initialLoanTerm={20} 
                     />
                     
-                    <div className="mt-8 bg-gray-50 p-6 rounded-lg">
-                      <h3 className="text-lg font-medium mb-4">Understanding Interest Rates in South Africa</h3>
-                      <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mb-4">
+                    <div className="mt-6 sm:mt-8 bg-gray-50 p-4 sm:p-6 rounded-lg">
+                      <h3 className="text-base font-medium mb-3 sm:text-lg sm:mb-4">Understanding Interest Rates in South Africa</h3>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-3 sm:mb-4">
                         <PrimeRateIndicator />
                       </div>
-                      <p className="text-gray-600 mb-4">
+                      <p className="text-sm text-gray-600 mb-3 sm:text-base sm:mb-4">
                         Home loan interest rates in South Africa are typically expressed in relation to the prime rate, which is the benchmark rate that banks use to determine interest rates for loans.
                       </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                        <div className="border rounded-lg p-4 bg-white">
-                          <h4 className="font-medium mb-2">Factors Affecting Your Rate</h4>
-                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mt-4 sm:mt-6">
+                        <div className="border rounded-lg p-3 sm:p-4 bg-white">
+                          <h4 className="text-sm font-medium mb-2 sm:text-base">Factors Affecting Your Rate</h4>
+                          <ul className="list-disc list-inside text-xs text-gray-600 space-y-1 sm:text-sm">
                             <li>Credit score and history</li>
                             <li>Loan-to-value ratio (size of your deposit)</li>
                             <li>Employment stability and income</li>
@@ -468,9 +468,9 @@ export default function Calculators() {
                             <li>Property value and type</li>
                           </ul>
                         </div>
-                        <div className="border rounded-lg p-4 bg-white">
-                          <h4 className="font-medium mb-2">Tips to Secure a Better Rate</h4>
-                          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        <div className="border rounded-lg p-3 sm:p-4 bg-white">
+                          <h4 className="text-sm font-medium mb-2 sm:text-base">Tips to Secure a Better Rate</h4>
+                          <ul className="list-disc list-inside text-xs text-gray-600 space-y-1 sm:text-sm">
                             <li>Improve your credit score before applying</li>
                             <li>Save for a larger deposit (aim for 10-20%)</li>
                             <li>Compare offers from multiple banks</li>
@@ -488,18 +488,28 @@ export default function Calculators() {
         </div>
       </div>
 
-      {/* Saved Calculations Section */}
+      {/* Saved Calculations Section - Mobile-optimized */}
       {user && (
-        <div className="py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div className="py-8 px-4 sm:py-12 md:py-16 sm:px-6 lg:px-8 bg-gray-50">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Your Saved Calculations
-            </h2>
+            <div className="text-center mb-6 sm:mb-8 md:mb-10">
+              <h2 className="text-xl font-bold text-gray-900 mb-2 sm:text-2xl md:text-3xl">
+                Your Saved Calculations
+              </h2>
+              <p className="text-sm text-gray-600 sm:text-base">
+                Access your previous calculations and track your home loan planning progress
+              </p>
+            </div>
 
             {isLoading ? (
-              <div className="text-center py-8">Loading saved calculations...</div>
+              <div className="text-center py-8">
+                <div className="inline-flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  <span className="text-sm text-gray-600">Loading saved calculations...</span>
+                </div>
+              </div>
             ) : Array.isArray(savedCalculations) && savedCalculations.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
                 {/* Process calculations to avoid duplicates */}
                 {(() => {
                   // Create a map to track unique calculations by type and result signature
@@ -530,24 +540,24 @@ export default function Calculators() {
                     const parsedInput = JSON.parse(calc.inputData);
                     
                     return (
-                      <Card key={index}>
-                        <CardHeader>
-                          <CardTitle>
+                      <Card key={index} className="h-full flex flex-col border-gray-200 hover:border-primary hover:shadow-md transition-all duration-300">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base sm:text-lg">
                             {calc.calculationType === 'bond' && 'Bond Repayment'}
                             {calc.calculationType === 'affordability' && 'Affordability'}
                             {calc.calculationType === 'deposit' && 'Deposit Savings'}
                           </CardTitle>
-                          <CardDescription>
+                          <CardDescription className="text-xs sm:text-sm">
                             Saved on {new Date(calc.createdAt).toLocaleDateString()}
                           </CardDescription>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="flex-1">
                           <div className="space-y-2">
                             {parsedResult.displayResults && 
                               parsedResult.displayResults.map((result: any, i: number) => (
-                                <div key={i} className="flex justify-between">
-                                  <span className="text-gray-500">{result.label}:</span>
-                                  <span className="font-medium">{result.value}</span>
+                                <div key={i} className="flex justify-between items-center">
+                                  <span className="text-xs text-gray-500 sm:text-sm">{result.label}:</span>
+                                  <span className="text-xs font-medium sm:text-sm">{result.value}</span>
                                 </div>
                               ))
                             }
