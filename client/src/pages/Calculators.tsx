@@ -581,27 +581,32 @@ export default function Calculators() {
         </div>
       )}
 
-      {/* Calculator Guides */}
-      <div className="py-12 px-4 sm:px-6 lg:px-8">
+      {/* Calculator Guides - Mobile-optimized */}
+      <div className="py-8 px-4 sm:py-12 md:py-16 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Understanding Our Calculators
-          </h2>
+          <div className="text-center mb-6 sm:mb-8 md:mb-10">
+            <h2 className="text-xl font-bold text-gray-900 mb-2 sm:text-2xl md:text-3xl">
+              Understanding Our Calculators
+            </h2>
+            <p className="text-sm text-gray-600 sm:text-base">
+              Detailed guides to help you make the most of each calculator
+            </p>
+          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
             {activeTab === "bond" && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-3">
+              <div className="bg-white p-4 sm:p-6 rounded-lg border border-gray-200">
+                <h3 className="text-base font-medium text-gray-900 mb-3 sm:text-lg">
                   Bond Repayment Calculator
                 </h3>
-                <p className="text-gray-500 mb-4">
+                <p className="text-sm text-gray-500 mb-4 sm:text-base">
                   Calculate your monthly bond repayments based on the property value,
                   interest rate, loan term, and deposit amount. This helps you plan
                   your budget and understand the total cost of your loan.
                 </p>
-                <Separator className="my-4" />
-                <h4 className="font-medium text-gray-900 mt-4 mb-2">What you'll need:</h4>
-                <ul className="list-disc pl-5 text-gray-500 space-y-1">
+                <Separator className="my-3 sm:my-4" />
+                <h4 className="text-sm font-medium text-gray-900 mt-3 mb-2 sm:text-base sm:mt-4">What you'll need:</h4>
+                <ul className="list-disc pl-4 sm:pl-5 text-xs text-gray-500 space-y-1 sm:text-sm">
                   <li>Property value</li>
                   <li>Interest rate (current prime rate is approximately 11.25%)</li>
                   <li>Loan term (typically 20-30 years)</li>
@@ -611,11 +616,11 @@ export default function Calculators() {
             )}
             
             {activeTab === "affordability" && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-3">
+              <div className="bg-white p-4 sm:p-6 rounded-lg border border-gray-200">
+                <h3 className="text-base font-medium text-gray-900 mb-3 sm:text-lg">
                   Affordability Calculator
                 </h3>
-                <p className="text-gray-500 mb-4">
+                <p className="text-sm text-gray-500 mb-4 sm:text-base">
                   Determine how much you can afford to borrow based on your income,
                   expenses, and existing debt. This calculator helps you set realistic
                   expectations when house-hunting.
