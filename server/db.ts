@@ -3,9 +3,22 @@ const { Pool } = pkg;
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 import dotenv from 'dotenv';
+import { DefaultAzureCredential } from "@azure/identity";
 dotenv.config(); 
 
 let dbUrl: string;
+
+async function getAzureToken() {
+  try {
+    const credential = new DefaultAzureCredential();
+    const scope = "https://ossrdbms-aad.database.windows.net/.default";
+    const tokenResponse = await credential.getToken(scope);
+    return tokenResponse.token;
+  } catch (error) {
+    console.error('Failed to get Azure token:', error);
+    throw error;
+  }
+}
 
 // Determine environment and set appropriate connection string
 if (process.env.NODE_ENV === 'production') {
@@ -13,7 +26,25 @@ if (process.env.NODE_ENV === 'production') {
   if (process.env.DATABASE_URL) {
     dbUrl = process.env.DATABASE_URL;
     console.log('Using production DATABASE_URL');
-  }else if (
+  } else if (
+    process.env.AZURE_POSTGRESQL_HOST &&
+    process.env.AZURE_POSTGRESQL_DATABASE &&
+    process.env.AZURE_MANAGED_IDENTITY === 'true'
+  ) {
+    // Use Azure Managed Identity authentication
+    const userObjectId = process.env.AZURE_USER_OBJECT_ID;
+    const tenantId = process.env.AZURE_TENANT_ID;
+    
+    if (!userObjectId || !tenantId) {
+      throw new Error("Azure Managed Identity requires AZURE_USER_OBJECT_ID and AZURE_TENANT_ID environment variables");
+    }
+    
+    const user = `${userObjectId}@${tenantId}`;
+    const password = await getAzureToken();
+    
+    dbUrl = `postgresql://${user}:${password}@${process.env.AZURE_POSTGRESQL_HOST}:${process.env.AZURE_POSTGRESQL_PORT || '5432'}/${process.env.AZURE_POSTGRESQL_DATABASE}`;
+    console.log('Using Azure Managed Identity authentication');
+  } else if (
     process.env.AZURE_POSTGRESQL_USER &&
     process.env.AZURE_POSTGRESQL_PASSWORD &&
     process.env.AZURE_POSTGRESQL_HOST &&
@@ -29,7 +60,7 @@ if (process.env.NODE_ENV === 'production') {
   }
   else {
     throw new Error(
-      "Production environment requires either DATABASE_URL or all PostgreSQL environment variables (PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE)"
+      "Production environment requires either DATABASE_URL, Azure Managed Identity configuration, or all PostgreSQL environment variables"
     );
   }
 } else {
