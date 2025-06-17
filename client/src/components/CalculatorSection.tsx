@@ -20,7 +20,7 @@ export default function CalculatorSection() {
         </div>
 
         <div className="mt-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 sm:gap-6">
             {/* Bond Repayment Calculator */}
             <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
               <CardContent className="p-6">
@@ -107,6 +107,50 @@ export default function CalculatorSection() {
                 <Link href="/calculators?tab=comparison#calculator-detail">
                   <Button className="w-full mt-4">
                     Compare Rates
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Additional Payment Calculator */}
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <BarChart4Icon className="w-10 h-10 text-primary mr-4" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Additional payment calculator
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Calculate how much you can save by paying extra into your bond.
+                    </p>
+                  </div>
+                </div>
+                <Link href="/calculators?tab=additional#calculator-detail">
+                  <Button className="w-full mt-4">
+                    Calculate
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Deposit & Savings Calculator */}
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <CalendarIcon className="w-10 h-10 text-primary mr-4" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Deposit & savings calculator
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Calculate how much you need to save for your deposit.
+                    </p>
+                  </div>
+                </div>
+                <Link href="/calculators?tab=deposit#calculator-detail">
+                  <Button className="w-full mt-4">
+                    Calculate
                   </Button>
                 </Link>
               </CardContent>
