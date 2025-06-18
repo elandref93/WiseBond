@@ -39,10 +39,11 @@ if (process.env.NODE_ENV === 'production') {
       throw new Error("Azure Managed Identity requires AZURE_USER_OBJECT_ID and AZURE_TENANT_ID environment variables");
     }
     
-    const user = `${userObjectId}@${tenantId}`;
+    const user = `${userObjectId}`;
     const password = await getAzureToken();
     
-    dbUrl = `postgresql://${user}:${password}@${process.env.AZURE_POSTGRESQL_HOST}:${process.env.AZURE_POSTGRESQL_PORT || '5432'}/${process.env.AZURE_POSTGRESQL_DATABASE}`;
+    //dbUrl = `postgresql://${user}:${password}@${process.env.AZURE_POSTGRESQL_HOST}:${process.env.AZURE_POSTGRESQL_PORT || '5432'}/${process.env.AZURE_POSTGRESQL_DATABASE}`;
+    dbUrl = `postgresql://${user}:${password}@${process.env.AZURE_POSTGRESQL_HOST}:${process.env.AZURE_POSTGRESQL_PORT}/${process.env.AZURE_POSTGRESQL_DATABASE}`;
     console.log('Using Azure Managed Identity authentication');
   } else if (
     process.env.AZURE_POSTGRESQL_USER &&
