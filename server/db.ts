@@ -43,8 +43,14 @@ if (process.env.NODE_ENV === 'production') {
     const password = await getAzureToken();
     
     //dbUrl = `postgresql://${user}:${password}@${process.env.AZURE_POSTGRESQL_HOST}:${process.env.AZURE_POSTGRESQL_PORT || '5432'}/${process.env.AZURE_POSTGRESQL_DATABASE}`;
-    dbUrl = `postgresql://${user}:${password}@${process.env.AZURE_POSTGRESQL_HOST}:${process.env.AZURE_POSTGRESQL_PORT}/${process.env.AZURE_POSTGRESQL_DATABASE}`;
+    //dbUrl = `postgresql://${user}:${password}@${process.env.AZURE_POSTGRESQL_HOST}:${process.env.AZURE_POSTGRESQL_PORT}/${process.env.AZURE_POSTGRESQL_DATABASE}?sslmode=require`;
+    console.log(user);
+    console.log(password);
+    console.log(process.env.AZURE_POSTGRESQL_HOST);
+    console.log(process.env.AZURE_POSTGRESQL_DATABASE);
+    dbUrl = `postgresql://${user}:${encodeURIComponent(password)}@${process.env.AZURE_POSTGRESQL_HOST}:${process.env.AZURE_POSTGRESQL_PORT || '5432'}/${process.env.AZURE_POSTGRESQL_DATABASE}?sslmode=require`;
     console.log('Using Azure Managed Identity authentication');
+    console.log(dbUrl);
   } else if (
     process.env.AZURE_POSTGRESQL_USER &&
     process.env.AZURE_POSTGRESQL_PASSWORD &&
@@ -84,12 +90,12 @@ const poolConfig = {
     // Determine SSL configuration based on environment and connection string
     if (process.env.NODE_ENV === 'production') {
       // For production, enable SSL by default unless explicitly disabled
-      if (process.env.AZURE_POSTGRESQL_SSL === 'false' || dbUrl.includes('ssl=false')) {
-        return false;
-      }
-      return {
-        rejectUnauthorized: false // Allow self-signed certificates for cloud databases
-      };
+      // if (process.env.AZURE_POSTGRESQL_SSL === 'false' || dbUrl.includes('ssl=false')) {
+      //   return false;
+      // }
+      // return {
+      //   rejectUnauthorized: false // Allow self-signed certificates for cloud databases
+      // };
     } else {
       // For development, disable SSL by default unless connection string requires it
       if (dbUrl.includes('ssl=true') || dbUrl.includes('sslmode=require')) {
