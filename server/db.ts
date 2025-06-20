@@ -21,14 +21,17 @@ async function getAzureToken() {
 
 const getPoolConfig = async () => {
   const token = await getAzureToken();
-  const user = "jitendra_eapfs.co.za#EXT#@elandrefourie18gmail.onmicrosoft.com"; // e.g., "fb48e328-aec7-466f-aa8c-a895aadd0aae"
+  const user = process.env.AZURE_POSTGRESQL_USER; // e.g., "fb48e328-aec7-466f-aa8c-a895aadd0aae"
   const host = process.env.AZURE_POSTGRESQL_HOST;
   const database = process.env.AZURE_POSTGRESQL_DATABASE;
   const port = process.env.AZURE_POSTGRESQL_PORT || 5432;
+  const password = process.env.AZURE_POSTGRESQL_PASSWORD;
 
   console.log(user);
   console.log(token);
   console.log(database);
+  console.log(password);
+  console.log(port);
   console.log(host);
   if (!user || !host || !database) {
     throw new Error("Missing environment variables: AZURE_USER_OBJECT_ID, AZURE_POSTGRESQL_HOST, AZURE_POSTGRESQL_DATABASE");
@@ -36,7 +39,7 @@ const getPoolConfig = async () => {
 
   return {
     user,
-    password: token,
+    password: password,
     host,
     database,
     port: Number(port),
