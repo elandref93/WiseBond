@@ -29,7 +29,7 @@ if (process.env.NODE_ENV === 'production') {
   }
   else {
     throw new Error(
-      "Production environment requires either DATABASE_URL or all PostgreSQL environment variables (PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE)"
+      "Production environment requires Azure PostgreSQL environment variables (AZURE_POSTGRESQL_USER, AZURE_POSTGRESQL_PASSWORD, AZURE_POSTGRESQL_HOST, AZURE_POSTGRESQL_PORT, AZURE_POSTGRESQL_DATABASE)"
     );
   }
 } else {
@@ -41,12 +41,9 @@ if (process.env.NODE_ENV === 'production') {
     const encodedPassword = encodeURIComponent(process.env.POSTGRES_PASSWORD);
     dbUrl = `postgresql://${process.env.POSTGRES_USERNAME}:${encodedPassword}@${process.env.POSTGRES_HOST}:${port}/${process.env.POSTGRES_DATABASE}?sslmode=require`;
     console.log('Using PostgreSQL credentials for development');
-  } else if (process.env.DATABASE_URL) {
-    dbUrl = process.env.DATABASE_URL;
-    console.log('Using development DATABASE_URL');
   } else {
     throw new Error(
-      "Development environment requires either PostgreSQL credentials (POSTGRES_USERNAME, POSTGRES_PASSWORD, POSTGRES_HOST, POSTGRES_DATABASE) or DATABASE_URL"
+      "Development environment requires PostgreSQL credentials (POSTGRES_USERNAME, POSTGRES_PASSWORD, POSTGRES_HOST, POSTGRES_DATABASE)"
     );
   }
 }
