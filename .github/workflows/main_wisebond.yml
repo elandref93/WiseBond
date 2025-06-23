@@ -37,12 +37,59 @@ jobs:
     - name: Build application
       run: npm run build
     
-    - name: Remove dev dependencies and create deployment package
+    - name: Create optimized deployment package
       run: |
-        npm prune --production
-        rm -rf node_modules/.cache coverage .nyc_output
-        find . -name "*.test.js" -delete
-        find . -name "*.spec.js" -delete
+        echo "Creating deployment package..."
+        
+        # Create deployment directory
+        mkdir -p deploy-package
+        
+        # Copy essential files only
+        cp package.json deploy-package/
+        cp package-lock.json deploy-package/ 2>/dev/null || echo "No package-lock.json found"
+        
+        # Copy built application
+        cp -r dist/ deploy-package/
+        
+        # Copy any additional required files (uncomment if needed)
+        # cp web.config deploy-package/ 2>/dev/null || echo "No web.config found"
+        # cp -r public/ deploy-package/ 2>/dev/null || echo "No public folder found"
+        
+        # Install only production dependencies in deployment package
+        cd deploy-package
+        npm ci --only=production --silent
+        
+        # Clean up node_modules to reduce size
+        echo "Optimizing node_modules..."
+        find node_modules -name "*.md" -delete 2>/dev/null || true
+        find node_modules -name "*.ts" -not -path "*/types/*" -delete 2>/dev/null || true
+        find node_modules -name "*.test.js" -delete 2>/dev/null || true
+        find node_modules -name "*.spec.js" -delete 2>/dev/null || true
+        find node_modules -name "test" -type d -exec rm -rf {} + 2>/dev/null || true
+        find node_modules -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true
+        find node_modules -name "__tests__" -type d -exec rm -rf {} + 2>/dev/null || true
+        find node_modules -name "*.map" -delete 2>/dev/null || true
+        find node_modules -name ".git*" -delete 2>/dev/null || true
+        find node_modules -name "LICENSE*" -delete 2>/dev/null || true
+        find node_modules -name "CHANGELOG*" -delete 2>/dev/null || true
+        find node_modules -name "README*" -delete 2>/dev/null || true
+        find node_modules -name "docs" -type d -exec rm -rf {} + 2>/dev/null || true
+        find node_modules -name "example*" -type d -exec rm -rf {} + 2>/dev/null || true
+        find node_modules -name "demo*" -type d -exec rm -rf {} + 2>/dev/null || true
+        find node_modules -name ".cache" -type d -exec rm -rf {} + 2>/dev/null || true
+        
+        cd ..
+        
+        # Create compressed deployment package
+        echo "Creating deployment archive..."
+        cd deploy-package
+        zip -r ../deployment.zip . -q
+        cd ..
+        
+        # Show package size
+        echo "Deployment package size:"
+        du -sh deployment.zip
+        du -sh deploy-package
 
     - name: 'Login to Azure'
       uses: azure/login@v2
@@ -56,5 +103,5 @@ jobs:
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
         slot-name: 'production'
-        package: .
+        package: deployment.zip
         clean: true
