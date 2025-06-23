@@ -35,7 +35,20 @@ jobs:
     #   run: npm run check
     
     - name: Build application
-      run: npm run build
+      run: |
+        # Run frontend and backend builds in parallel
+        npm run build:frontend &
+        FRONTEND_PID=$!
+        
+        # Build backend while frontend is building
+        npm run build:backend &
+        BACKEND_PID=$!
+        
+        # Wait for both to complete
+        wait $FRONTEND_PID
+        wait $BACKEND_PID
+        
+        echo "Both builds completed successfully"
     
     - name: Create optimized deployment package
       run: |
@@ -50,9 +63,6 @@ jobs:
         
         # Copy built application
         cp -r dist/ deploy-package/
-        
-        # Copy required configuration files
-        cp web.config deploy-package/
         
         # Copy required configuration files
         cp web.config deploy-package/
@@ -86,6 +96,17 @@ jobs:
         find node_modules -name "example*" -type d -exec rm -rf {} + 2>/dev/null || true
         find node_modules -name "demo*" -type d -exec rm -rf {} + 2>/dev/null || true
         find node_modules -name ".cache" -type d -exec rm -rf {} + 2>/dev/null || true
+        
+        # Additional aggressive cleanup
+        find node_modules -name "*.d.ts" -not -path "*/types/*" -not -path "*/@types/*" -delete 2>/dev/null || true
+        find node_modules -name "*.flow" -delete 2>/dev/null || true
+        find node_modules -name "*.coffee" -delete 2>/dev/null || true
+        find node_modules -name "*.scss" -delete 2>/dev/null || true
+        find node_modules -name "*.less" -delete 2>/dev/null || true
+        find node_modules -name "*.styl" -delete 2>/dev/null || true
+        find node_modules -name "coverage" -type d -exec rm -rf {} + 2>/dev/null || true
+        find node_modules -name ".nyc_output" -type d -exec rm -rf {} + 2>/dev/null || true
+        find node_modules -name "benchmark*" -type d -exec rm -rf {} + 2>/dev/null || true
         
         cd ..
         
