@@ -5,13 +5,79 @@ server/public
 vite.config.ts.*
 *.tar.gz
 deployment
+
 # Environment variables
 .env
 .env.local
 .env.*.local
+.env.development
+.env.test
 
 # Log files
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Build outputs
+build/
+.next/
+out/
+.nuxt
+
+# Development files
+coverage/
+.nyc_output/
+.cache/
+.parcel-cache
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+Thumbs.db
+
+# Test files
+*.test.js
+*.spec.js
+__tests__/
+test/
+tests/
+
+# Documentation (if not needed in production)
+docs/
+README.md
+CHANGELOG.md
+
+# Development configs
+.eslintrc*
+.prettierrc*
+jest.config.*
+vitest.config.*
+cypress/
+playwright/
+
+# Source maps (if not needed in production)
+*.map
+
+# Temporary files
+tmp/
+temp/
+
+# Azure/deployment logs
+*.deployment
+.azure/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Deployment artifacts
+deploy-package/
+deployment.zip
