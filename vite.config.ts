@@ -34,7 +34,7 @@ export default defineConfig({
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
     
-    // Optimize bundle splitting
+    // Optimize bundle splitting to fix 566KB chunk warning
     rollupOptions: {
       output: {
         manualChunks: {
@@ -78,33 +78,23 @@ export default defineConfig({
             'lodash.pick'
           ],
           
-          // Routing and state management
-          'app-core': ['wouter', '@tanstack/react-query'],
-          
-          // Icons and UI extras
-          'ui-extras': ['lucide-react', 'react-icons', 'framer-motion', 'vaul'],
-          
           // Large vendor libraries
-          'vendor-large': ['axios', 'input-otp', 'cmdk']
+          'vendor-large': ['axios', 'framer-motion', '@tanstack/react-query']
         }
       }
     },
     
-    // Additional optimizations
+    // Performance optimizations (using esbuild - faster than terser)
     target: 'es2020',
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: process.env.NODE_ENV === 'production',
-        drop_debugger: process.env.NODE_ENV === 'production',
-      },
+    minify: true,
+    
+    // Remove console logs in production
+    esbuild: {
+      drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
     },
     
-    // Increase chunk size warning limit (optional)
+    // Increase chunk size warning limit to 1MB
     chunkSizeWarningLimit: 1000,
-    
-    // Enable source maps for production debugging (optional)
-    sourcemap: process.env.NODE_ENV !== 'production'
   },
   
   // Development server optimizations
@@ -121,9 +111,6 @@ export default defineConfig({
       'react-dom',
       'react-hook-form',
       '@tanstack/react-query'
-    ],
-    exclude: [
-      '@replit/vite-plugin-cartographer'
     ]
   }
 });
