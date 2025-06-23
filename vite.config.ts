@@ -62,8 +62,9 @@ export default defineConfig({
             '@radix-ui/react-tooltip'
           ],
           
-          // Charts and data visualization
-          'charts': ['chart.js', 'recharts'],
+          // Charts and data visualization (split for better loading)
+          'chart-js': ['chart.js'],
+          'recharts': ['recharts'],
           
           // Form handling
           'forms': ['react-hook-form', '@hookform/resolvers', 'zod', 'zod-validation-error'],
