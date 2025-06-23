@@ -51,9 +51,18 @@ jobs:
         # Copy built application
         cp -r dist/ deploy-package/
         
-        # Copy any additional required files (uncomment if needed)
-        # cp web.config deploy-package/ 2>/dev/null || echo "No web.config found"
-        # cp -r public/ deploy-package/ 2>/dev/null || echo "No public folder found"
+        # Copy required configuration files
+        cp web.config deploy-package/
+        
+        # Copy required configuration files
+        cp web.config deploy-package/
+        
+        # Copy static files if they exist (Vite builds public assets to dist/public)
+        if [ -d "dist/public" ]; then
+          echo "Found dist/public, copying static assets..."
+        else
+          echo "No dist/public found, static assets may be bundled"
+        fi
         
         # Install only production dependencies in deployment package
         cd deploy-package
