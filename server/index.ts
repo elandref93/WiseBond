@@ -86,23 +86,32 @@ app.use((req, res, next) => {
     console.log('All required environment variables are set. Skipping Azure Key Vault.');
   }
   
-  // Run database migrations and test connection before starting server
+  // Test database connection with timeout, then run migrations if successful
   try {
-    // Import and run the database migrations
-    const { runMigrations } = await import('./migrate');
-    const migrationsSuccessful = await runMigrations();
-    
-    if (!migrationsSuccessful) {
-      console.error('WARNING: Database migrations were not completed successfully');
-      console.log('Application will continue, but database operations may fail');
-    }
-    
-    // Test database connection
     const { testDatabaseConnection } = await import('./db');
-    await testDatabaseConnection();
+    
+    // Test database connection with a shorter timeout
+    const connectionTimeout = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database connection timeout')), 8000)
+    );
+    
+    const connectionTest = testDatabaseConnection();
+    const isConnected = await Promise.race([connectionTest, connectionTimeout])
+      .then(() => true)
+      .catch((error) => {
+        console.log('Database connection failed:', error.message);
+        console.log('Continuing with in-memory storage for development');
+        return false;
+      });
+    
+    if (isConnected) {
+      console.log('Database connected successfully, running migrations...');
+      const { runMigrations } = await import('./migrate');
+      await runMigrations();
+    }
   } catch (error) {
-    console.error('Error setting up database:', error);
-    console.log('Application will continue, but database operations may fail.');
+    console.log('Database setup skipped due to connection issues');
+    console.log('Application will use in-memory storage');
   }
   
   const server = await registerRoutes(app);

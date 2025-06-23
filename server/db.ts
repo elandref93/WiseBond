@@ -34,20 +34,31 @@ if (process.env.NODE_ENV === 'production') {
   }
 } else {
   // For development and other environments
-  if (!process.env.DATABASE_URL) {
+  if (process.env.POSTGRES_USERNAME && process.env.POSTGRES_PASSWORD && process.env.POSTGRES_HOST && process.env.POSTGRES_DATABASE) {
+    // Use individual PostgreSQL credentials for development
+    const port = process.env.POSTGRES_PORT || '5432';
+    // URL encode the password to handle special characters
+    const encodedPassword = encodeURIComponent(process.env.POSTGRES_PASSWORD);
+    dbUrl = `postgresql://${process.env.POSTGRES_USERNAME}:${encodedPassword}@${process.env.POSTGRES_HOST}:${port}/${process.env.POSTGRES_DATABASE}?sslmode=require`;
+    console.log('Using PostgreSQL credentials for development');
+  } else if (process.env.DATABASE_URL) {
+    dbUrl = process.env.DATABASE_URL;
+    console.log('Using development DATABASE_URL');
+  } else {
     throw new Error(
-      "DATABASE_URL must be set. Did you forget to provision a database?"
+      "Development environment requires either PostgreSQL credentials (POSTGRES_USERNAME, POSTGRES_PASSWORD, POSTGRES_HOST, POSTGRES_DATABASE) or DATABASE_URL"
     );
   }
-  dbUrl = process.env.DATABASE_URL;
-  console.log('Using development DATABASE_URL');
 }
 
 console.log('Connecting to database...');
 
-// Create pool configuration with appropriate SSL settings
+// Create pool configuration with appropriate SSL settings and timeouts
 const poolConfig = {
   connectionString: dbUrl,
+  connectionTimeoutMillis: 15000, // 15 seconds to connect
+  idleTimeoutMillis: 60000, // 60 seconds idle timeout
+  max: 10, // maximum pool size
   ssl: (() => {
     // Determine SSL configuration based on environment and connection string
     if (process.env.NODE_ENV === 'production') {
@@ -59,8 +70,8 @@ const poolConfig = {
         rejectUnauthorized: false // Allow self-signed certificates for cloud databases
       };
     } else {
-      // For development, disable SSL by default unless connection string requires it
-      if (dbUrl.includes('ssl=true') || dbUrl.includes('sslmode=require')) {
+      // For development, enable SSL for Azure PostgreSQL connections
+      if (dbUrl.includes('ssl=true') || dbUrl.includes('sslmode=require') || dbUrl.includes('azure.com')) {
         return {
           rejectUnauthorized: false
         };
