@@ -22,9 +22,9 @@ export default function CalculatorSection() {
         <div className="mt-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Bond Repayment Calculator */}
-            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all h-full">
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex items-center mb-4 flex-grow">
                   <HomeIcon className="w-10 h-10 text-primary mr-4" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -35,8 +35,8 @@ export default function CalculatorSection() {
                     </p>
                   </div>
                 </div>
-                <Link href="/calculators#calculator-detail">
-                  <Button className="w-full mt-4">
+                <Link href="/calculators#calculator-detail" className="mt-auto">
+                  <Button className="w-full">
                     Calculate
                   </Button>
                 </Link>
@@ -44,9 +44,9 @@ export default function CalculatorSection() {
             </Card>
 
             {/* Affordability Calculator */}
-            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all h-full">
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex items-center mb-4 flex-grow">
                   <BadgeIcon className="w-10 h-10 text-primary mr-4" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -57,8 +57,8 @@ export default function CalculatorSection() {
                     </p>
                   </div>
                 </div>
-                <Link href="/calculators#calculator-detail">
-                  <Button className="w-full mt-4">
+                <Link href="/calculators#calculator-detail" className="mt-auto">
+                  <Button className="w-full">
                     Calculate
                   </Button>
                 </Link>
@@ -66,9 +66,9 @@ export default function CalculatorSection() {
             </Card>
 
             {/* Bonds and Transfer Costs Calculator */}
-            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all h-full">
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex items-center mb-4 flex-grow">
                   <CreditCardIcon className="w-10 h-10 text-primary mr-4" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -79,8 +79,8 @@ export default function CalculatorSection() {
                     </p>
                   </div>
                 </div>
-                <Link href="/calculators#calculator-detail">
-                  <Button className="w-full mt-4">
+                <Link href="/calculators#calculator-detail" className="mt-auto">
+                  <Button className="w-full">
                     Calculate
                   </Button>
                 </Link>
@@ -88,12 +88,12 @@ export default function CalculatorSection() {
             </Card>
             
             {/* Rate Comparison Calculator */}
-            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all border-2 border-primary/20">
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all border-2 border-primary/20 h-full">
               <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold py-1 px-3 rounded-bl-lg">
                 NEW
               </div>
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex items-center mb-4 flex-grow">
                   <TrendingUpIcon className="w-10 h-10 text-primary mr-4" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -104,8 +104,8 @@ export default function CalculatorSection() {
                     </p>
                   </div>
                 </div>
-                <Link href="/calculators?tab=comparison#calculator-detail">
-                  <Button className="w-full mt-4">
+                <Link href="/calculators?tab=comparison#calculator-detail" className="mt-auto">
+                  <Button className="w-full">
                     Compare Rates
                   </Button>
                 </Link>
@@ -113,9 +113,9 @@ export default function CalculatorSection() {
             </Card>
 
             {/* Additional Payment Calculator */}
-            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all h-full">
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex items-center mb-4 flex-grow">
                   <BarChart4Icon className="w-10 h-10 text-primary mr-4" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -126,8 +126,8 @@ export default function CalculatorSection() {
                     </p>
                   </div>
                 </div>
-                <Link href="/calculators?tab=additional#calculator-detail">
-                  <Button className="w-full mt-4">
+                <Link href="/calculators?tab=additional#calculator-detail" className="mt-auto">
+                  <Button className="w-full">
                     Calculate
                   </Button>
                 </Link>
@@ -135,9 +135,9 @@ export default function CalculatorSection() {
             </Card>
 
             {/* Deposit & Savings Calculator */}
-            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all h-full">
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex items-center mb-4 flex-grow">
                   <CalendarIcon className="w-10 h-10 text-primary mr-4" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -148,8 +148,8 @@ export default function CalculatorSection() {
                     </p>
                   </div>
                 </div>
-                <Link href="/calculators?tab=deposit#calculator-detail">
-                  <Button className="w-full mt-4">
+                <Link href="/calculators?tab=deposit#calculator-detail" className="mt-auto">
+                  <Button className="w-full">
                     Calculate
                   </Button>
                 </Link>

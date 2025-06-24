@@ -67,3 +67,17 @@ playwright/
 # Temporary files
 tmp/
 temp/
+
+# Azure/deployment logs
+*.deployment
+.azure/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Deployment artifacts
+deploy-package/
+deployment.zip
