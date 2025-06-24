@@ -173,6 +173,10 @@ export class MemStorage implements IStorage {
     this.budgetCategories = new Map();
     this.expenses = new Map();
     
+    // Initialize property management storage
+    this.properties = new Map();
+    this.loanScenarios = new Map();
+    
     // Initialize agent-related storage
     this.agencies = new Map();
     this.agents = new Map();
@@ -188,6 +192,8 @@ export class MemStorage implements IStorage {
     this.contactIdCounter = 1;
     this.budgetCategoryIdCounter = 1;
     this.expenseIdCounter = 1;
+    this.propertyIdCounter = 1;
+    this.scenarioIdCounter = 1;
     this.agencyIdCounter = 1;
     this.agentIdCounter = 1;
     this.applicationIdCounter = 1;

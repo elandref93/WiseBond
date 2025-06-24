@@ -1454,6 +1454,210 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error("Failed to initialize prime rate service:", error);
   });
 
+  // Property Management Routes
+  app.get('/api/properties', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.session as SessionData).userId!;
+      const properties = await storage.getUserProperties(userId);
+      res.json(properties);
+    } catch (error) {
+      console.error('Error fetching properties:', error);
+      res.status(500).json({ error: 'Failed to fetch properties' });
+    }
+  });
+
+  app.get('/api/properties/:id', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.session as SessionData).userId!;
+      const propertyId = parseInt(req.params.id);
+      
+      if (isNaN(propertyId)) {
+        return res.status(400).json({ error: 'Invalid property ID' });
+      }
+
+      const property = await storage.getProperty(propertyId, userId);
+      if (!property) {
+        return res.status(404).json({ error: 'Property not found' });
+      }
+
+      res.json(property);
+    } catch (error) {
+      console.error('Error fetching property:', error);
+      res.status(500).json({ error: 'Failed to fetch property' });
+    }
+  });
+
+  app.post('/api/properties', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.session as SessionData).userId!;
+      const propertyData = { ...req.body, userId };
+      
+      // Validate the property data
+      const { insertPropertySchema } = await import("@shared/schema");
+      const validatedData = insertPropertySchema.parse(propertyData);
+      
+      const property = await storage.createProperty(validatedData);
+      res.status(201).json(property);
+    } catch (error) {
+      console.error('Error creating property:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          error: 'Validation failed', 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: 'Failed to create property' });
+    }
+  });
+
+  app.put('/api/properties/:id', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.session as SessionData).userId!;
+      const propertyId = parseInt(req.params.id);
+      
+      if (isNaN(propertyId)) {
+        return res.status(400).json({ error: 'Invalid property ID' });
+      }
+
+      const { updatePropertySchema } = await import("@shared/schema");
+      const validatedData = updatePropertySchema.parse({ ...req.body, id: propertyId });
+      
+      const property = await storage.updateProperty(propertyId, validatedData, userId);
+      if (!property) {
+        return res.status(404).json({ error: 'Property not found' });
+      }
+
+      res.json(property);
+    } catch (error) {
+      console.error('Error updating property:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          error: 'Validation failed', 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: 'Failed to update property' });
+    }
+  });
+
+  app.delete('/api/properties/:id', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.session as SessionData).userId!;
+      const propertyId = parseInt(req.params.id);
+      
+      if (isNaN(propertyId)) {
+        return res.status(400).json({ error: 'Invalid property ID' });
+      }
+
+      const success = await storage.deleteProperty(propertyId, userId);
+      if (!success) {
+        return res.status(404).json({ error: 'Property not found' });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting property:', error);
+      res.status(500).json({ error: 'Failed to delete property' });
+    }
+  });
+
+  // Loan Scenario Routes
+  app.get('/api/properties/:propertyId/scenarios', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.session as SessionData).userId!;
+      const propertyId = parseInt(req.params.propertyId);
+      
+      if (isNaN(propertyId)) {
+        return res.status(400).json({ error: 'Invalid property ID' });
+      }
+
+      const scenarios = await storage.getPropertyScenarios(propertyId, userId);
+      res.json(scenarios);
+    } catch (error) {
+      console.error('Error fetching scenarios:', error);
+      res.status(500).json({ error: 'Failed to fetch scenarios' });
+    }
+  });
+
+  app.post('/api/properties/:propertyId/scenarios', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.session as SessionData).userId!;
+      const propertyId = parseInt(req.params.propertyId);
+      
+      if (isNaN(propertyId)) {
+        return res.status(400).json({ error: 'Invalid property ID' });
+      }
+
+      const scenarioData = { ...req.body, propertyId };
+      
+      const { insertLoanScenarioSchema } = await import("@shared/schema");
+      const validatedData = insertLoanScenarioSchema.parse(scenarioData);
+      
+      const scenario = await storage.createScenario(validatedData, userId);
+      res.status(201).json(scenario);
+    } catch (error) {
+      console.error('Error creating scenario:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          error: 'Validation failed', 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: 'Failed to create scenario' });
+    }
+  });
+
+  app.put('/api/scenarios/:id', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.session as SessionData).userId!;
+      const scenarioId = parseInt(req.params.id);
+      
+      if (isNaN(scenarioId)) {
+        return res.status(400).json({ error: 'Invalid scenario ID' });
+      }
+
+      const { updateLoanScenarioSchema } = await import("@shared/schema");
+      const validatedData = updateLoanScenarioSchema.parse({ ...req.body, id: scenarioId });
+      
+      const scenario = await storage.updateScenario(scenarioId, validatedData, userId);
+      if (!scenario) {
+        return res.status(404).json({ error: 'Scenario not found' });
+      }
+
+      res.json(scenario);
+    } catch (error) {
+      console.error('Error updating scenario:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          error: 'Validation failed', 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: 'Failed to update scenario' });
+    }
+  });
+
+  app.delete('/api/scenarios/:id', isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.session as SessionData).userId!;
+      const scenarioId = parseInt(req.params.id);
+      
+      if (isNaN(scenarioId)) {
+        return res.status(400).json({ error: 'Invalid scenario ID' });
+      }
+
+      const success = await storage.deleteScenario(scenarioId, userId);
+      if (!success) {
+        return res.status(404).json({ error: 'Scenario not found' });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting scenario:', error);
+      res.status(500).json({ error: 'Failed to delete scenario' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
