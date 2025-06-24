@@ -66,9 +66,9 @@ export default function Calculators() {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Bond Repayment Calculator */}
-            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all h-full">
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex items-center mb-4 flex-grow">
                   <HomeIcon className="w-10 h-10 text-primary mr-4" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -80,7 +80,7 @@ export default function Calculators() {
                   </div>
                 </div>
                 <Button 
-                  className="w-full mt-4"
+                  className="w-full mt-auto"
                   onClick={() => {
                     setActiveTab("bond");
                     window.location.href = "#calculator-detail";
@@ -92,9 +92,9 @@ export default function Calculators() {
             </Card>
 
             {/* Affordability Calculator */}
-            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all h-full">
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex items-center mb-4 flex-grow">
                   <BadgeIcon className="w-10 h-10 text-primary mr-4" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -106,7 +106,7 @@ export default function Calculators() {
                   </div>
                 </div>
                 <Button 
-                  className="w-full mt-4"
+                  className="w-full mt-auto"
                   onClick={() => {
                     setActiveTab("affordability");
                     window.location.href = "#calculator-detail";
@@ -118,9 +118,9 @@ export default function Calculators() {
             </Card>
 
             {/* Bonds and Transfer Costs Calculator */}
-            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all h-full">
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex items-center mb-4 flex-grow">
                   <CreditCardIcon className="w-10 h-10 text-primary mr-4" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -132,7 +132,7 @@ export default function Calculators() {
                   </div>
                 </div>
                 <Button 
-                  className="w-full mt-4"
+                  className="w-full mt-auto"
                   onClick={() => {
                     setActiveTab("transfer");
                     window.location.href = "#calculator-detail";
@@ -144,9 +144,9 @@ export default function Calculators() {
             </Card>
 
             {/* Additional Payment Calculator */}
-            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all h-full">
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex items-center mb-4 flex-grow">
                   <BarChart4Icon className="w-10 h-10 text-primary mr-4" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -158,7 +158,7 @@ export default function Calculators() {
                   </div>
                 </div>
                 <Button 
-                  className="w-full mt-4"
+                  className="w-full mt-auto"
                   onClick={() => {
                     setActiveTab("additional");
                     window.location.href = "#calculator-detail";
@@ -170,9 +170,9 @@ export default function Calculators() {
             </Card>
 
             {/* Deposit & Savings Calculator */}
-            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all h-full">
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex items-center mb-4 flex-grow">
                   <CalendarIcon className="w-10 h-10 text-primary mr-4" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -184,7 +184,7 @@ export default function Calculators() {
                   </div>
                 </div>
                 <Button 
-                  className="w-full mt-4"
+                  className="w-full mt-auto"
                   onClick={() => {
                     setActiveTab("deposit");
                     window.location.href = "#calculator-detail";
@@ -196,9 +196,9 @@ export default function Calculators() {
             </Card>
 
             {/* Amortisation Calculator */}
-            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all h-full">
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex items-center mb-4 flex-grow">
                   <CalculatorIcon className="w-10 h-10 text-primary mr-4" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -210,7 +210,7 @@ export default function Calculators() {
                   </div>
                 </div>
                 <Button 
-                  className="w-full mt-4"
+                  className="w-full mt-auto"
                   onClick={() => {
                     setActiveTab("amortisation");
                     window.location.href = "#calculator-detail";
