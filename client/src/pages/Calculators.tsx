@@ -222,9 +222,9 @@ export default function Calculators() {
             </Card>
             
             {/* Loan Comparison Simulator */}
-            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all">
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+            <Card className="overflow-hidden border-gray-200 hover:border-primary hover:shadow-md transition-all h-full">
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex items-center mb-4 flex-grow">
                   <LineChartIcon className="w-10 h-10 text-primary mr-4" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
@@ -236,7 +236,7 @@ export default function Calculators() {
                   </div>
                 </div>
                 <Button 
-                  className="w-full mt-4"
+                  className="w-full mt-auto"
                   onClick={() => {
                     setActiveTab("comparison");
                     window.location.href = "#calculator-detail";
