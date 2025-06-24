@@ -265,6 +265,114 @@ export type InsertCalculationResult = z.infer<typeof insertCalculationResultSche
 export type ContactSubmission = typeof contactSubmissions.$inferSelect;
 export type InsertContactSubmission = z.infer<typeof insertContactSubmissionSchema>;
 
+// Property Management Tables
+export const properties = pgTable("properties", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  name: text("name").notNull(), // User-defined property name
+  address: text("address").notNull(),
+  city: text("city").notNull(),
+  province: text("province").notNull(),
+  postalCode: text("postal_code").notNull(),
+  propertyValue: integer("property_value").notNull(),
+  originalLoanAmount: integer("original_loan_amount").notNull(),
+  currentLoanBalance: integer("current_loan_balance").notNull(),
+  currentMonthlyPayment: integer("current_monthly_payment").notNull(),
+  currentInterestRate: real("current_interest_rate").notNull(),
+  remainingTerm: integer("remaining_term").notNull(), // months remaining
+  originalTerm: integer("original_term").notNull(), // original term in months
+  bank: text("bank").notNull(),
+  loanStartDate: text("loan_start_date").notNull(), // YYYY-MM-DD
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertPropertySchema = createInsertSchema(properties).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  name: z.string().min(1, "Property name is required"),
+  address: z.string().min(1, "Address is required"),
+  city: z.string().min(1, "City is required"),
+  province: z.string().min(1, "Province is required"),
+  postalCode: z.string().min(1, "Postal code is required"),
+  propertyValue: z.number().min(1, "Property value must be greater than 0"),
+  originalLoanAmount: z.number().min(1, "Original loan amount must be greater than 0"),
+  currentLoanBalance: z.number().min(0, "Current loan balance cannot be negative"),
+  currentMonthlyPayment: z.number().min(1, "Monthly payment must be greater than 0"),
+  currentInterestRate: z.number().min(0).max(100, "Interest rate must be between 0 and 100"),
+  remainingTerm: z.number().min(1, "Remaining term must be at least 1 month"),
+  originalTerm: z.number().min(1, "Original term must be at least 1 month"),
+  bank: z.string().min(1, "Bank is required"),
+  loanStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+});
+
+export const updatePropertySchema = insertPropertySchema.partial().extend({
+  id: z.number(),
+});
+
+// Loan Payment Scenarios
+export const loanScenarios = pgTable("loan_scenarios", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").references(() => properties.id).notNull(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // 'lump_sum', 'extra_monthly', 'monthly_increase'
+  isActive: boolean("is_active").default(true),
+  // Lump sum fields
+  lumpSumAmount: integer("lump_sum_amount"),
+  lumpSumDate: text("lump_sum_date"), // YYYY-MM-DD or payment number
+  lumpSumDateType: text("lump_sum_date_type"), // 'date' or 'payment_number'
+  // Extra monthly payment fields
+  extraMonthlyAmount: integer("extra_monthly_amount"),
+  extraMonthlyStartDate: text("extra_monthly_start_date"), // YYYY-MM-DD or payment number
+  extraMonthlyStartType: text("extra_monthly_start_type"), // 'date' or 'payment_number'
+  extraMonthlyEndDate: text("extra_monthly_end_date"), // YYYY-MM-DD or payment number (optional)
+  extraMonthlyEndType: text("extra_monthly_end_type"), // 'date' or 'payment_number'
+  extraMonthlyDuration: integer("extra_monthly_duration"), // number of payments (alternative to end date)
+  // Monthly increase fields
+  monthlyIncreaseAmount: integer("monthly_increase_amount"),
+  monthlyIncreaseStartDate: text("monthly_increase_start_date"), // YYYY-MM-DD or payment number
+  monthlyIncreaseStartType: text("monthly_increase_start_type"), // 'date' or 'payment_number'
+  monthlyIncreaseFrequency: text("monthly_increase_frequency"), // 'once', 'annually'
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertLoanScenarioSchema = createInsertSchema(loanScenarios).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  name: z.string().min(1, "Scenario name is required"),
+  type: z.enum(['lump_sum', 'extra_monthly', 'monthly_increase']),
+  isActive: z.boolean().default(true),
+  lumpSumAmount: z.number().min(1).optional(),
+  lumpSumDate: z.string().optional(),
+  lumpSumDateType: z.enum(['date', 'payment_number']).optional(),
+  extraMonthlyAmount: z.number().min(1).optional(),
+  extraMonthlyStartDate: z.string().optional(),
+  extraMonthlyStartType: z.enum(['date', 'payment_number']).optional(),
+  extraMonthlyEndDate: z.string().optional(),
+  extraMonthlyEndType: z.enum(['date', 'payment_number']).optional(),
+  extraMonthlyDuration: z.number().min(1).optional(),
+  monthlyIncreaseAmount: z.number().min(1).optional(),
+  monthlyIncreaseStartDate: z.string().optional(),
+  monthlyIncreaseStartType: z.enum(['date', 'payment_number']).optional(),
+  monthlyIncreaseFrequency: z.enum(['once', 'annually']).optional(),
+});
+
+export const updateLoanScenarioSchema = insertLoanScenarioSchema.partial().extend({
+  id: z.number(),
+});
+
+export type Property = typeof properties.$inferSelect;
+export type InsertProperty = z.infer<typeof insertPropertySchema>;
+export type UpdateProperty = z.infer<typeof updatePropertySchema>;
+export type LoanScenario = typeof loanScenarios.$inferSelect;
+export type InsertLoanScenario = z.infer<typeof insertLoanScenarioSchema>;
+export type UpdateLoanScenario = z.infer<typeof updateLoanScenarioSchema>;
+
 // Budget Categories and Expenses
 
 export const budgetCategories = pgTable("budget_categories", {

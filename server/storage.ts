@@ -11,6 +11,9 @@ import {
   type ContactSubmission, type InsertContactSubmission, type BudgetCategory, type InsertBudgetCategory,
   type Expense, type InsertExpense, type UpdateExpense, budgetCategories, expenses,
   calculationResults, contactSubmissions,
+  // Property management imports
+  properties, loanScenarios, type Property, type InsertProperty, type UpdateProperty,
+  type LoanScenario, type InsertLoanScenario, type UpdateLoanScenario,
   // Agent-related imports
   agencies, agents, applications, applicationDocuments, applicationMilestones, applicationComments, notifications,
   type Agency, type InsertAgency, type Agent, type InsertAgent, type Application, type InsertApplication,
@@ -47,6 +50,20 @@ export interface IStorage {
   // OTP verification
   storeOTP(userId: number, otp: string, expiresAt: Date): Promise<void>;
   verifyOTP(userId: number, otp: string): Promise<boolean>;
+
+  // Property management
+  getUserProperties(userId: number): Promise<Property[]>;
+  getProperty(id: number, userId: number): Promise<Property | undefined>;
+  createProperty(property: InsertProperty): Promise<Property>;
+  updateProperty(id: number, updates: UpdateProperty, userId: number): Promise<Property | undefined>;
+  deleteProperty(id: number, userId: number): Promise<boolean>;
+
+  // Loan scenarios
+  getPropertyScenarios(propertyId: number, userId: number): Promise<LoanScenario[]>;
+  getScenario(id: number, userId: number): Promise<LoanScenario | undefined>;
+  createScenario(scenario: InsertLoanScenario, userId: number): Promise<LoanScenario>;
+  updateScenario(id: number, updates: UpdateLoanScenario, userId: number): Promise<LoanScenario | undefined>;
+  deleteScenario(id: number, userId: number): Promise<boolean>;
   
   // Password reset
   storePasswordResetToken(email: string, token: string, expiresAt: Date): Promise<number | undefined>; // Returns user ID if successful
@@ -544,6 +561,183 @@ export class MemStorage implements IStorage {
     }
     
     return this.expenses.delete(id);
+  }
+
+  // Property Management Methods
+
+  async getUserProperties(userId: number): Promise<Property[]> {
+    return Array.from(this.properties.values())
+      .filter(property => property.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async getProperty(id: number, userId: number): Promise<Property | undefined> {
+    const property = this.properties.get(id);
+    return property && property.userId === userId ? property : undefined;
+  }
+
+  async createProperty(insertProperty: InsertProperty): Promise<Property> {
+    const id = this.propertyIdCounter++;
+    const now = new Date();
+    const property: Property = {
+      id,
+      userId: insertProperty.userId,
+      name: insertProperty.name,
+      address: insertProperty.address,
+      city: insertProperty.city,
+      province: insertProperty.province,
+      postalCode: insertProperty.postalCode,
+      propertyValue: insertProperty.propertyValue,
+      originalLoanAmount: insertProperty.originalLoanAmount,
+      currentLoanBalance: insertProperty.currentLoanBalance,
+      currentMonthlyPayment: insertProperty.currentMonthlyPayment,
+      currentInterestRate: insertProperty.currentInterestRate,
+      remainingTerm: insertProperty.remainingTerm,
+      originalTerm: insertProperty.originalTerm,
+      bank: insertProperty.bank,
+      loanStartDate: insertProperty.loanStartDate,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.properties.set(id, property);
+    return property;
+  }
+
+  async updateProperty(id: number, updates: UpdateProperty, userId: number): Promise<Property | undefined> {
+    const property = this.properties.get(id);
+    if (!property || property.userId !== userId) {
+      return undefined;
+    }
+
+    const updatedProperty: Property = {
+      ...property,
+      ...updates,
+      id: property.id,
+      userId: property.userId,
+      createdAt: property.createdAt,
+      updatedAt: new Date()
+    };
+
+    this.properties.set(id, updatedProperty);
+    return updatedProperty;
+  }
+
+  async deleteProperty(id: number, userId: number): Promise<boolean> {
+    const property = this.properties.get(id);
+    if (!property || property.userId !== userId) {
+      return false;
+    }
+
+    // Also delete all scenarios for this property
+    Array.from(this.loanScenarios.entries()).forEach(([scenarioId, scenario]) => {
+      if (scenario.propertyId === id) {
+        this.loanScenarios.delete(scenarioId);
+      }
+    });
+
+    return this.properties.delete(id);
+  }
+
+  // Loan Scenario Methods
+
+  async getPropertyScenarios(propertyId: number, userId: number): Promise<LoanScenario[]> {
+    // First verify the property belongs to the user
+    const property = await this.getProperty(propertyId, userId);
+    if (!property) {
+      return [];
+    }
+
+    return Array.from(this.loanScenarios.values())
+      .filter(scenario => scenario.propertyId === propertyId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async getScenario(id: number, userId: number): Promise<LoanScenario | undefined> {
+    const scenario = this.loanScenarios.get(id);
+    if (!scenario) {
+      return undefined;
+    }
+
+    // Verify the property belongs to the user
+    const property = await this.getProperty(scenario.propertyId, userId);
+    return property ? scenario : undefined;
+  }
+
+  async createScenario(insertScenario: InsertLoanScenario, userId: number): Promise<LoanScenario> {
+    // Verify the property belongs to the user
+    const property = await this.getProperty(insertScenario.propertyId, userId);
+    if (!property) {
+      throw new Error('Property not found or access denied');
+    }
+
+    const id = this.scenarioIdCounter++;
+    const now = new Date();
+    const scenario: LoanScenario = {
+      id,
+      propertyId: insertScenario.propertyId,
+      name: insertScenario.name,
+      type: insertScenario.type,
+      isActive: insertScenario.isActive ?? true,
+      lumpSumAmount: insertScenario.lumpSumAmount ?? null,
+      lumpSumDate: insertScenario.lumpSumDate ?? null,
+      lumpSumDateType: insertScenario.lumpSumDateType ?? null,
+      extraMonthlyAmount: insertScenario.extraMonthlyAmount ?? null,
+      extraMonthlyStartDate: insertScenario.extraMonthlyStartDate ?? null,
+      extraMonthlyStartType: insertScenario.extraMonthlyStartType ?? null,
+      extraMonthlyEndDate: insertScenario.extraMonthlyEndDate ?? null,
+      extraMonthlyEndType: insertScenario.extraMonthlyEndType ?? null,
+      extraMonthlyDuration: insertScenario.extraMonthlyDuration ?? null,
+      monthlyIncreaseAmount: insertScenario.monthlyIncreaseAmount ?? null,
+      monthlyIncreaseStartDate: insertScenario.monthlyIncreaseStartDate ?? null,
+      monthlyIncreaseStartType: insertScenario.monthlyIncreaseStartType ?? null,
+      monthlyIncreaseFrequency: insertScenario.monthlyIncreaseFrequency ?? null,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.loanScenarios.set(id, scenario);
+    return scenario;
+  }
+
+  async updateScenario(id: number, updates: UpdateLoanScenario, userId: number): Promise<LoanScenario | undefined> {
+    const scenario = this.loanScenarios.get(id);
+    if (!scenario) {
+      return undefined;
+    }
+
+    // Verify the property belongs to the user
+    const property = await this.getProperty(scenario.propertyId, userId);
+    if (!property) {
+      return undefined;
+    }
+
+    const updatedScenario: LoanScenario = {
+      ...scenario,
+      ...updates,
+      id: scenario.id,
+      propertyId: scenario.propertyId,
+      createdAt: scenario.createdAt,
+      updatedAt: new Date()
+    };
+
+    this.loanScenarios.set(id, updatedScenario);
+    return updatedScenario;
+  }
+
+  async deleteScenario(id: number, userId: number): Promise<boolean> {
+    const scenario = this.loanScenarios.get(id);
+    if (!scenario) {
+      return false;
+    }
+
+    // Verify the property belongs to the user
+    const property = await this.getProperty(scenario.propertyId, userId);
+    if (!property) {
+      return false;
+    }
+
+    return this.loanScenarios.delete(id);
   }
   
   // Agency Management Methods
