@@ -27,6 +27,7 @@ const ForgotPassword = lazy(() => import("@/pages/ForgotPasswordPage"));
 const ResetPassword = lazy(() => import("@/pages/ResetPasswordPage"));
 const AgentDashboard = lazy(() => import("@/pages/AgentDashboard"));
 const Documents = lazy(() => import("@/pages/DocumentsPage"));
+const Properties = lazy(() => import("@/pages/Properties"));
 const AuthError = lazy(() => import("@/pages/auth-error"));
 
 function Router() {
