@@ -9,7 +9,9 @@ dotenv.config();
 // Helper to get Azure AD token
 async function getAzureToken() {
   try {
-    const credential = new DefaultAzureCredential();
+    const credential = new DefaultAzureCredential({
+      tenantId: "287e3bd1-6452-4019-b59d-12012d668c10"
+    });
     const scope = "https://ossrdbms-aad.database.windows.net/.default";
     const tokenResponse = await credential.getToken(scope);
     return tokenResponse.token;
