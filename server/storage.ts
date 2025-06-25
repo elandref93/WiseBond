@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { usersTable, calculationResultsTable, propertiesTable, loanScenariosTable } from '@shared/schema';
+import { users, calculationResults, properties, loanScenarios } from '@shared/schema';
 import type { User, InsertUser, CalculationResult, InsertCalculationResult, Property, InsertProperty, LoanScenario, InsertLoanScenario } from '@shared/schema';
 import bcrypt from 'bcrypt';
 
@@ -52,11 +52,15 @@ export class MemStorage implements IStorage {
   scenarioIdCounter = 1;
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const hashedPassword = await bcrypt.hash(insertUser.password, 10);
+    const hashedPassword = await bcrypt.hash(insertUser.password || '', 10);
     const user: User = {
       id: this.userIdCounter++,
-      username: insertUser.username,
+      username: insertUser.username || null,
       password: hashedPassword,
+      providerId: null,
+      providerAccountId: null,
+      image: null,
+      title: null,
       firstName: insertUser.firstName,
       lastName: insertUser.lastName,
       email: insertUser.email,
@@ -71,8 +75,30 @@ export class MemStorage implements IStorage {
       employmentStatus: insertUser.employmentStatus || null,
       employerName: insertUser.employerName || null,
       employmentSector: insertUser.employmentSector || null,
+      jobTitle: null,
       employmentDuration: insertUser.employmentDuration || null,
       monthlyIncome: insertUser.monthlyIncome || null,
+      maritalStatus: null,
+      hasCoApplicant: false,
+      coApplicantTitle: null,
+      coApplicantFirstName: null,
+      coApplicantLastName: null,
+      coApplicantEmail: null,
+      coApplicantPhone: null,
+      coApplicantIdNumber: null,
+      coApplicantDateOfBirth: null,
+      coApplicantAge: null,
+      coApplicantEmploymentStatus: null,
+      coApplicantEmployerName: null,
+      coApplicantEmploymentSector: null,
+      coApplicantJobTitle: null,
+      coApplicantEmploymentDuration: null,
+      coApplicantMonthlyIncome: null,
+      sameAddress: true,
+      coApplicantAddress: null,
+      coApplicantCity: null,
+      coApplicantPostalCode: null,
+      coApplicantProvince: null,
       otpVerified: insertUser.otpVerified || false,
       profileComplete: insertUser.profileComplete || false,
       createdAt: new Date(),
@@ -109,7 +135,7 @@ export class MemStorage implements IStorage {
 
   async verifyPassword(email: string, password: string): Promise<boolean> {
     const user = await this.getUserByEmail(email);
-    if (!user) return false;
+    if (!user || !user.password) return false;
     return await bcrypt.compare(password, user.password);
   }
 
@@ -137,7 +163,10 @@ export class MemStorage implements IStorage {
   async createCalculationResult(insertCalculationResult: InsertCalculationResult): Promise<CalculationResult> {
     const calculationResult: CalculationResult = {
       id: this.calculationIdCounter++,
-      ...insertCalculationResult,
+      userId: insertCalculationResult.userId || null,
+      calculationType: insertCalculationResult.calculationType,
+      inputData: insertCalculationResult.inputData,
+      resultData: insertCalculationResult.resultData,
       createdAt: new Date()
     };
     this.calculationResults.set(calculationResult.id, calculationResult);
@@ -208,7 +237,18 @@ export class MemStorage implements IStorage {
   async createLoanScenario(insertLoanScenario: InsertLoanScenario): Promise<LoanScenario> {
     const loanScenario: LoanScenario = {
       id: this.scenarioIdCounter++,
-      ...insertLoanScenario,
+      name: insertLoanScenario.name,
+      propertyId: insertLoanScenario.propertyId,
+      type: insertLoanScenario.type,
+      isActive: insertLoanScenario.isActive || false,
+      lumpSumAmount: insertLoanScenario.lumpSumAmount || null,
+      lumpSumDate: insertLoanScenario.lumpSumDate || null,
+      extraMonthlyAmount: insertLoanScenario.extraMonthlyAmount || null,
+      extraMonthlyStartDate: insertLoanScenario.extraMonthlyStartDate || null,
+      extraMonthlyEndDate: insertLoanScenario.extraMonthlyEndDate || null,
+      monthlyIncreaseAmount: insertLoanScenario.monthlyIncreaseAmount || null,
+      monthlyIncreaseDate: insertLoanScenario.monthlyIncreaseDate || null,
+      monthlyIncreaseFrequency: insertLoanScenario.monthlyIncreaseFrequency || null,
       createdAt: new Date(),
       updatedAt: new Date()
     };

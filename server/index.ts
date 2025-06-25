@@ -135,15 +135,6 @@ app.use((req, res, next) => {
     await setupVite(app, server); // Only in local dev
   }
 
-  // Use the environment's PORT variable
-  // Azure App Service (native Node.js) sets PORT automatically
-  // For Replit development, we use port 5000
-  const port = process.env.PORT || 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  // Server is already started by registerRoutes function
+  // No need to call listen again
 })();
