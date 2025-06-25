@@ -66,7 +66,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Set the user data immediately and invalidate queries
+      queryClient.setQueryData(['/api/auth/me'], data.user);
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
     },
     onError: (error: Error) => {

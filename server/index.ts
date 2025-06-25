@@ -124,6 +124,11 @@ app.use((req, res, next) => {
     throw err;
   });
 
+  // Set development environment if not set
+  if (!process.env.NODE_ENV) {
+    process.env.NODE_ENV = "development";
+  }
+  
   console.log("ENV:", process.env.NODE_ENV);
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
