@@ -5,8 +5,8 @@ import * as schema from "@shared/schema";
 import dotenv from 'dotenv';
 dotenv.config(); 
 
-// Simple Azure PostgreSQL connection - hardcoded for now
-const dbUrl = 'postgresql://elandre:*6CsqD325CX#9&HA9q#a5r9^9!8W%F@wisebond-server.postgres.database.azure.com:5432/postgres?sslmode=require';
+// Simple Azure PostgreSQL connection - properly encode special characters
+const dbUrl = 'postgresql://elandre:%2A6CsqD325CX%239%26HA9q%239a5r9%5E9%218W%25F@wisebond-server.postgres.database.azure.com:5432/postgres?sslmode=require';
 
 console.log('Connecting to Azure PostgreSQL database...');
 

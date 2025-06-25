@@ -88,7 +88,7 @@ app.use((req, res, next) => {
   
   // Test database connection with timeout, then run migrations if successful
   try {
-    const { testDatabaseConnection } = await import('./db');
+    const { testDatabaseConnection } = await import('./db-simple');
     
     // Test database connection with a shorter timeout
     const connectionTimeout = new Promise((_, reject) => 
