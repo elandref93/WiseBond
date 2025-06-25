@@ -1,4 +1,4 @@
-import pkg from 'pg';
+import pkg, { Client } from 'pg';
 const { Pool } = pkg;
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
@@ -10,8 +10,7 @@ dotenv.config();
 async function getAzureToken() {
   try {
     const credential = new DefaultAzureCredential();
-    const scope = "https://ossrdbms-aad.database.windows.net/.default";
-    const tokenResponse = await credential.getToken(scope);
+    const tokenResponse = await credential.getToken("https://ossrdbms-aad.database.windows.net");
     return tokenResponse.token;
   } catch (error) {
     console.error('Failed to get Azure token:', error);
@@ -21,16 +20,14 @@ async function getAzureToken() {
 
 const getPoolConfig = async () => {
   const token = await getAzureToken();
-  const user = "WiseBond"; // e.g., "fb48e328-aec7-466f-aa8c-a895aadd0aae"
+  const user = "WiseBond";
   const host = process.env.AZURE_POSTGRESQL_HOST;
   const database = process.env.AZURE_POSTGRESQL_DATABASE;
   const port = process.env.AZURE_POSTGRESQL_PORT || 5432;
-  const password = process.env.AZURE_POSTGRESQL_PASSWORD;
 
   console.log(user);
   console.log(token);
   console.log(database);
-  console.log(password);
   console.log(port);
   console.log(host);
   if (!user || !host || !database) {
@@ -49,24 +46,20 @@ const getPoolConfig = async () => {
   };
 };
 
-// Initialize and export pool
-let pool: Pool;
-let db;
-
-const initDb = async () => {
-  const poolConfig = await getPoolConfig();
-  pool = new Pool(poolConfig);
-  console.log('Connected to database');
-
-  db = drizzle(pool, { schema });
-};
-
-await initDb();
-
 // Optional: Test connection
 export const testDatabaseConnection = async (): Promise<boolean> => {
   try {
-    const client = await pool.connect();
+    const poolConfig = await getPoolConfig();
+    const client = new Client({
+      host: poolConfig.host,
+      database:poolConfig.database,
+      port: 5432,
+      user:poolConfig.user,
+      password: poolConfig.password,
+      ssl: {
+          rejectUnauthorized: true,
+      },
+  });
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS employees (
@@ -76,7 +69,7 @@ export const testDatabaseConnection = async (): Promise<boolean> => {
       );
     `);
 
-        await client.query(`
+    await client.query(`
       INSERT INTO employees (name, role)
       VALUES 
         ('Alice', 'Developer'),
@@ -86,8 +79,6 @@ export const testDatabaseConnection = async (): Promise<boolean> => {
     `);
 
     const result = await client.query('SELECT current_user');
-    client.release();
-    
     console.log('✅ Connected as:', result.rows[0].current_user);
     return true;
   } catch (err) {
