@@ -115,6 +115,8 @@ WiseBond is a comprehensive home loan application platform built with React, Typ
 
 ## Changelog
 - June 24, 2025. Initial setup
+- June 25, 2025. Property management system implemented with loan scenario modeling
+- June 25, 2025. Azure Key Vault integration added for WiseBondVault connection testing
 
 ## User Preferences
 
