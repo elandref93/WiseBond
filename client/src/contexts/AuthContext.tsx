@@ -155,7 +155,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
   }, []);
 
-  const userValue = userData && 'user' in userData ? userData.user : null;
+  // Handle both direct user object and wrapped user object
+  const userValue = userData && userData.id ? userData : null;
 
   return (
     <AuthContext.Provider value={{ 
