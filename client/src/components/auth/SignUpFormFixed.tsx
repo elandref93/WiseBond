@@ -59,6 +59,8 @@ export default function SignUpForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registrationStep, setRegistrationStep] = useState<'form' | 'otp'>('form');
   const [userId, setUserId] = useState<number | null>(null);
+  const [developmentOtp, setDevelopmentOtp] = useState<string | undefined>(undefined);
+  const [emailError, setEmailError] = useState<boolean>(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const { register } = useAuth();
@@ -90,12 +92,24 @@ export default function SignUpForm() {
       });
 
       setUserId((result as any).userId);
-      setRegistrationStep('otp');
       
-      toast({
-        title: "Account created!",
-        description: "Please check your email for the verification code.",
-      });
+      // Handle development mode OTP display when email delivery fails
+      if ((result as any).emailError && (result as any).developmentOtp) {
+        setDevelopmentOtp((result as any).developmentOtp);
+        setEmailError(true);
+        toast({
+          title: "Account created - Development Mode",
+          description: `Email delivery failed. Use OTP: ${(result as any).developmentOtp}`,
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Account created!",
+          description: "Please check your email (including spam folder) for the verification code.",
+        });
+      }
+      
+      setRegistrationStep('otp');
     } catch (error) {
       console.error('Registration error:', error);
       
@@ -141,6 +155,8 @@ export default function SignUpForm() {
         userId={userId} 
         email={form.getValues().email} 
         onVerified={handleOTPVerified}
+        developmentOtp={developmentOtp}
+        emailError={emailError}
       />
     );
   }

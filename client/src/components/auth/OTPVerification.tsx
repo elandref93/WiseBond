@@ -208,16 +208,26 @@ export default function OTPVerification({ userId, email, onVerified, development
     
     setIsResending(true);
     try {
-      await apiRequest('/api/auth/resend-otp', {
+      const response = await apiRequest('/api/auth/resend-otp', {
         method: 'POST',
         body: JSON.stringify({ userId, email }),
       });
 
-      toast({
-        title: "OTP Sent",
-        description: `A new verification code has been sent to ${email}`,
-        variant: "default",
-      });
+      const data = await response.json();
+
+      if (data.emailError && data.developmentOtp) {
+        toast({
+          title: "Development Mode - Email Delivery Failed",
+          description: `Use this OTP code: ${data.developmentOtp}`,
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "OTP Sent",
+          description: `A new verification code has been sent to ${email}`,
+          variant: "default",
+        });
+      }
       
       // Set countdown timer for 60 seconds
       setCountdownTime(60);
@@ -254,6 +264,26 @@ export default function OTPVerification({ userId, email, onVerified, development
           <br />
           <span className="font-medium text-gray-800">{email}</span>
         </p>
+        
+        {/* Development mode OTP display */}
+        {emailError && developmentOtp && (
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800 text-center">
+              <strong>Development Mode:</strong> Email delivery failed
+              <br />
+              <span className="font-mono text-lg">{developmentOtp}</span>
+            </p>
+          </div>
+        )}
+        
+        {/* Email delivery warning */}
+        {emailError && !developmentOtp && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-800 text-center">
+              Email delivery failed. Please try resending or check your spam folder.
+            </p>
+          </div>
+        )}
       </div>
       
       <form onSubmit={form.handleSubmit(onSubmit)}>
