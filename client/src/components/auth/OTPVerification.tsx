@@ -19,9 +19,11 @@ interface OTPVerificationProps {
   userId: number;
   email: string;
   onVerified: () => void;
+  developmentOtp?: string;
+  emailError?: boolean;
 }
 
-export default function OTPVerification({ userId, email, onVerified }: OTPVerificationProps) {
+export default function OTPVerification({ userId, email, onVerified, developmentOtp, emailError }: OTPVerificationProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);

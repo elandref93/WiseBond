@@ -95,10 +95,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       console.log(`OTP for ${user.email}: ${otp}`); // Development only
+      console.log(`Email send result:`, emailResult);
       
       if (!emailResult.success) {
         console.warn(`Failed to send verification email to ${user.email}:`, emailResult.error);
-        // Still allow registration but inform user
+        // In development, show the OTP in the response for testing
+        if (process.env.NODE_ENV === 'development') {
+          return res.status(201).json({ 
+            message: "User registered successfully. Email delivery failed - using development mode.", 
+            userId: user.id,
+            emailError: true,
+            developmentOtp: otp // Only in development
+          });
+        }
         return res.status(201).json({ 
           message: "User registered successfully, but email could not be sent. Please contact support.", 
           userId: user.id,
@@ -107,8 +116,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.status(201).json({ 
-        message: "User registered successfully. Please check your email for the verification code.", 
-        userId: user.id 
+        message: "User registered successfully. Please check your email (including spam folder) for the verification code.", 
+        userId: user.id,
+        emailSent: true
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -205,6 +215,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json({ message: "Logged out successfully" });
     });
+  });
+
+  // Resend OTP route
+  app.post("/api/auth/resend-otp", async (req, res) => {
+    try {
+      const { userId, email } = req.body;
+      const storage = await getStorage();
+      
+      if (!userId || !email) {
+        return res.status(400).json({ message: "User ID and email are required" });
+      }
+      
+      const user = await storage.getUserById(userId);
+      if (!user || user.email !== email) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Generate new OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date();
+      expiresAt.setMinutes(expiresAt.getMinutes() + 30);
+      
+      await storage.storeOTP(user.id, otp, expiresAt);
+      
+      // Send verification email
+      const emailResult = await sendVerificationEmail({
+        firstName: user.firstName,
+        email: user.email,
+        verificationCode: otp
+      });
+      
+      console.log(`Resend OTP for ${user.email}: ${otp}`);
+      console.log(`Resend email result:`, emailResult);
+      
+      if (!emailResult.success) {
+        console.warn(`Failed to resend verification email to ${user.email}:`, emailResult.error);
+        if (process.env.NODE_ENV === 'development') {
+          return res.json({ 
+            message: "OTP resent (development mode - email delivery failed)", 
+            emailError: true,
+            developmentOtp: otp
+          });
+        }
+        return res.status(500).json({ message: "Failed to resend verification email" });
+      }
+      
+      res.json({ 
+        message: "Verification code resent. Please check your email and spam folder.",
+        emailSent: true
+      });
+    } catch (error) {
+      console.error("Resend OTP error:", error);
+      res.status(500).json({ message: "Failed to resend verification code" });
+    }
   });
 
   // Password reset routes
@@ -356,6 +420,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       database: 'in-memory-storage',
       vite: 'enabled'
     });
+  });
+
+  // Email debug endpoint for development
+  app.post('/api/debug/test-email', async (req, res) => {
+    if (process.env.NODE_ENV !== 'development') {
+      return res.status(403).json({ message: 'Debug endpoint only available in development' });
+    }
+    
+    try {
+      const { email, type = 'otp' } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+      }
+      
+      let result;
+      if (type === 'otp') {
+        result = await sendVerificationEmail({
+          firstName: 'Debug Test',
+          email,
+          verificationCode: '123456'
+        });
+      } else if (type === 'reset') {
+        result = await sendPasswordResetEmail({
+          firstName: 'Debug Test',
+          email,
+          resetToken: 'debug-token-123',
+          resetUrl: `http://localhost:5000/reset-password?token=debug-token-123`
+        });
+      } else {
+        return res.status(400).json({ message: 'Invalid email type' });
+      }
+      
+      res.json({
+        success: result.success,
+        error: result.error,
+        isSandboxAuthError: result.isSandboxAuthError,
+        timestamp: new Date().toISOString(),
+        emailType: type,
+        recipient: email
+      });
+    } catch (error) {
+      console.error('Debug email test error:', error);
+      res.status(500).json({ 
+        message: 'Failed to send test email',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
   });
 
   const httpServer = createServer(app);
