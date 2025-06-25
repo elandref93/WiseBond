@@ -51,6 +51,7 @@ export class MemStorage implements IStorage {
   properties: Map<number, Property> = new Map();
   loanScenarios: Map<number, LoanScenario> = new Map();
   otps: Map<number, { otp: string; expiresAt: Date }> = new Map();
+  resetTokens: Map<string, { userId: number; expiresAt: Date }> = new Map();
 
   userIdCounter = 1;
   calculationIdCounter = 1;
@@ -164,6 +165,38 @@ export class MemStorage implements IStorage {
     }
     
     return false;
+  }
+
+  async storeResetToken(userId: number, token: string, expiresAt: Date): Promise<void> {
+    this.resetTokens.set(token, { userId, expiresAt });
+  }
+
+  async verifyResetToken(token: string): Promise<boolean> {
+    const stored = this.resetTokens.get(token);
+    if (!stored) return false;
+    
+    if (new Date() > stored.expiresAt) {
+      this.resetTokens.delete(token);
+      return false;
+    }
+    
+    return true;
+  }
+
+  async getUserByResetToken(token: string): Promise<User | undefined> {
+    const stored = this.resetTokens.get(token);
+    if (!stored) return undefined;
+    
+    if (new Date() > stored.expiresAt) {
+      this.resetTokens.delete(token);
+      return undefined;
+    }
+    
+    return this.users.get(stored.userId);
+  }
+
+  async clearResetToken(token: string): Promise<void> {
+    this.resetTokens.delete(token);
   }
 
   async createCalculationResult(insertCalculationResult: InsertCalculationResult): Promise<CalculationResult> {
