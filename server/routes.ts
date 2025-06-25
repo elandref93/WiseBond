@@ -1,6 +1,6 @@
 import express, { type Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { getStorage } from "./storage";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import { 
@@ -69,6 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
+      const storage = await getStorage();
       
       // Check if email already exists
       const existingEmail = await storage.getUserByEmail(userData.email);

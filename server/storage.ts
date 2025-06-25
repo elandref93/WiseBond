@@ -15,6 +15,10 @@ export interface IStorage {
   listUsers(): Promise<User[]>;
   verifyPassword(email: string, password: string): Promise<boolean>;
 
+  // OTP methods
+  storeOTP(userId: number, otp: string, expiresAt: Date): Promise<void>;
+  verifyOTP(userId: number, otp: string): Promise<boolean>;
+
   createCalculationResult(insertCalculationResult: InsertCalculationResult): Promise<CalculationResult>;
   getCalculationResult(id: number): Promise<CalculationResult | undefined>;
   getUserCalculationResults(userId: number): Promise<CalculationResult[]>;
@@ -655,5 +659,35 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Initialize storage instance - always use DatabaseStorage for persistence
-export const storage: IStorage = new DatabaseStorage();
+// Initialize storage with fallback mechanism
+let storage: IStorage;
+
+async function initializeStorage(): Promise<IStorage> {
+  if (storage) return storage;
+  
+  try {
+    // Try to initialize database storage with a quick connection test
+    const dbStorage = new DatabaseStorage();
+    
+    // Quick test to see if database is accessible
+    const testPromise = dbStorage.listUsers();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Connection timeout')), 5000)
+    );
+    
+    await Promise.race([testPromise, timeoutPromise]);
+    
+    console.log('✓ Database storage initialized successfully');
+    storage = dbStorage;
+    return storage;
+  } catch (error) {
+    console.log('⚠ Database unavailable, using in-memory storage');
+    storage = new MemStorage();
+    return storage;
+  }
+}
+
+// Export a promise that resolves to the storage instance
+export const getStorage = async (): Promise<IStorage> => {
+  return await initializeStorage();
+};
