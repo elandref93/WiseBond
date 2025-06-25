@@ -89,7 +89,7 @@ export default function SignUpForm() {
         password: values.password,
       });
 
-      setUserId(result.id);
+      setUserId(result.userId);
       setRegistrationStep('otp');
       
       toast({

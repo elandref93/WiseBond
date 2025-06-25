@@ -9,7 +9,7 @@ interface AuthContextType {
   isLoading: boolean;
   error: Error | null;
   login: (username: string, password: string) => Promise<User>;
-  register: (userData: Omit<InsertUser, "password"> & { password: string }) => Promise<User>;
+  register: (userData: Omit<InsertUser, "password"> & { password: string }) => Promise<{userId: number; message: string}>;
   logout: () => Promise<void>;
 }
 
@@ -126,10 +126,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   // Register function
-  const register = async (userData: Omit<InsertUser, "password"> & { password: string }): Promise<User> => {
+  const register = async (userData: Omit<InsertUser, "password"> & { password: string }) => {
     try {
       const result = await registerMutation.mutateAsync(userData as InsertUser);
-      return result.user;
+      return result; // Return the registration response directly
     } catch (error) {
       if (error instanceof Error) {
         throw error;
