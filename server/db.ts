@@ -57,6 +57,7 @@ const initDb = async () => {
   const poolConfig = await getPoolConfig();
   pool = new Pool(poolConfig);
   console.log('Connected to database');
+
   db = drizzle(pool, { schema });
 };
 
@@ -66,6 +67,24 @@ await initDb();
 export const testDatabaseConnection = async (): Promise<boolean> => {
   try {
     const client = await pool.connect();
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS employees (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        role TEXT NOT NULL
+      );
+    `);
+
+        await client.query(`
+      INSERT INTO employees (name, role)
+      VALUES 
+        ('Alice', 'Developer'),
+        ('Bob', 'Designer'),
+        ('Charlie', 'Product Manager')
+      ON CONFLICT DO NOTHING;
+    `);
+
     const result = await client.query('SELECT current_user');
     client.release();
     
