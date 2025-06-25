@@ -1,5 +1,5 @@
 import { eq, and, desc, sql, gte } from "drizzle-orm";
-import { db, pool } from "./db";
+import { db, pool } from "./db-simple";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
 import pkg from 'pg';
