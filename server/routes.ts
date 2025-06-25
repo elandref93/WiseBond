@@ -239,6 +239,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Health check endpoint for debugging
+  app.get('/health', (req, res) => {
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      port: process.env.PORT || 5000,
+      database: 'in-memory-storage',
+      vite: 'enabled'
+    });
+  });
+
   const httpServer = createServer(app);
   
   httpServer.listen(port, "0.0.0.0", () => {
