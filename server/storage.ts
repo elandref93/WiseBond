@@ -1,11 +1,11 @@
-// Fixed DatabaseStorage implementation with proper database connectivity
-import { eq, sql, inArray, and, asc, desc } from 'drizzle-orm';
-import { users, calculationResults, contactSubmissions, properties, loanScenarios } from '@shared/schema';
-import type { User, InsertUser, CalculationResult, InsertCalculationResult, ContactSubmission, InsertContactSubmission, Property, InsertProperty, LoanScenario, InsertLoanScenario } from '@shared/schema';
+// Simplified DatabaseStorage implementation focused on user persistence
+import { eq, sql } from 'drizzle-orm';
+import { users, calculationResults, properties, loanScenarios } from '@shared/schema';
+import type { User, InsertUser, CalculationResult, InsertCalculationResult, Property, InsertProperty, LoanScenario, InsertLoanScenario } from '@shared/schema';
 import bcrypt from 'bcrypt';
 import { getDatabase, withRetry } from './db-robust';
 
-// Storage interface
+// Storage interface focusing on essential functionality
 export interface IStorage {
   createUser(insertUser: InsertUser): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
@@ -34,27 +34,9 @@ export interface IStorage {
   createLoanScenario(insertLoanScenario: InsertLoanScenario): Promise<LoanScenario>;
   updateLoanScenario(id: number, updates: Partial<InsertLoanScenario>): Promise<LoanScenario | undefined>;
   deleteLoanScenario(id: number): Promise<boolean>;
-
-  createBudgetCategory(insertBudgetCategory: InsertBudgetCategory): Promise<BudgetCategory>;
-  getBudgetCategory(id: number): Promise<BudgetCategory | undefined>;
-  getUserBudgetCategories(userId: number): Promise<BudgetCategory[]>;
-  updateBudgetCategory(id: number, updates: Partial<InsertBudgetCategory>): Promise<BudgetCategory | undefined>;
-  deleteBudgetCategory(id: number): Promise<boolean>;
-
-  createExpense(insertExpense: InsertExpense): Promise<Expense>;
-  getExpense(id: number): Promise<Expense | undefined>;
-  getUserExpenses(userId: number): Promise<Expense[]>;
-  updateExpense(id: number, updates: Partial<InsertExpense>): Promise<Expense | undefined>;
-  deleteExpense(id: number): Promise<boolean>;
-
-  createApplication(insertApplication: InsertApplication): Promise<Application>;
-  getApplication(id: number): Promise<Application | undefined>;
-  getUserApplications(userId: number): Promise<Application[]>;
-  updateApplication(id: number, updates: Partial<InsertApplication>): Promise<Application | undefined>;
-  deleteApplication(id: number): Promise<boolean>;
 }
 
-// Main DatabaseStorage class with proper error handling and database connectivity
+// DatabaseStorage implementation with proper error handling
 export class DatabaseStorage implements IStorage {
   // User management methods
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -72,10 +54,10 @@ export class DatabaseStorage implements IStorage {
             employment_duration, monthly_income, otp_verified, profile_complete
           ) VALUES (
             ${insertUser.username}, ${hashedPassword}, ${insertUser.firstName}, ${insertUser.lastName}, 
-            ${insertUser.email}, ${insertUser.phone}, ${insertUser.idNumber}, ${insertUser.dateOfBirth}, 
-            ${insertUser.age}, ${insertUser.address}, ${insertUser.city}, ${insertUser.postalCode}, 
-            ${insertUser.province}, ${insertUser.employmentStatus}, ${insertUser.employerName}, 
-            ${insertUser.employmentSector}, ${insertUser.employmentDuration}, ${insertUser.monthlyIncome}, 
+            ${insertUser.email}, ${insertUser.phone || null}, ${insertUser.idNumber || null}, ${insertUser.dateOfBirth || null}, 
+            ${insertUser.age || null}, ${insertUser.address || null}, ${insertUser.city || null}, ${insertUser.postalCode || null}, 
+            ${insertUser.province || null}, ${insertUser.employmentStatus || null}, ${insertUser.employerName || null}, 
+            ${insertUser.employmentSector || null}, ${insertUser.employmentDuration || null}, ${insertUser.monthlyIncome || null}, 
             ${insertUser.otpVerified || false}, ${insertUser.profileComplete || false}
           ) RETURNING *
         `);
@@ -90,6 +72,10 @@ export class DatabaseStorage implements IStorage {
         id: userData.id,
         username: userData.username,
         password: userData.password,
+        providerId: userData.provider_id || null,
+        providerAccountId: userData.provider_account_id || null,
+        image: userData.image || null,
+        title: userData.title || null,
         firstName: userData.first_name,
         lastName: userData.last_name,
         email: userData.email,
@@ -104,8 +90,30 @@ export class DatabaseStorage implements IStorage {
         employmentStatus: userData.employment_status || null,
         employerName: userData.employer_name || null,
         employmentSector: userData.employment_sector || null,
+        jobTitle: userData.job_title || null,
         employmentDuration: userData.employment_duration || null,
         monthlyIncome: userData.monthly_income || null,
+        maritalStatus: userData.marital_status || null,
+        hasCoApplicant: userData.has_co_applicant || false,
+        coApplicantTitle: userData.co_applicant_title || null,
+        coApplicantFirstName: userData.co_applicant_first_name || null,
+        coApplicantLastName: userData.co_applicant_last_name || null,
+        coApplicantEmail: userData.co_applicant_email || null,
+        coApplicantPhone: userData.co_applicant_phone || null,
+        coApplicantIdNumber: userData.co_applicant_id_number || null,
+        coApplicantDateOfBirth: userData.co_applicant_date_of_birth || null,
+        coApplicantAge: userData.co_applicant_age || null,
+        coApplicantEmploymentStatus: userData.co_applicant_employment_status || null,
+        coApplicantEmployerName: userData.co_applicant_employer_name || null,
+        coApplicantEmploymentSector: userData.co_applicant_employment_sector || null,
+        coApplicantJobTitle: userData.co_applicant_job_title || null,
+        coApplicantEmploymentDuration: userData.co_applicant_employment_duration || null,
+        coApplicantMonthlyIncome: userData.co_applicant_monthly_income || null,
+        sameAddress: userData.same_address || true,
+        coApplicantAddress: userData.co_applicant_address || null,
+        coApplicantCity: userData.co_applicant_city || null,
+        coApplicantPostalCode: userData.co_applicant_postal_code || null,
+        coApplicantProvince: userData.co_applicant_province || null,
         otpVerified: userData.otp_verified || false,
         profileComplete: userData.profile_complete || false,
         createdAt: userData.created_at ? new Date(userData.created_at) : null,
@@ -121,51 +129,10 @@ export class DatabaseStorage implements IStorage {
     try {
       const db = await getDatabase();
       const userResult = await withRetry(async () => {
-        return db.execute(sql`
-          SELECT id, username, password, first_name as "firstName", last_name as "lastName", 
-          email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
-          address, city, postal_code as "postalCode", province, 
-          employment_status as "employmentStatus", employer_name as "employerName", 
-          employment_sector as "employmentSector", 
-          employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
-          otp_verified as "otpVerified", profile_complete as "profileComplete", 
-          created_at as "createdAt", updated_at as "updatedAt"
-          FROM users 
-          WHERE email = ${email}
-          LIMIT 1
-        `);
+        return db.select().from(users).where(eq(users.email, email)).limit(1);
       });
       
-      if (userResult.rows.length > 0) {
-        const userData = userResult.rows[0];
-        return {
-          id: userData.id,
-          username: userData.username,
-          password: userData.password,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          email: userData.email,
-          phone: userData.phone,
-          idNumber: userData.idNumber,
-          dateOfBirth: userData.dateOfBirth,
-          age: userData.age,
-          address: userData.address,
-          city: userData.city,
-          postalCode: userData.postalCode,
-          province: userData.province,
-          employmentStatus: userData.employmentStatus,
-          employerName: userData.employerName,
-          employmentSector: userData.employmentSector,
-          employmentDuration: userData.employmentDuration,
-          monthlyIncome: userData.monthlyIncome,
-          otpVerified: userData.otpVerified,
-          profileComplete: userData.profileComplete,
-          createdAt: userData.createdAt ? new Date(userData.createdAt) : null,
-          updatedAt: userData.updatedAt ? new Date(userData.updatedAt) : null
-        };
-      }
-      
-      return undefined;
+      return userResult[0] || undefined;
     } catch (error) {
       console.error('Database error in getUserByEmail:', error);
       return undefined;
@@ -248,73 +215,73 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Calculation methods
-  async createCalculation(insertCalculation: InsertCalculation): Promise<Calculation> {
+  // Calculation result methods
+  async createCalculationResult(insertCalculationResult: InsertCalculationResult): Promise<CalculationResult> {
     try {
       const db = await getDatabase();
       const result = await withRetry(async () => {
-        return db.insert(calculations).values(insertCalculation).returning();
+        return db.insert(calculationResults).values(insertCalculationResult).returning();
       });
       
       return result[0];
     } catch (error) {
-      console.error('Database error in createCalculation:', error);
+      console.error('Database error in createCalculationResult:', error);
       throw error;
     }
   }
 
-  async getCalculation(id: number): Promise<Calculation | undefined> {
+  async getCalculationResult(id: number): Promise<CalculationResult | undefined> {
     try {
       const db = await getDatabase();
       const result = await withRetry(async () => {
-        return db.select().from(calculations).where(eq(calculations.id, id));
+        return db.select().from(calculationResults).where(eq(calculationResults.id, id));
       });
       
       return result[0] || undefined;
     } catch (error) {
-      console.error('Database error in getCalculation:', error);
+      console.error('Database error in getCalculationResult:', error);
       return undefined;
     }
   }
 
-  async getUserCalculations(userId: number): Promise<Calculation[]> {
+  async getUserCalculationResults(userId: number): Promise<CalculationResult[]> {
     try {
       const db = await getDatabase();
       const result = await withRetry(async () => {
-        return db.select().from(calculations).where(eq(calculations.userId, userId));
+        return db.select().from(calculationResults).where(eq(calculationResults.userId, userId));
       });
       
       return result;
     } catch (error) {
-      console.error('Database error in getUserCalculations:', error);
+      console.error('Database error in getUserCalculationResults:', error);
       return [];
     }
   }
 
-  async updateCalculation(id: number, updates: Partial<InsertCalculation>): Promise<Calculation | undefined> {
+  async updateCalculationResult(id: number, updates: Partial<InsertCalculationResult>): Promise<CalculationResult | undefined> {
     try {
       const db = await getDatabase();
       const result = await withRetry(async () => {
-        return db.update(calculations).set(updates).where(eq(calculations.id, id)).returning();
+        return db.update(calculationResults).set(updates).where(eq(calculationResults.id, id)).returning();
       });
       
       return result[0] || undefined;
     } catch (error) {
-      console.error('Database error in updateCalculation:', error);
+      console.error('Database error in updateCalculationResult:', error);
       return undefined;
     }
   }
 
-  async deleteCalculation(id: number): Promise<boolean> {
+  async deleteCalculationResult(id: number): Promise<boolean> {
     try {
       const db = await getDatabase();
       const result = await withRetry(async () => {
-        return db.delete(calculations).where(eq(calculations.id, id));
+        return db.delete(calculationResults).where(eq(calculationResults.id, id));
       });
       
       return result.rowCount > 0;
     } catch (error) {
-      console.error('Database error in deleteCalculation:', error);
+      console.error('Database error in deleteCalculationResult:', error);
       return false;
     }
   }
@@ -324,7 +291,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const db = await getDatabase();
       const result = await withRetry(async () => {
-        return db.select().from(properties).where(eq(properties.userId, userId)).orderBy(asc(properties.createdAt));
+        return db.select().from(properties).where(eq(properties.userId, userId));
       });
       
       return result;
@@ -395,7 +362,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const db = await getDatabase();
       const result = await withRetry(async () => {
-        return db.select().from(loanScenarios).where(eq(loanScenarios.propertyId, propertyId)).orderBy(asc(loanScenarios.createdAt));
+        return db.select().from(loanScenarios).where(eq(loanScenarios.propertyId, propertyId));
       });
       
       return result;
@@ -460,234 +427,19 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
   }
-
-  // Budget category methods
-  async createBudgetCategory(insertBudgetCategory: InsertBudgetCategory): Promise<BudgetCategory> {
-    try {
-      const db = await getDatabase();
-      const result = await withRetry(async () => {
-        return db.insert(budgetCategories).values(insertBudgetCategory).returning();
-      });
-      
-      return result[0];
-    } catch (error) {
-      console.error('Database error in createBudgetCategory:', error);
-      throw error;
-    }
-  }
-
-  async getBudgetCategory(id: number): Promise<BudgetCategory | undefined> {
-    try {
-      const db = await getDatabase();
-      const result = await withRetry(async () => {
-        return db.select().from(budgetCategories).where(eq(budgetCategories.id, id));
-      });
-      
-      return result[0] || undefined;
-    } catch (error) {
-      console.error('Database error in getBudgetCategory:', error);
-      return undefined;
-    }
-  }
-
-  async getUserBudgetCategories(userId: number): Promise<BudgetCategory[]> {
-    try {
-      const db = await getDatabase();
-      const result = await withRetry(async () => {
-        return db.select().from(budgetCategories).where(eq(budgetCategories.userId, userId));
-      });
-      
-      return result;
-    } catch (error) {
-      console.error('Database error in getUserBudgetCategories:', error);
-      return [];
-    }
-  }
-
-  async updateBudgetCategory(id: number, updates: Partial<InsertBudgetCategory>): Promise<BudgetCategory | undefined> {
-    try {
-      const db = await getDatabase();
-      const result = await withRetry(async () => {
-        return db.update(budgetCategories).set(updates).where(eq(budgetCategories.id, id)).returning();
-      });
-      
-      return result[0] || undefined;
-    } catch (error) {
-      console.error('Database error in updateBudgetCategory:', error);
-      return undefined;
-    }
-  }
-
-  async deleteBudgetCategory(id: number): Promise<boolean> {
-    try {
-      const db = await getDatabase();
-      const result = await withRetry(async () => {
-        return db.delete(budgetCategories).where(eq(budgetCategories.id, id));
-      });
-      
-      return result.rowCount > 0;
-    } catch (error) {
-      console.error('Database error in deleteBudgetCategory:', error);
-      return false;
-    }
-  }
-
-  // Expense methods
-  async createExpense(insertExpense: InsertExpense): Promise<Expense> {
-    try {
-      const db = await getDatabase();
-      const result = await withRetry(async () => {
-        return db.insert(expenses).values(insertExpense).returning();
-      });
-      
-      return result[0];
-    } catch (error) {
-      console.error('Database error in createExpense:', error);
-      throw error;
-    }
-  }
-
-  async getExpense(id: number): Promise<Expense | undefined> {
-    try {
-      const db = await getDatabase();
-      const result = await withRetry(async () => {
-        return db.select().from(expenses).where(eq(expenses.id, id));
-      });
-      
-      return result[0] || undefined;
-    } catch (error) {
-      console.error('Database error in getExpense:', error);
-      return undefined;
-    }
-  }
-
-  async getUserExpenses(userId: number): Promise<Expense[]> {
-    try {
-      const db = await getDatabase();
-      const result = await withRetry(async () => {
-        return db.select().from(expenses).where(eq(expenses.userId, userId));
-      });
-      
-      return result;
-    } catch (error) {
-      console.error('Database error in getUserExpenses:', error);
-      return [];
-    }
-  }
-
-  async updateExpense(id: number, updates: Partial<InsertExpense>): Promise<Expense | undefined> {
-    try {
-      const db = await getDatabase();
-      const result = await withRetry(async () => {
-        return db.update(expenses).set(updates).where(eq(expenses.id, id)).returning();
-      });
-      
-      return result[0] || undefined;
-    } catch (error) {
-      console.error('Database error in updateExpense:', error);
-      return undefined;
-    }
-  }
-
-  async deleteExpense(id: number): Promise<boolean> {
-    try {
-      const db = await getDatabase();
-      const result = await withRetry(async () => {
-        return db.delete(expenses).where(eq(expenses.id, id));
-      });
-      
-      return result.rowCount > 0;
-    } catch (error) {
-      console.error('Database error in deleteExpense:', error);
-      return false;
-    }
-  }
-
-  // Application methods
-  async createApplication(insertApplication: InsertApplication): Promise<Application> {
-    try {
-      const db = await getDatabase();
-      const result = await withRetry(async () => {
-        return db.insert(applications).values(insertApplication).returning();
-      });
-      
-      return result[0];
-    } catch (error) {
-      console.error('Database error in createApplication:', error);
-      throw error;
-    }
-  }
-
-  async getApplication(id: number): Promise<Application | undefined> {
-    try {
-      const db = await getDatabase();
-      const result = await withRetry(async () => {
-        return db.select().from(applications).where(eq(applications.id, id));
-      });
-      
-      return result[0] || undefined;
-    } catch (error) {
-      console.error('Database error in getApplication:', error);
-      return undefined;
-    }
-  }
-
-  async getUserApplications(userId: number): Promise<Application[]> {
-    try {
-      const db = await getDatabase();
-      const result = await withRetry(async () => {
-        return db.select().from(applications).where(eq(applications.userId, userId));
-      });
-      
-      return result;
-    } catch (error) {
-      console.error('Database error in getUserApplications:', error);
-      return [];
-    }
-  }
-
-  async updateApplication(id: number, updates: Partial<InsertApplication>): Promise<Application | undefined> {
-    try {
-      const db = await getDatabase();
-      const result = await withRetry(async () => {
-        return db.update(applications).set(updates).where(eq(applications.id, id)).returning();
-      });
-      
-      return result[0] || undefined;
-    } catch (error) {
-      console.error('Database error in updateApplication:', error);
-      return undefined;
-    }
-  }
-
-  async deleteApplication(id: number): Promise<boolean> {
-    try {
-      const db = await getDatabase();
-      const result = await withRetry(async () => {
-        return db.delete(applications).where(eq(applications.id, id));
-      });
-      
-      return result.rowCount > 0;
-    } catch (error) {
-      console.error('Database error in deleteApplication:', error);
-      return false;
-    }
-  }
 }
 
 // Memory storage fallback for development/testing
 export class MemStorage implements IStorage {
   users: Map<number, User> = new Map();
-  calculations: Map<number, Calculation> = new Map();
-  budgetCategories: Map<number, BudgetCategory> = new Map();
-  expenses: Map<number, Expense> = new Map();
-  applications: Map<number, Application> = new Map();
+  calculationResults: Map<number, CalculationResult> = new Map();
+  properties: Map<number, Property> = new Map();
+  loanScenarios: Map<number, LoanScenario> = new Map();
   
   userIdCounter = 1;
   calculationIdCounter = 1;
-  budgetCategoryIdCounter = 1;
-  expenseIdCounter = 1;
-  applicationIdCounter = 1;
+  propertyIdCounter = 1;
+  scenarioIdCounter = 1;
 
   // User methods
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -696,8 +448,52 @@ export class MemStorage implements IStorage {
     
     const user: User = {
       id: this.userIdCounter++,
-      ...insertUser,
+      username: insertUser.username || null,
       password: hashedPassword,
+      providerId: null,
+      providerAccountId: null,
+      image: null,
+      title: null,
+      firstName: insertUser.firstName,
+      lastName: insertUser.lastName,
+      email: insertUser.email,
+      phone: insertUser.phone || null,
+      idNumber: insertUser.idNumber || null,
+      dateOfBirth: insertUser.dateOfBirth || null,
+      age: insertUser.age || null,
+      address: insertUser.address || null,
+      city: insertUser.city || null,
+      postalCode: insertUser.postalCode || null,
+      province: insertUser.province || null,
+      employmentStatus: insertUser.employmentStatus || null,
+      employerName: insertUser.employerName || null,
+      employmentSector: insertUser.employmentSector || null,
+      jobTitle: null,
+      employmentDuration: insertUser.employmentDuration || null,
+      monthlyIncome: insertUser.monthlyIncome || null,
+      maritalStatus: null,
+      hasCoApplicant: false,
+      coApplicantTitle: null,
+      coApplicantFirstName: null,
+      coApplicantLastName: null,
+      coApplicantEmail: null,
+      coApplicantPhone: null,
+      coApplicantIdNumber: null,
+      coApplicantDateOfBirth: null,
+      coApplicantAge: null,
+      coApplicantEmploymentStatus: null,
+      coApplicantEmployerName: null,
+      coApplicantEmploymentSector: null,
+      coApplicantJobTitle: null,
+      coApplicantEmploymentDuration: null,
+      coApplicantMonthlyIncome: null,
+      sameAddress: true,
+      coApplicantAddress: null,
+      coApplicantCity: null,
+      coApplicantPostalCode: null,
+      coApplicantProvince: null,
+      otpVerified: insertUser.otpVerified || false,
+      profileComplete: insertUser.profileComplete || false,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -742,182 +538,120 @@ export class MemStorage implements IStorage {
     return await bcrypt.compare(password, user.password);
   }
 
-  // Calculation methods
-  async createCalculation(insertCalculation: InsertCalculation): Promise<Calculation> {
-    const calculation: Calculation = {
+  // Calculation result methods
+  async createCalculationResult(insertCalculationResult: InsertCalculationResult): Promise<CalculationResult> {
+    const calculationResult: CalculationResult = {
       id: this.calculationIdCounter++,
-      ...insertCalculation,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      ...insertCalculationResult,
+      createdAt: new Date()
     };
     
-    this.calculations.set(calculation.id, calculation);
-    return calculation;
+    this.calculationResults.set(calculationResult.id, calculationResult);
+    return calculationResult;
   }
 
-  async getCalculation(id: number): Promise<Calculation | undefined> {
-    return this.calculations.get(id);
+  async getCalculationResult(id: number): Promise<CalculationResult | undefined> {
+    return this.calculationResults.get(id);
   }
 
-  async getUserCalculations(userId: number): Promise<Calculation[]> {
-    return Array.from(this.calculations.values()).filter(calc => calc.userId === userId);
+  async getUserCalculationResults(userId: number): Promise<CalculationResult[]> {
+    return Array.from(this.calculationResults.values()).filter(calc => calc.userId === userId);
   }
 
-  async updateCalculation(id: number, updates: Partial<InsertCalculation>): Promise<Calculation | undefined> {
-    const calculation = this.calculations.get(id);
-    if (!calculation) return undefined;
+  async updateCalculationResult(id: number, updates: Partial<InsertCalculationResult>): Promise<CalculationResult | undefined> {
+    const calculationResult = this.calculationResults.get(id);
+    if (!calculationResult) return undefined;
 
-    const updatedCalculation = { ...calculation, ...updates, updatedAt: new Date() };
-    this.calculations.set(id, updatedCalculation);
-    return updatedCalculation;
+    const updatedCalculationResult = { ...calculationResult, ...updates };
+    this.calculationResults.set(id, updatedCalculationResult);
+    return updatedCalculationResult;
   }
 
-  async deleteCalculation(id: number): Promise<boolean> {
-    return this.calculations.delete(id);
+  async deleteCalculationResult(id: number): Promise<boolean> {
+    return this.calculationResults.delete(id);
   }
 
   // Property methods - stub implementations for MemStorage
   async getUserProperties(userId: number): Promise<Property[]> {
-    return [];
+    return Array.from(this.properties.values()).filter(property => property.userId === userId).sort((a, b) => {
+      const aDate = a.createdAt ? new Date(a.createdAt) : new Date(0);
+      const bDate = b.createdAt ? new Date(b.createdAt) : new Date(0);
+      return aDate.getTime() - bDate.getTime();
+    });
   }
 
   async getProperty(id: number): Promise<Property | undefined> {
-    return undefined;
+    return this.properties.get(id);
   }
 
   async createProperty(insertProperty: InsertProperty): Promise<Property> {
-    throw new Error('Property management not implemented in MemStorage');
+    const property: Property = {
+      id: this.propertyIdCounter++,
+      ...insertProperty,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.properties.set(property.id, property);
+    return property;
   }
 
   async updateProperty(id: number, updates: Partial<InsertProperty>): Promise<Property | undefined> {
-    return undefined;
+    const property = this.properties.get(id);
+    if (!property) return undefined;
+
+    const updatedProperty = { ...property, ...updates, updatedAt: new Date() };
+    this.properties.set(id, updatedProperty);
+    return updatedProperty;
   }
 
   async deleteProperty(id: number): Promise<boolean> {
-    return false;
+    // Also delete associated loan scenarios
+    Array.from(this.loanScenarios.entries()).forEach(([scenarioId, scenario]) => {
+      if (scenario.propertyId === id) {
+        this.loanScenarios.delete(scenarioId);
+      }
+    });
+    
+    return this.properties.delete(id);
   }
 
   // Loan scenario methods - stub implementations for MemStorage
   async getPropertyLoanScenarios(propertyId: number): Promise<LoanScenario[]> {
-    return [];
+    return Array.from(this.loanScenarios.values()).filter(scenario => scenario.propertyId === propertyId).sort((a, b) => {
+      const aDate = a.createdAt ? new Date(a.createdAt) : new Date(0);
+      const bDate = b.createdAt ? new Date(b.createdAt) : new Date(0);
+      return aDate.getTime() - bDate.getTime();
+    });
   }
 
   async getLoanScenario(id: number): Promise<LoanScenario | undefined> {
-    return undefined;
+    return this.loanScenarios.get(id);
   }
 
   async createLoanScenario(insertLoanScenario: InsertLoanScenario): Promise<LoanScenario> {
-    throw new Error('Loan scenario management not implemented in MemStorage');
+    const loanScenario: LoanScenario = {
+      id: this.scenarioIdCounter++,
+      ...insertLoanScenario,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.loanScenarios.set(loanScenario.id, loanScenario);
+    return loanScenario;
   }
 
   async updateLoanScenario(id: number, updates: Partial<InsertLoanScenario>): Promise<LoanScenario | undefined> {
-    return undefined;
+    const loanScenario = this.loanScenarios.get(id);
+    if (!loanScenario) return undefined;
+
+    const updatedLoanScenario = { ...loanScenario, ...updates, updatedAt: new Date() };
+    this.loanScenarios.set(id, updatedLoanScenario);
+    return updatedLoanScenario;
   }
 
   async deleteLoanScenario(id: number): Promise<boolean> {
-    return false;
-  }
-
-  // Budget category methods
-  async createBudgetCategory(insertBudgetCategory: InsertBudgetCategory): Promise<BudgetCategory> {
-    const budgetCategory: BudgetCategory = {
-      id: this.budgetCategoryIdCounter++,
-      ...insertBudgetCategory,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    this.budgetCategories.set(budgetCategory.id, budgetCategory);
-    return budgetCategory;
-  }
-
-  async getBudgetCategory(id: number): Promise<BudgetCategory | undefined> {
-    return this.budgetCategories.get(id);
-  }
-
-  async getUserBudgetCategories(userId: number): Promise<BudgetCategory[]> {
-    return Array.from(this.budgetCategories.values()).filter(cat => cat.userId === userId);
-  }
-
-  async updateBudgetCategory(id: number, updates: Partial<InsertBudgetCategory>): Promise<BudgetCategory | undefined> {
-    const budgetCategory = this.budgetCategories.get(id);
-    if (!budgetCategory) return undefined;
-
-    const updatedBudgetCategory = { ...budgetCategory, ...updates, updatedAt: new Date() };
-    this.budgetCategories.set(id, updatedBudgetCategory);
-    return updatedBudgetCategory;
-  }
-
-  async deleteBudgetCategory(id: number): Promise<boolean> {
-    return this.budgetCategories.delete(id);
-  }
-
-  // Expense methods
-  async createExpense(insertExpense: InsertExpense): Promise<Expense> {
-    const expense: Expense = {
-      id: this.expenseIdCounter++,
-      ...insertExpense,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    this.expenses.set(expense.id, expense);
-    return expense;
-  }
-
-  async getExpense(id: number): Promise<Expense | undefined> {
-    return this.expenses.get(id);
-  }
-
-  async getUserExpenses(userId: number): Promise<Expense[]> {
-    return Array.from(this.expenses.values()).filter(exp => exp.userId === userId);
-  }
-
-  async updateExpense(id: number, updates: Partial<InsertExpense>): Promise<Expense | undefined> {
-    const expense = this.expenses.get(id);
-    if (!expense) return undefined;
-
-    const updatedExpense = { ...expense, ...updates, updatedAt: new Date() };
-    this.expenses.set(id, updatedExpense);
-    return updatedExpense;
-  }
-
-  async deleteExpense(id: number): Promise<boolean> {
-    return this.expenses.delete(id);
-  }
-
-  // Application methods
-  async createApplication(insertApplication: InsertApplication): Promise<Application> {
-    const application: Application = {
-      id: this.applicationIdCounter++,
-      ...insertApplication,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    this.applications.set(application.id, application);
-    return application;
-  }
-
-  async getApplication(id: number): Promise<Application | undefined> {
-    return this.applications.get(id);
-  }
-
-  async getUserApplications(userId: number): Promise<Application[]> {
-    return Array.from(this.applications.values()).filter(app => app.userId === userId);
-  }
-
-  async updateApplication(id: number, updates: Partial<InsertApplication>): Promise<Application | undefined> {
-    const application = this.applications.get(id);
-    if (!application) return undefined;
-
-    const updatedApplication = { ...application, ...updates, updatedAt: new Date() };
-    this.applications.set(id, updatedApplication);
-    return updatedApplication;
-  }
-
-  async deleteApplication(id: number): Promise<boolean> {
-    return this.applications.delete(id);
+    return this.loanScenarios.delete(id);
   }
 }
 
