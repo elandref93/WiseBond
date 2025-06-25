@@ -83,8 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = new Date();
       expiresAt.setMinutes(expiresAt.getMinutes() + 30); // OTP expires in 30 minutes
-      
-      await storage.storeOTP(user.id, otp, expiresAt);
+await storage.storeOTP(user.id, otp, expiresAt);
       
       // Send the verification email
       const emailResult = await sendVerificationEmail({
@@ -133,7 +132,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const loginData = loginSchema.parse(req.body);
       console.log("Login data after validation:", JSON.stringify(loginData));
       
-      const user = await storage.verifyUser(loginData.username, loginData.password);
+      const storage = await getStorage();
+      const user = await storage.getUserByEmail(loginData.username);
+      
+      if (!user || !(await storage.verifyPassword(loginData.username, loginData.password))) {
       
       if (!user) {
         console.log("Authentication failed: Invalid credentials");
@@ -192,7 +194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       console.log("Fetching user with ID:", req.session.userId);
-      const user = await storage.getUser(req.session.userId);
+      const user = await storage.getUserById(req.session.userId);
       
       if (!user) {
         console.log("User not found in storage for ID:", req.session.userId);
@@ -226,7 +228,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get user data for welcome email
-      const user = await storage.getUser(userId);
+      const user = await storage.getUserById(userId);
       if (user) {
         // Send welcome email
         try {
@@ -266,7 +268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get the user data
-      const user = await storage.getUser(userId);
+      const user = await storage.getUserById(userId);
       
       if (!user) {
         console.log("User not found:", userId);
@@ -312,7 +314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User ID and email are required" });
       }
       
-      const user = await storage.getUser(userId);
+      const user = await storage.getUserById(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -321,8 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = new Date();
       expiresAt.setMinutes(expiresAt.getMinutes() + 30); // OTP expires in 30 minutes
-      
-      await storage.storeOTP(userId, otp, expiresAt);
+await storage.storeOTP(userId, otp, expiresAt);
       
       // Send the verification email
       const emailResult = await sendVerificationEmail({
@@ -470,7 +471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       expiresAt.setHours(expiresAt.getHours() + 1);
       
       // Store the new token
-      await storage.storePasswordResetToken(user.email, newToken, expiresAt);
+await storage.storePasswordResetToken(user.email, newToken, expiresAt);
       
       // Construct reset URL
       const baseUrl = process.env.BASE_URL || `http://${req.headers.host}`;
@@ -551,7 +552,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get user to check if new password contains personal info
-      const user = await storage.getUser(userId);
+      const user = await storage.getUserById(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -594,7 +595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User profile routes
   app.get("/api/user/profile", isAuthenticated, async (req, res) => {
     try {
-      const user = await storage.getUser(req.session.userId!);
+      const user = await storage.getUserById(req.session.userId!);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -697,8 +698,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email,
         message: `Requested ${calculationType} calculator results to be emailed`,
       };
-      
-      await storage.createContactSubmission(contactData);
+await storage.createContactSubmission(contactData);
       
       // Send the email
       const emailResult = await sendCalculationEmail({
@@ -1043,7 +1043,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const comments = await storage.getApplicationComments(applicationId);
       
       // Get client info
-      const client = await storage.getUser(application.clientId);
+      const client = await storage.getUserById(application.clientId);
       
       if (!client) {
         return res.status(404).json({ message: "Client not found" });
@@ -1091,7 +1091,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const milestones = await Promise.all(
         defaultMilestones.map(milestone => 
-          storage.createApplicationMilestone({
+await storage.createApplicationMilestone({
             applicationId: application.id,
             milestoneName: milestone.milestoneName,
             expectedDate: milestone.expectedDate
@@ -1100,10 +1100,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       
       // Notify client
-      const client = await storage.getUser(application.clientId);
+      const client = await storage.getUserById(application.clientId);
       
       if (client) {
-        await storage.createNotification({
+await storage.createNotification({
           userId: client.id,
           type: "application_created",
           title: "New Home Loan Application",
@@ -1165,7 +1165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const milestone = milestones.find(m => m.milestoneName === milestoneName);
           
           if (milestone) {
-            await storage.updateApplicationMilestone(milestone.id, {
+await storage.updateApplicationMilestone(milestone.id, {
               completed: ['approved', 'funded', 'declined'].includes(newStatus) || 
                          (milestoneName !== 'decision' && milestoneName !== 'funding'),
               completedDate: new Date()
@@ -1174,7 +1174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Create notification for client
-        const client = await storage.getUser(application.clientId);
+        const client = await storage.getUserById(application.clientId);
         if (client) {
           let title = '';
           let message = '';
@@ -1203,7 +1203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           
           if (title && message) {
-            await storage.createNotification({
+await storage.createNotification({
               userId: client.id,
               type: `application_${newStatus}`,
               title,
@@ -1242,11 +1242,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Notify mentioned users
       if (req.body.mentions) {
         const mentions = JSON.parse(req.body.mentions);
-        const user = await storage.getUser(req.session.userId!);
+        const user = await storage.getUserById(req.session.userId!);
         
         if (user && Array.isArray(mentions)) {
           mentions.forEach(async (userId: number) => {
-            await storage.createNotification({
+await storage.createNotification({
               userId,
               type: "comment_mention",
               title: "You were mentioned in a comment",
