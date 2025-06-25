@@ -87,4 +87,23 @@ export const testDatabaseConnection = async (): Promise<boolean> => {
   }
 };
 
+// Create pool and db instances with lazy initialization
+let pool: any = null;
+let db: any = null;
+
+const initializeDatabase = async () => {
+  if (!pool) {
+    const config = await getPoolConfig();
+    pool = new Pool(config);
+    db = drizzle(pool, { schema });
+  }
+  return { pool, db };
+};
+
+// Export initialization function and lazy getters
+export const getDatabase = async () => {
+  await initializeDatabase();
+  return { pool, db };
+};
+
 export { pool, db };
