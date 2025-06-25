@@ -9,6 +9,7 @@ import Loading from "./components/Loading";
 import NotFound from "@/pages/not-found";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Lazy load pages for better performance
 const Home = lazy(() => import("@/pages/Home"));
@@ -73,20 +74,22 @@ function App() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          <main className="flex-grow">
-            <Suspense fallback={<Loading />}>
-              <Router />
-            </Suspense>
-          </main>
-          <Footer />
-        </div>
-        <Toaster />
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-grow">
+              <Suspense fallback={<Loading />}>
+                <Router />
+              </Suspense>
+            </main>
+            <Footer />
+          </div>
+          <Toaster />
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
