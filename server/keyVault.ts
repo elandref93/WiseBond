@@ -1,30 +1,75 @@
 import { DefaultAzureCredential } from "@azure/identity";
 import { SecretClient } from "@azure/keyvault-secrets";
-import dotenv from 'dotenv';
 
-// Load environment variables
-dotenv.config();
+const KEY_VAULT_URL = "https://wisebondvault.vault.azure.net/";
 
-// Azure Key Vault configuration
-const keyVaultName = "wisebond";
-const keyVaultUri = `https://${keyVaultName}.vault.azure.net/`;
-
-// Create a new secret client using the default Azure credential
-const credential = new DefaultAzureCredential();
-const secretClient = new SecretClient(keyVaultUri, credential);
+let secretClient: SecretClient | null = null;
+let keyVaultAvailable = false;
 
 /**
- * Get a secret from Azure Key Vault
+ * Initialize the Azure Key Vault client with error handling
+ */
+async function initializeKeyVaultClient(): Promise<SecretClient | null> {
+  if (secretClient && keyVaultAvailable) {
+    return secretClient;
+  }
+
+  try {
+    const credential = new DefaultAzureCredential();
+    secretClient = new SecretClient(KEY_VAULT_URL, credential);
+    
+    // Test connectivity by trying to list secrets
+    const secretsIterator = secretClient.listPropertiesOfSecrets();
+    await secretsIterator.next();
+    
+    keyVaultAvailable = true;
+    console.log('Azure Key Vault client initialized successfully');
+    return secretClient;
+    
+  } catch (error: any) {
+    console.warn('Azure Key Vault unavailable:', error.message);
+    keyVaultAvailable = false;
+    return null;
+  }
+}
+
+/**
+ * Get a secret from Azure Key Vault with retry logic and graceful fallback
  * @param secretName The name of the secret to retrieve
+ * @param retries Number of retry attempts
  * @returns The secret value or undefined if not found
  */
-export async function getSecret(secretName: string): Promise<string | undefined> {
-  try {
-    const secret = await secretClient.getSecret(secretName);
-    return secret.value;
-  } catch (error) {
-    console.error(`Error retrieving secret '${secretName}':`, error);
+export async function getSecret(secretName: string, retries: number = 2): Promise<string | undefined> {
+  const client = await initializeKeyVaultClient();
+  
+  if (!client) {
+    console.log(`Key Vault unavailable, skipping secret '${secretName}'`);
     return undefined;
+  }
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const secret = await client.getSecret(secretName);
+      
+      if (secret.value) {
+        console.log(`Retrieved secret '${secretName}' from Key Vault`);
+        return secret.value;
+      } else {
+        console.warn(`Secret '${secretName}' exists but has no value`);
+        return undefined;
+      }
+      
+    } catch (error: any) {
+      console.error(`Attempt ${attempt}/${retries} - Failed to get secret '${secretName}':`, error.message);
+      
+      if (attempt === retries) {
+        console.error(`All ${retries} attempts failed for secret '${secretName}'`);
+        return undefined;
+      }
+      
+      // Wait before retry
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+    }
   }
 }
 

@@ -152,10 +152,8 @@ async function initializeDatabase() {
     console.log(`Database initialized using ${config.source} configuration`);
     
     // Test the connection
-    const testResult = await testDatabaseConnection();
-    if (!testResult) {
-      throw new Error('Database connection test failed');
-    }
+    // Note: We don't test the connection here to avoid circular dependency
+    // The test will be done separately when needed
     
     return { pool, db };
     
@@ -165,9 +163,35 @@ async function initializeDatabase() {
   }
 }
 
+// Initialize database connection with fallback
+async function setupDatabase() {
+  try {
+    await initializeDatabase();
+  } catch (error: any) {
+    console.warn('Key Vault database initialization failed, trying environment variables...');
+    
+    // Fallback to original pool configuration
+    if (process.env.DATABASE_URL) {
+      const poolConfig = {
+        connectionString: process.env.DATABASE_URL,
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000,
+      };
+
+      pool = new Pool(poolConfig);
+      db = drizzle(pool, { schema });
+      console.log('Database initialized using environment variables');
+    } else {
+      console.error('No database configuration available');
+      throw error;
+    }
+  }
+}
+
 // Initialize database on module load
-initializeDatabase().catch(error => {
-  console.error('Failed to initialize database on startup:', error.message);
+setupDatabase().catch(error => {
+  console.error('Failed to initialize database:', error.message);
   console.log('Application will continue with limited functionality...');
 });
 
