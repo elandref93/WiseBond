@@ -1,4 +1,4 @@
-import { db } from './db';
+import { db } from './db-simple';
 import * as schema from '@shared/schema';
 import { sql } from 'drizzle-orm';
 
@@ -8,25 +8,14 @@ import { sql } from 'drizzle-orm';
 export const runMigrations = async () => {
   console.log('Running database migrations...');
   
-  // Log the actual table structure with timeout
+  // Check if database connection is working
   try {
-    console.log('Checking actual database table structure...');
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Database query timeout after 10 seconds')), 10000)
-    );
-    
-    const queryPromise = db.execute(sql`
-      SELECT column_name, data_type 
-      FROM information_schema.columns 
-      WHERE table_name = 'users'
-      ORDER BY ordinal_position
-    `);
-    
-    const tableInfo = await Promise.race([queryPromise, timeoutPromise]);
-    console.log('Current users table structure:', JSON.stringify(tableInfo.rows, null, 2));
+    console.log('Testing database connection...');
+    await db.execute(sql`SELECT 1 as test`);
+    console.log('✅ Database connection successful');
   } catch (e) {
-    console.error('Error checking table structure:', e);
-    console.log('Skipping table structure check due to connection issues');
+    console.error('❌ Database connection failed:', e);
+    throw new Error('Cannot connect to database');
   }
   
   try {

@@ -7,13 +7,10 @@ dotenv.config();
 
 let dbUrl: string;
 
-// Determine environment and set appropriate connection string
+// Use Azure PostgreSQL exclusively
 if (process.env.NODE_ENV === 'production') {
-  // For production, try DATABASE_URL first, then construct from individual vars
-  if (process.env.DATABASE_URL) {
-    dbUrl = process.env.DATABASE_URL;
-    console.log('Using production DATABASE_URL');
-  }else if (
+  // For production, use Azure PostgreSQL
+  if (
     process.env.AZURE_POSTGRESQL_USER &&
     process.env.AZURE_POSTGRESQL_PASSWORD &&
     process.env.AZURE_POSTGRESQL_HOST &&
@@ -26,18 +23,15 @@ if (process.env.NODE_ENV === 'production') {
     {
       dbUrl += '?sslmode=require';
     }
-  }
-  else {
+  } else {
     throw new Error(
       "Production environment requires Azure PostgreSQL environment variables (AZURE_POSTGRESQL_USER, AZURE_POSTGRESQL_PASSWORD, AZURE_POSTGRESQL_HOST, AZURE_POSTGRESQL_PORT, AZURE_POSTGRESQL_DATABASE)"
     );
   }
 } else {
-  // For development and other environments
+  // For development and other environments, also use Azure PostgreSQL
   if (process.env.POSTGRES_USERNAME && process.env.POSTGRES_PASSWORD && process.env.POSTGRES_HOST && process.env.POSTGRES_DATABASE) {
-    // Use individual PostgreSQL credentials for development
     const port = process.env.POSTGRES_PORT || '5432';
-    // URL encode the password to handle special characters
     const encodedPassword = encodeURIComponent(process.env.POSTGRES_PASSWORD);
     dbUrl = `postgresql://${process.env.POSTGRES_USERNAME}:${encodedPassword}@${process.env.POSTGRES_HOST}:${port}/${process.env.POSTGRES_DATABASE}?sslmode=require`;
     console.log('Using PostgreSQL credentials for development');
