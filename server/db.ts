@@ -9,9 +9,7 @@ dotenv.config();
 // Helper to get Azure AD token
 async function getAzureToken() {
   try {
-    const credential = new DefaultAzureCredential({
-      tenantId: "287e3bd1-6452-4019-b59d-12012d668c10"
-    });
+    const credential = new DefaultAzureCredential();
     const scope = "https://ossrdbms-aad.database.windows.net/.default";
     const tokenResponse = await credential.getToken(scope);
     return tokenResponse.token;
@@ -23,7 +21,7 @@ async function getAzureToken() {
 
 const getPoolConfig = async () => {
   const token = await getAzureToken();
-  const user = "jitendra@wisebond.co.za"; // e.g., "fb48e328-aec7-466f-aa8c-a895aadd0aae"
+  const user = "WiseBond"; // e.g., "fb48e328-aec7-466f-aa8c-a895aadd0aae"
   const host = process.env.AZURE_POSTGRESQL_HOST;
   const database = process.env.AZURE_POSTGRESQL_DATABASE;
   const port = process.env.AZURE_POSTGRESQL_PORT || 5432;
