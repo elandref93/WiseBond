@@ -4,9 +4,9 @@
  * Test both Key Vault and hardcoded database connections
  */
 
-const { Pool } = require('pg');
-const { DefaultAzureCredential } = require('@azure/identity');
-const { SecretClient } = require('@azure/keyvault-secrets');
+import { Pool } from 'pg';
+import { DefaultAzureCredential } from '@azure/identity';
+import { SecretClient } from '@azure/keyvault-secrets';
 
 const KEY_VAULT_URL = "https://wisebondvault.vault.azure.net/";
 

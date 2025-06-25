@@ -4,8 +4,8 @@
  * Simple Key Vault connectivity test
  */
 
-const { DefaultAzureCredential } = require('@azure/identity');
-const { SecretClient } = require('@azure/keyvault-secrets');
+import { DefaultAzureCredential } from '@azure/identity';
+import { SecretClient } from '@azure/keyvault-secrets';
 
 const KEY_VAULT_URL = "https://wisebondvault.vault.azure.net/";
 

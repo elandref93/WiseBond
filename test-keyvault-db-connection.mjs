@@ -5,10 +5,12 @@
  * This script tests both Key Vault-based and hardcoded connection methods
  */
 
-const { DefaultAzureCredential } = require('@azure/identity');
-const { SecretClient } = require('@azure/keyvault-secrets');
-const { Pool } = require('pg');
-require('dotenv').config();
+import { DefaultAzureCredential } from '@azure/identity';
+import { SecretClient } from '@azure/keyvault-secrets';
+import { Pool } from 'pg';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // Load environment variables
 dotenv.config();

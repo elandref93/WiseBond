@@ -78,8 +78,101 @@ const poolConfig = {
   })()
 };
 
-export const pool = new Pool(poolConfig);
-export const db = drizzle(pool, { schema });
+let pool: Pool;
+let db: ReturnType<typeof drizzle>;
+
+/**
+ * Get database configuration from Key Vault or environment variables
+ */
+async function getDatabaseConfig() {
+  console.log('Configuring database connection...');
+  
+  // First try to get configuration from Key Vault
+  const keyVaultConfig = await getDatabaseSecretsFromKeyVault();
+  
+  if (keyVaultConfig) {
+    console.log('Using database configuration from Azure Key Vault');
+    return {
+      connectionString: `postgresql://${keyVaultConfig.username}:${keyVaultConfig.password}@${keyVaultConfig.host}:${keyVaultConfig.port}/${keyVaultConfig.database}?sslmode=require`,
+      source: 'keyvault'
+    };
+  }
+  
+  // Fallback to environment variables
+  console.log('Key Vault configuration unavailable, using environment variables');
+  
+  if (!process.env.DATABASE_URL) {
+    // Try to construct from individual environment variables
+    const host = process.env.POSTGRES_HOST || process.env.PGHOST;
+    const port = process.env.POSTGRES_PORT || process.env.PGPORT || '5432';
+    const database = process.env.POSTGRES_DATABASE || process.env.PGDATABASE;
+    const username = process.env.POSTGRES_USERNAME || process.env.PGUSER;
+    const password = process.env.POSTGRES_PASSWORD || process.env.PGPASSWORD;
+    
+    if (host && database && username && password) {
+      const connectionString = `postgresql://${username}:${password}@${host}:${port}/${database}?sslmode=require`;
+      console.log('Constructed DATABASE_URL from individual environment variables');
+      return {
+        connectionString,
+        source: 'environment'
+      };
+    }
+    
+    throw new Error(
+      "Database configuration not found. Please ensure either:\n" +
+      "1. Azure Key Vault contains the required secrets, or\n" +
+      "2. DATABASE_URL environment variable is set, or\n" +
+      "3. Individual database environment variables are set (POSTGRES_HOST, POSTGRES_DATABASE, etc.)"
+    );
+  }
+  
+  return {
+    connectionString: process.env.DATABASE_URL,
+    source: 'environment'
+  };
+}
+
+/**
+ * Initialize database connection with Key Vault integration
+ */
+async function initializeDatabase() {
+  try {
+    const config = await getDatabaseConfig();
+    
+    const poolConfig = {
+      connectionString: config.connectionString,
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    };
+
+    pool = new Pool(poolConfig);
+    db = drizzle(pool, { schema });
+    
+    console.log(`Database initialized using ${config.source} configuration`);
+    
+    // Test the connection
+    const testResult = await testDatabaseConnection();
+    if (!testResult) {
+      throw new Error('Database connection test failed');
+    }
+    
+    return { pool, db };
+    
+  } catch (error: any) {
+    console.error('Failed to initialize database:', error.message);
+    throw error;
+  }
+}
+
+// Initialize database on module load
+initializeDatabase().catch(error => {
+  console.error('Failed to initialize database on startup:', error.message);
+  console.log('Application will continue with limited functionality...');
+});
+
+// Export the initialized instances
+export { pool, db };
 
 // Function to test database connection
 export const testDatabaseConnection = async (): Promise<boolean> => {
