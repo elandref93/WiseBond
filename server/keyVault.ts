@@ -8,7 +8,7 @@ dotenv.config();
 // Azure Key Vault configuration
 const keyVaultName = "wisebondvault";
 const keyVaultUri = `https://${keyVaultName}.vault.azure.net/`;
-
+console.log(keyVaultUri);
 // Create a new secret client using the default Azure credential
 const credential = new DefaultAzureCredential();
 const secretClient = new SecretClient(keyVaultUri, credential);

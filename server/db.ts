@@ -23,7 +23,7 @@ async function getAzureToken() {
 
 const getPoolConfig = async () => {
   const token = await getAzureToken();
-  const user = "WiseBond-MI"; // e.g., "fb48e328-aec7-466f-aa8c-a895aadd0aae"
+  const user = "jitendra@wisebond.co.za"; // e.g., "fb48e328-aec7-466f-aa8c-a895aadd0aae"
   const host = process.env.AZURE_POSTGRESQL_HOST;
   const database = process.env.AZURE_POSTGRESQL_DATABASE;
   const port = process.env.AZURE_POSTGRESQL_PORT || 5432;
