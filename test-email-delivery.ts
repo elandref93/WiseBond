@@ -27,7 +27,8 @@ async function testEmailDelivery() {
   const resetResult = await sendPasswordResetEmail({
     firstName: 'Test User',
     email: testEmail,
-    resetToken: 'test-reset-token-abc123'
+    resetToken: 'test-reset-token-abc123',
+    resetUrl: 'https://wisebond.co.za/reset-password?token=test-reset-token-abc123'
   });
   
   console.log('Reset Result:', resetResult);

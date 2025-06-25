@@ -17,6 +17,12 @@ export interface IStorage {
   storeOTP(userId: number, otp: string, expiresAt: Date): Promise<void>;
   verifyOTP(userId: number, otp: string): Promise<boolean>;
 
+  // Password reset token methods
+  storeResetToken(userId: number, token: string, expiresAt: Date): Promise<void>;
+  verifyResetToken(token: string): Promise<boolean>;
+  getUserByResetToken(token: string): Promise<User | undefined>;
+  clearResetToken(token: string): Promise<void>;
+
   createCalculationResult(insertCalculationResult: InsertCalculationResult): Promise<CalculationResult>;
   getCalculationResult(id: number): Promise<CalculationResult | undefined>;
   getUserCalculationResults(userId: number): Promise<CalculationResult[]>;
