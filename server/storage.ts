@@ -1264,7 +1264,7 @@ export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
     try {
       // First try with just the basic user fields
-      const userResult = await db.execute(sql`
+      const userResult = await (await getDatabase()).execute(sql`
         SELECT id, username, password, first_name as "firstName", last_name as "lastName", 
         email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
         address, city, postal_code as "postalCode", province, 
@@ -1283,7 +1283,7 @@ export class DatabaseStorage implements IStorage {
         
         // Check if co-applicant columns exist by attempting a separate query
         try {
-          const coApplicantResult = await db.execute(sql`
+          const coApplicantResult = await (await getDatabase()).execute(sql`
             SELECT 
               marital_status, has_co_applicant, 
               co_applicant_first_name, co_applicant_last_name, co_applicant_email, 
@@ -1366,7 +1366,7 @@ export class DatabaseStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
       // First try with just the basic user fields
-      const userResult = await db.execute(sql`
+      const userResult = await (await getDatabase()).execute(sql`
         SELECT id, username, password, first_name as "firstName", last_name as "lastName", 
         email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
         address, city, postal_code as "postalCode", province, 
@@ -1385,7 +1385,7 @@ export class DatabaseStorage implements IStorage {
         
         // Check if co-applicant columns exist by attempting a separate query
         try {
-          const coApplicantResult = await db.execute(sql`
+          const coApplicantResult = await (await getDatabase()).execute(sql`
             SELECT 
               marital_status, has_co_applicant, 
               co_applicant_first_name, co_applicant_last_name, co_applicant_email, 
@@ -1467,8 +1467,9 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     try {
+      const db = await getDatabase();
       // First try with just the basic user fields
-      const userResult = await db.execute(sql`
+      const userResult = await withRetry(async () => db.execute(sql`
         SELECT id, username, password, first_name as "firstName", last_name as "lastName", 
         email, phone, id_number as "idNumber", date_of_birth as "dateOfBirth", age, 
         address, city, postal_code as "postalCode", province, 
@@ -1480,14 +1481,14 @@ export class DatabaseStorage implements IStorage {
         FROM users 
         WHERE email = ${email}
         LIMIT 1
-      `);
+      `));
       
       if (userResult.rows.length > 0) {
         const userData = userResult.rows[0];
         
         // Check if co-applicant columns exist by attempting a separate query
         try {
-          const coApplicantResult = await db.execute(sql`
+          const coApplicantResult = await (await getDatabase()).execute(sql`
             SELECT 
               marital_status, has_co_applicant, 
               co_applicant_first_name, co_applicant_last_name, co_applicant_email, 
@@ -1574,7 +1575,7 @@ export class DatabaseStorage implements IStorage {
       const hashedPassword = await bcrypt.hash(insertUser.password, saltRounds);
       
       // Use raw SQL to create user with only fields we know exist
-      const userResult = await withRetry(() => db.execute(sql`
+      const userResult = await withRetry(() => (await getDatabase()).execute(sql`
         INSERT INTO users (
           username, password, first_name, last_name, email, phone, 
           id_number, date_of_birth, age, address, city, postal_code, 
@@ -1694,7 +1695,7 @@ export class DatabaseStorage implements IStorage {
       // Check for duplicate calculations to prevent saving identical ones
       if (insertResult.userId) {
         // Get recent calculations for this user and type (last 24 hours)
-        const recentCalculations = await db.select()
+        const recentCalculations = await (await getDatabase()).select()
           .from(calculationResults)
           .where(
             and(
@@ -1718,7 +1719,7 @@ export class DatabaseStorage implements IStorage {
       }
       
       // If no duplicate found, insert new calculation
-      const [result] = await db.insert(calculationResults).values({
+      const [result] = await (await getDatabase()).insert(calculationResults).values({
         ...insertResult,
         createdAt: new Date()
       }).returning();
@@ -1732,7 +1733,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUserCalculationResults(userId: number): Promise<CalculationResult[]> {
     try {
-      const results = await db.select()
+      const results = await (await getDatabase()).select()
         .from(calculationResults)
         .where(eq(calculationResults.userId, userId))
         .orderBy(desc(calculationResults.createdAt));
@@ -1746,7 +1747,7 @@ export class DatabaseStorage implements IStorage {
 
   async createContactSubmission(insertSubmission: InsertContactSubmission): Promise<ContactSubmission> {
     try {
-      const [submission] = await db.insert(contactSubmissions).values({
+      const [submission] = await (await getDatabase()).insert(contactSubmissions).values({
         ...insertSubmission,
         createdAt: new Date()
       }).returning();
@@ -1821,14 +1822,14 @@ export class DatabaseStorage implements IStorage {
       if (needsCoApplicantColumns) {
         try {
           // Check if co-applicant columns exist
-          await db.execute(sql`SELECT marital_status FROM users LIMIT 1`);
+          await (await getDatabase()).execute(sql`SELECT marital_status FROM users LIMIT 1`);
           console.log("Co-applicant columns already exist");
         } catch (e) {
           console.log("Co-applicant columns don't exist, adding them");
           
           try {
             // Add co-applicant columns to users table
-            await db.execute(sql`
+            await (await getDatabase()).execute(sql`
               ALTER TABLE users
               ADD COLUMN IF NOT EXISTS marital_status TEXT,
               ADD COLUMN IF NOT EXISTS has_co_applicant BOOLEAN DEFAULT FALSE,
@@ -2076,7 +2077,7 @@ export class DatabaseStorage implements IStorage {
   private async initDefaultBudgetCategories() {
     try {
       // Check if budget categories already exist
-      const existingCategories = await db.select().from(budgetCategories).where(eq(budgetCategories.isDefault, true));
+      const existingCategories = await (await getDatabase()).select().from(budgetCategories).where(eq(budgetCategories.isDefault, true));
       
       if (existingCategories.length > 0) {
         console.log(`Found ${existingCategories.length} existing default budget categories`);
@@ -2161,7 +2162,7 @@ export class DatabaseStorage implements IStorage {
       ];
       
       // Insert all default categories at once
-      await db.insert(budgetCategories).values(
+      await (await getDatabase()).insert(budgetCategories).values(
         defaultCategories.map(category => ({
           ...category,
           createdAt: new Date()
@@ -2177,7 +2178,7 @@ export class DatabaseStorage implements IStorage {
 
   async getBudgetCategories(): Promise<BudgetCategory[]> {
     try {
-      const categories = await db.select()
+      const categories = await (await getDatabase()).select()
         .from(budgetCategories)
         .orderBy(budgetCategories.sortOrder);
       
@@ -2190,7 +2191,7 @@ export class DatabaseStorage implements IStorage {
 
   async getBudgetCategory(id: number): Promise<BudgetCategory | undefined> {
     try {
-      const [category] = await db.select()
+      const [category] = await (await getDatabase()).select()
         .from(budgetCategories)
         .where(eq(budgetCategories.id, id));
       
@@ -2203,7 +2204,7 @@ export class DatabaseStorage implements IStorage {
 
   async createBudgetCategory(insertCategory: InsertBudgetCategory): Promise<BudgetCategory> {
     try {
-      const [category] = await db.insert(budgetCategories).values({
+      const [category] = await (await getDatabase()).insert(budgetCategories).values({
         ...insertCategory,
         createdAt: new Date()
       }).returning();
@@ -2217,7 +2218,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUserExpenses(userId: number): Promise<Expense[]> {
     try {
-      const userExpenses = await db.select()
+      const userExpenses = await (await getDatabase()).select()
         .from(expenses)
         .where(eq(expenses.userId, userId))
         .orderBy(desc(expenses.createdAt));
@@ -2231,7 +2232,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUserExpensesByCategory(userId: number, categoryId: number): Promise<Expense[]> {
     try {
-      const categoryExpenses = await db.select()
+      const categoryExpenses = await (await getDatabase()).select()
         .from(expenses)
         .where(
           and(
@@ -2250,7 +2251,7 @@ export class DatabaseStorage implements IStorage {
 
   async getExpense(id: number): Promise<Expense | undefined> {
     try {
-      const [expense] = await db.select()
+      const [expense] = await (await getDatabase()).select()
         .from(expenses)
         .where(eq(expenses.id, id));
       
@@ -2264,7 +2265,7 @@ export class DatabaseStorage implements IStorage {
   async createExpense(insertExpense: InsertExpense): Promise<Expense> {
     try {
       const now = new Date();
-      const [expense] = await db.insert(expenses).values({
+      const [expense] = await (await getDatabase()).insert(expenses).values({
         ...insertExpense,
         createdAt: now,
         updatedAt: now
@@ -2279,7 +2280,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateExpense(id: number, userId: number, updates: UpdateExpense): Promise<Expense | undefined> {
     try {
-      const [updatedExpense] = await db.update(expenses)
+      const [updatedExpense] = await (await getDatabase()).update(expenses)
         .set({
           ...updates,
           updatedAt: new Date()
@@ -2301,7 +2302,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteExpense(id: number, userId: number): Promise<boolean> {
     try {
-      const result = await db.delete(expenses)
+      const result = await (await getDatabase()).delete(expenses)
         .where(
           and(
             eq(expenses.id, id),
@@ -2324,7 +2325,7 @@ export class DatabaseStorage implements IStorage {
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
       
-      const result = await db.update(users)
+      const result = await (await getDatabase()).update(users)
         .set({
           password: hashedPassword,
           updatedAt: new Date()
@@ -2443,7 +2444,7 @@ export class DatabaseStorage implements IStorage {
   // Agency management
   async getAgencies(): Promise<Agency[]> {
     try {
-      const result = await db.select().from(agencies).orderBy(agencies.name);
+      const result = await (await getDatabase()).select().from(agencies).orderBy(agencies.name);
       return result;
     } catch (error) {
       console.error("Database error in getAgencies:", error);
@@ -2453,7 +2454,7 @@ export class DatabaseStorage implements IStorage {
 
   async getAgency(id: number): Promise<Agency | undefined> {
     try {
-      const [agency] = await db.select().from(agencies).where(eq(agencies.id, id));
+      const [agency] = await (await getDatabase()).select().from(agencies).where(eq(agencies.id, id));
       return agency;
     } catch (error) {
       console.error("Database error in getAgency:", error);
@@ -2463,7 +2464,7 @@ export class DatabaseStorage implements IStorage {
 
   async createAgency(agency: InsertAgency): Promise<Agency> {
     try {
-      const [result] = await db.insert(agencies).values({
+      const [result] = await (await getDatabase()).insert(agencies).values({
         ...agency,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -2477,7 +2478,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateAgency(id: number, updates: Partial<Agency>): Promise<Agency | undefined> {
     try {
-      const [updatedAgency] = await db.update(agencies)
+      const [updatedAgency] = await (await getDatabase()).update(agencies)
         .set({
           ...updates,
           updatedAt: new Date()
@@ -2494,7 +2495,7 @@ export class DatabaseStorage implements IStorage {
   // Agent management
   async getAgents(): Promise<Agent[]> {
     try {
-      const result = await db.select().from(agents);
+      const result = await (await getDatabase()).select().from(agents);
       return result;
     } catch (error) {
       console.error("Database error in getAgents:", error);
@@ -2504,7 +2505,7 @@ export class DatabaseStorage implements IStorage {
 
   async getAgentsByAgency(agencyId: number): Promise<Agent[]> {
     try {
-      const result = await db.select()
+      const result = await (await getDatabase()).select()
         .from(agents)
         .where(eq(agents.agencyId, agencyId));
       return result;
@@ -2516,7 +2517,7 @@ export class DatabaseStorage implements IStorage {
 
   async getAgent(id: number): Promise<Agent | undefined> {
     try {
-      const [agent] = await db.select().from(agents).where(eq(agents.id, id));
+      const [agent] = await (await getDatabase()).select().from(agents).where(eq(agents.id, id));
       return agent;
     } catch (error) {
       console.error("Database error in getAgent:", error);
@@ -2526,7 +2527,7 @@ export class DatabaseStorage implements IStorage {
 
   async getAgentByUserId(userId: number): Promise<Agent | undefined> {
     try {
-      const [agent] = await db.select().from(agents).where(eq(agents.userId, userId));
+      const [agent] = await (await getDatabase()).select().from(agents).where(eq(agents.userId, userId));
       return agent;
     } catch (error) {
       console.error("Database error in getAgentByUserId:", error);
@@ -2536,7 +2537,7 @@ export class DatabaseStorage implements IStorage {
 
   async createAgent(agent: InsertAgent): Promise<Agent> {
     try {
-      const [result] = await db.insert(agents).values({
+      const [result] = await (await getDatabase()).insert(agents).values({
         ...agent,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -2550,7 +2551,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateAgent(id: number, updates: Partial<Agent>): Promise<Agent | undefined> {
     try {
-      const [updatedAgent] = await db.update(agents)
+      const [updatedAgent] = await (await getDatabase()).update(agents)
         .set({
           ...updates,
           updatedAt: new Date()
@@ -2567,7 +2568,7 @@ export class DatabaseStorage implements IStorage {
   // Application management
   async getApplications(): Promise<Application[]> {
     try {
-      const result = await db.select().from(applications).orderBy(desc(applications.createdAt));
+      const result = await (await getDatabase()).select().from(applications).orderBy(desc(applications.createdAt));
       return result;
     } catch (error) {
       console.error("Database error in getApplications:", error);
@@ -2577,7 +2578,7 @@ export class DatabaseStorage implements IStorage {
 
   async getApplicationsByAgent(agentId: number): Promise<Application[]> {
     try {
-      const result = await db.select()
+      const result = await (await getDatabase()).select()
         .from(applications)
         .where(eq(applications.agentId, agentId))
         .orderBy(desc(applications.createdAt));
@@ -2590,7 +2591,7 @@ export class DatabaseStorage implements IStorage {
 
   async getApplicationsByClient(clientId: number): Promise<Application[]> {
     try {
-      const result = await db.select()
+      const result = await (await getDatabase()).select()
         .from(applications)
         .where(eq(applications.clientId, clientId))
         .orderBy(desc(applications.createdAt));
@@ -2603,7 +2604,7 @@ export class DatabaseStorage implements IStorage {
 
   async getApplicationsByStatus(status: string): Promise<Application[]> {
     try {
-      const result = await db.select()
+      const result = await (await getDatabase()).select()
         .from(applications)
         .where(eq(applications.status, status))
         .orderBy(desc(applications.createdAt));
@@ -2616,7 +2617,7 @@ export class DatabaseStorage implements IStorage {
 
   async getApplication(id: number): Promise<Application | undefined> {
     try {
-      const [application] = await db.select().from(applications).where(eq(applications.id, id));
+      const [application] = await (await getDatabase()).select().from(applications).where(eq(applications.id, id));
       return application;
     } catch (error) {
       console.error("Database error in getApplication:", error);
@@ -2626,7 +2627,7 @@ export class DatabaseStorage implements IStorage {
 
   async createApplication(application: InsertApplication): Promise<Application> {
     try {
-      const [result] = await db.insert(applications).values({
+      const [result] = await (await getDatabase()).insert(applications).values({
         ...application,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -2640,7 +2641,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateApplication(id: number, updates: Partial<Application>): Promise<Application | undefined> {
     try {
-      const [updatedApplication] = await db.update(applications)
+      const [updatedApplication] = await (await getDatabase()).update(applications)
         .set({
           ...updates,
           updatedAt: new Date()
@@ -2657,7 +2658,7 @@ export class DatabaseStorage implements IStorage {
   // Application document management
   async getApplicationDocuments(applicationId: number): Promise<ApplicationDocument[]> {
     try {
-      const result = await db.select()
+      const result = await (await getDatabase()).select()
         .from(applicationDocuments)
         .where(eq(applicationDocuments.applicationId, applicationId))
         .orderBy(applicationDocuments.documentType);
@@ -2670,7 +2671,7 @@ export class DatabaseStorage implements IStorage {
 
   async getApplicationDocument(id: number): Promise<ApplicationDocument | undefined> {
     try {
-      const [document] = await db.select()
+      const [document] = await (await getDatabase()).select()
         .from(applicationDocuments)
         .where(eq(applicationDocuments.id, id));
       return document;
@@ -2682,7 +2683,7 @@ export class DatabaseStorage implements IStorage {
 
   async createApplicationDocument(document: InsertApplicationDocument): Promise<ApplicationDocument> {
     try {
-      const [result] = await db.insert(applicationDocuments).values({
+      const [result] = await (await getDatabase()).insert(applicationDocuments).values({
         ...document,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -2696,7 +2697,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateApplicationDocument(id: number, updates: Partial<ApplicationDocument>): Promise<ApplicationDocument | undefined> {
     try {
-      const [updatedDocument] = await db.update(applicationDocuments)
+      const [updatedDocument] = await (await getDatabase()).update(applicationDocuments)
         .set({
           ...updates,
           updatedAt: new Date()
@@ -2713,7 +2714,7 @@ export class DatabaseStorage implements IStorage {
   // Application milestone management
   async getApplicationMilestones(applicationId: number): Promise<ApplicationMilestone[]> {
     try {
-      const result = await db.select()
+      const result = await (await getDatabase()).select()
         .from(applicationMilestones)
         .where(eq(applicationMilestones.applicationId, applicationId))
         .orderBy(desc(applicationMilestones.createdAt));
@@ -2726,7 +2727,7 @@ export class DatabaseStorage implements IStorage {
 
   async createApplicationMilestone(milestone: InsertApplicationMilestone): Promise<ApplicationMilestone> {
     try {
-      const [result] = await db.insert(applicationMilestones).values({
+      const [result] = await (await getDatabase()).insert(applicationMilestones).values({
         ...milestone,
         createdAt: new Date()
       }).returning();
@@ -2739,7 +2740,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateApplicationMilestone(id: number, updates: Partial<ApplicationMilestone>): Promise<ApplicationMilestone | undefined> {
     try {
-      const [updatedMilestone] = await db.update(applicationMilestones)
+      const [updatedMilestone] = await (await getDatabase()).update(applicationMilestones)
         .set({
           ...updates,
           updatedAt: new Date()
@@ -2756,7 +2757,7 @@ export class DatabaseStorage implements IStorage {
   // Application comment management
   async getApplicationComments(applicationId: number): Promise<ApplicationComment[]> {
     try {
-      const result = await db.select()
+      const result = await (await getDatabase()).select()
         .from(applicationComments)
         .where(eq(applicationComments.applicationId, applicationId))
         .orderBy(desc(applicationComments.createdAt));
@@ -2769,7 +2770,7 @@ export class DatabaseStorage implements IStorage {
 
   async createApplicationComment(comment: InsertApplicationComment): Promise<ApplicationComment> {
     try {
-      const [result] = await db.insert(applicationComments).values({
+      const [result] = await (await getDatabase()).insert(applicationComments).values({
         ...comment,
         createdAt: new Date()
       }).returning();
@@ -2783,7 +2784,7 @@ export class DatabaseStorage implements IStorage {
   // Notification management
   async getUserNotifications(userId: number): Promise<Notification[]> {
     try {
-      const result = await db.select()
+      const result = await (await getDatabase()).select()
         .from(notifications)
         .where(eq(notifications.userId, userId))
         .orderBy(desc(notifications.createdAt));
@@ -2796,7 +2797,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUserUnreadNotifications(userId: number): Promise<Notification[]> {
     try {
-      const result = await db.select()
+      const result = await (await getDatabase()).select()
         .from(notifications)
         .where(
           and(
@@ -2814,7 +2815,7 @@ export class DatabaseStorage implements IStorage {
 
   async createNotification(notification: InsertNotification): Promise<Notification> {
     try {
-      const [result] = await db.insert(notifications).values({
+      const [result] = await (await getDatabase()).insert(notifications).values({
         ...notification,
         createdAt: new Date()
       }).returning();
@@ -2827,7 +2828,7 @@ export class DatabaseStorage implements IStorage {
 
   async markNotificationRead(id: number): Promise<boolean> {
     try {
-      await db.update(notifications)
+      await (await getDatabase()).update(notifications)
         .set({ read: true })
         .where(eq(notifications.id, id));
       return true;
@@ -2839,7 +2840,7 @@ export class DatabaseStorage implements IStorage {
 
   async markAllNotificationsRead(userId: number): Promise<boolean> {
     try {
-      await db.update(notifications)
+      await (await getDatabase()).update(notifications)
         .set({ read: true })
         .where(eq(notifications.userId, userId));
       return true;

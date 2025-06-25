@@ -27,16 +27,16 @@ const createPoolConfig = (connectionString: string) => ({
   statement_timeout: 60000 // 1 minute statement timeout
 });
 
-// Multiple connection strategies for Azure PostgreSQL
+// Multiple connection strategies for database connectivity
 async function initializeDatabase() {
   const strategies = [
     {
-      name: 'Direct Azure Connection',
-      url: 'postgresql://elandre:%2A6CsqD325CX%239%26HA9q%239a5r9%5E9%218W%25F@wisebond-server.postgres.database.azure.com:5432/postgres?sslmode=require&connect_timeout=120'
+      name: 'Environment DATABASE_URL (Replit PostgreSQL)',
+      url: process.env.DATABASE_URL
     },
     {
-      name: 'Environment DATABASE_URL',
-      url: process.env.DATABASE_URL
+      name: 'Direct Azure Connection',
+      url: 'postgresql://elandre:%2A6CsqD325CX%239%26HA9q%239a5r9%5E9%218W%25F@wisebond-server.postgres.database.azure.com:5432/postgres?sslmode=require&connect_timeout=120'
     }
   ];
 
