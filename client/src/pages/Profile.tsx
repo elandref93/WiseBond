@@ -8,6 +8,7 @@ import { UpdateProfile, User as UserType } from '@shared/schema';
 import { updateProfileSchema } from '@shared/schema';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import ImprovedAddressInput from '@/components/ImprovedAddressInput';
+import PropertiesManager from '@/components/PropertiesManager';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -296,6 +297,7 @@ export default function Profile() {
   const tabs: Array<{ id: string; label: string; icon: React.ReactNode; disabled?: boolean }> = [
     { id: 'personal', label: 'Personal & Contact Details', icon: <UserIcon className="h-5 w-5 mr-2" /> },
     { id: 'employment', label: 'Employment & Income', icon: <Briefcase className="h-5 w-5 mr-2" /> },
+    { id: 'properties', label: 'My Properties', icon: <Home className="h-5 w-5 mr-2" /> },
     { id: 'financial', label: 'Financial Management', icon: <CreditCard className="h-5 w-5 mr-2" /> },
     { id: 'documents', label: 'Documents', icon: <FileText className="h-5 w-5 mr-2" /> },
     { id: 'applications', label: 'Loan Applications', icon: <Clock className="h-5 w-5 mr-2" /> },
@@ -1129,6 +1131,18 @@ export default function Profile() {
                       </p>
                       
                       <ExpenseManagement />
+                    </div>
+                  )}
+                  
+                  {/* Properties Tab */}
+                  {activeTab === 'properties' && (
+                    <div className="space-y-6">
+                      <h2 className="text-xl font-semibold">My Properties</h2>
+                      <p className="text-gray-600 mb-4">
+                        Manage your property portfolio and loan scenarios to find the best financing options.
+                      </p>
+                      
+                      <PropertiesManager />
                     </div>
                   )}
                   
