@@ -82,53 +82,112 @@ let pool: Pool;
 let db: ReturnType<typeof drizzle>;
 
 /**
- * Get database configuration from Key Vault or environment variables
+ * Check if Azure authentication is available
+ */
+async function checkAzureAuthentication(): Promise<boolean> {
+  try {
+    const { DefaultAzureCredential } = await import('@azure/identity');
+    const credential = new DefaultAzureCredential();
+    
+    // Try to get a token to test authentication
+    const tokenResponse = await credential.getToken(['https://management.azure.com/.default']);
+    return !!tokenResponse?.token;
+  } catch (error) {
+    console.log('Azure authentication not available:', error.message.split('.')[0]);
+    return false;
+  }
+}
+
+/**
+ * Get database configuration using three-tier strategy
  */
 async function getDatabaseConfig() {
-  console.log('Configuring database connection...');
+  console.log('Configuring database connection with three-tier strategy...');
   
-  // First try to get configuration from Key Vault
-  const keyVaultConfig = await getDatabaseSecretsFromKeyVault();
+  // Check if Azure authentication is available
+  const azureAuthAvailable = await checkAzureAuthentication();
   
-  if (keyVaultConfig) {
-    console.log('Using database configuration from Azure Key Vault');
+  if (azureAuthAvailable) {
+    console.log('✓ Azure authentication available');
+    
+    // TIER 1: Try Key Vault + Azure Authentication
+    console.log('Tier 1: Attempting Key Vault + Azure Authentication...');
+    try {
+      const keyVaultConfig = await getDatabaseSecretsFromKeyVault();
+      
+      if (keyVaultConfig) {
+        console.log('✓ Successfully retrieved database configuration from Key Vault');
+        return {
+          connectionString: `postgresql://${keyVaultConfig.username}:${keyVaultConfig.password}@${keyVaultConfig.host}:${keyVaultConfig.port}/${keyVaultConfig.database}?sslmode=require`,
+          source: 'keyvault_azure_auth',
+          tier: 1
+        };
+      }
+    } catch (error) {
+      console.log('× Key Vault retrieval failed:', error.message);
+    }
+    
+    // TIER 2: Azure Authentication + Hardcoded values
+    console.log('Tier 2: Using Azure Authentication + Hardcoded values...');
+    const hardcodedConfig = {
+      host: 'wisebond-server.postgres.database.azure.com',
+      port: 5432,
+      database: 'postgres',
+      username: 'elandre',
+      password: '*6CsqD325CX#9&HA9q#a5r9^9!8W%F'
+    };
+    
+    console.log('✓ Using hardcoded configuration with Azure Authentication');
     return {
-      connectionString: `postgresql://${keyVaultConfig.username}:${keyVaultConfig.password}@${keyVaultConfig.host}:${keyVaultConfig.port}/${keyVaultConfig.database}?sslmode=require`,
-      source: 'keyvault'
+      connectionString: `postgresql://${hardcodedConfig.username}:${hardcodedConfig.password}@${hardcodedConfig.host}:${hardcodedConfig.port}/${hardcodedConfig.database}?sslmode=require`,
+      source: 'hardcoded_azure_auth',
+      tier: 2
     };
   }
   
-  // Fallback to environment variables
-  console.log('Key Vault configuration unavailable, using environment variables');
+  // TIER 3: Simple username/password (no Azure authentication)
+  console.log('Tier 3: Using simple username/password method...');
   
-  if (!process.env.DATABASE_URL) {
-    // Try to construct from individual environment variables
-    const host = process.env.POSTGRES_HOST || process.env.PGHOST;
-    const port = process.env.POSTGRES_PORT || process.env.PGPORT || '5432';
-    const database = process.env.POSTGRES_DATABASE || process.env.PGDATABASE;
-    const username = process.env.POSTGRES_USERNAME || process.env.PGUSER;
-    const password = process.env.POSTGRES_PASSWORD || process.env.PGPASSWORD;
-    
-    if (host && database && username && password) {
-      const connectionString = `postgresql://${username}:${password}@${host}:${port}/${database}?sslmode=require`;
-      console.log('Constructed DATABASE_URL from individual environment variables');
-      return {
-        connectionString,
-        source: 'environment'
-      };
-    }
-    
-    throw new Error(
-      "Database configuration not found. Please ensure either:\n" +
-      "1. Azure Key Vault contains the required secrets, or\n" +
-      "2. DATABASE_URL environment variable is set, or\n" +
-      "3. Individual database environment variables are set (POSTGRES_HOST, POSTGRES_DATABASE, etc.)"
-    );
+  // Try environment variables first
+  if (process.env.DATABASE_URL) {
+    console.log('✓ Using DATABASE_URL from environment');
+    return {
+      connectionString: process.env.DATABASE_URL,
+      source: 'environment_simple',
+      tier: 3
+    };
   }
   
+  // Try individual environment variables
+  const host = process.env.POSTGRES_HOST || process.env.PGHOST;
+  const port = process.env.POSTGRES_PORT || process.env.PGPORT || '5432';
+  const database = process.env.POSTGRES_DATABASE || process.env.PGDATABASE;
+  const username = process.env.POSTGRES_USERNAME || process.env.PGUSER;
+  const password = process.env.POSTGRES_PASSWORD || process.env.PGPASSWORD;
+  
+  if (host && database && username && password) {
+    console.log('✓ Using individual environment variables');
+    return {
+      connectionString: `postgresql://${username}:${password}@${host}:${port}/${database}?sslmode=require`,
+      source: 'environment_individual',
+      tier: 3
+    };
+  }
+  
+  // Final fallback to hardcoded values
+  console.log('✓ Using final fallback hardcoded values');
+  const fallbackConfig = {
+    host: 'wisebond-server.postgres.database.azure.com',
+    port: 5432,
+    database: 'postgres',
+    username: 'elandre',
+    password: '*6CsqD325CX#9&HA9q#a5r9^9!8W%F'
+  };
+  
   return {
-    connectionString: process.env.DATABASE_URL,
-    source: 'environment'
+    connectionString: `postgresql://${fallbackConfig.username}:${fallbackConfig.password}@${fallbackConfig.host}:${fallbackConfig.port}/${fallbackConfig.database}?sslmode=require`,
+    source: 'hardcoded_simple',
+    tier: 3
   };
 }
 
@@ -149,7 +208,7 @@ async function initializeDatabase() {
     pool = new Pool(poolConfig);
     db = drizzle(pool, { schema });
     
-    console.log(`Database initialized using ${config.source} configuration`);
+    console.log(`✓ Database initialized using ${config.source} configuration (Tier ${config.tier})`);
     
     // Test the connection
     // Note: We don't test the connection here to avoid circular dependency
@@ -163,29 +222,27 @@ async function initializeDatabase() {
   }
 }
 
-// Initialize database connection with fallback
+// Initialize database connection with three-tier strategy
 async function setupDatabase() {
   try {
     await initializeDatabase();
   } catch (error: any) {
-    console.warn('Key Vault database initialization failed, trying environment variables...');
+    console.warn('Three-tier database initialization failed, using fallback...');
     
-    // Fallback to original pool configuration
-    if (process.env.DATABASE_URL) {
-      const poolConfig = {
-        connectionString: process.env.DATABASE_URL,
-        max: 20,
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 10000,
-      };
+    // Emergency fallback to simple connection
+    const fallbackConnectionString = process.env.DATABASE_URL || 
+      'postgresql://elandre:*6CsqD325CX#9&HA9q#a5r9^9!8W%F@wisebond-server.postgres.database.azure.com:5432/postgres?sslmode=require';
+      
+    const poolConfig = {
+      connectionString: fallbackConnectionString,
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    };
 
-      pool = new Pool(poolConfig);
-      db = drizzle(pool, { schema });
-      console.log('Database initialized using environment variables');
-    } else {
-      console.error('No database configuration available');
-      throw error;
-    }
+    pool = new Pool(poolConfig);
+    db = drizzle(pool, { schema });
+    console.log('✓ Database initialized using emergency fallback');
   }
 }
 
