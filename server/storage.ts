@@ -1,5 +1,5 @@
 import { eq, and, desc, sql, gte } from "drizzle-orm";
-import { db, pool } from "./db-simple";
+import { getDatabase, withRetry } from "./db-robust";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
 import pkg from 'pg';
@@ -1249,14 +1249,10 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    // Use the pool from db.ts to ensure consistent connection settings
-    // including SSL configurations
-    
-    // Create a PostgreSQL session store with the same pool used by drizzle
-    this.sessionStore = new PgSessionStore({ 
-      pool: pool, 
-      createTableIfMissing: true,
-      tableName: 'sessions'
+    // Use in-memory session store for now since we're using robust database connection
+    const MemoryStore = memorystore(session);
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
     });
     
     // Initialize default budget categories if they don't exist
@@ -1573,11 +1569,12 @@ export class DatabaseStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     try {
+      const db = await getDatabase();
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(insertUser.password, saltRounds);
       
       // Use raw SQL to create user with only fields we know exist
-      const userResult = await db.execute(sql`
+      const userResult = await withRetry(() => db.execute(sql`
         INSERT INTO users (
           username, password, first_name, last_name, email, phone, 
           id_number, date_of_birth, age, address, city, postal_code, 
@@ -1617,7 +1614,7 @@ export class DatabaseStorage implements IStorage {
           employment_duration as "employmentDuration", monthly_income as "monthlyIncome", 
           otp_verified as "otpVerified", profile_complete as "profileComplete", 
           created_at as "createdAt", updated_at as "updatedAt"
-      `);
+      `));
       
       if (userResult.rows.length === 0) {
         throw new Error("User insertion did not return a result");
