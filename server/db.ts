@@ -274,69 +274,22 @@ async function initializeDatabase() {
         // TIER 3: Simple username/password - try public endpoint if private fails
         const originalConnectionString = process.env.DATABASE_URL;
         
-        // Always use object configuration for Tier 3 to avoid URL encoding issues
-        if (originalConnectionString && originalConnectionString.includes('privatelink')) {
-          // Extract credentials from private link connection string
-          const match = originalConnectionString.match(/postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/([^?]+)/);
-          if (match) {
-            const [, user, encodedPassword, , port, database] = match;
-            const password = decodeURIComponent(encodedPassword);
-            config = {
-              host: 'wisebond-server.postgres.database.azure.com',
-              port: parseInt(port),
-              database,
-              user,
-              password,
-              ssl: { rejectUnauthorized: false },
-              connectionTimeoutMillis: 20000,
-              source: 'environment_public_object',
-              tier: 3
-            };
-          }
-        } else if (originalConnectionString) {
-          // Extract credentials from any connection string
-          const match = originalConnectionString.match(/postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/([^?]+)/);
-          if (match) {
-            const [, user, encodedPassword, host, port, database] = match;
-            const password = decodeURIComponent(encodedPassword);
-            config = {
-              host: host.replace('.privatelink.', '.'),
-              port: parseInt(port),
-              database,
-              user,
-              password,
-              ssl: { rejectUnauthorized: false },
-              connectionTimeoutMillis: 20000,
-              source: 'environment_object',
-              tier: 3
-            };
-          }
-        } else {
-          const azureConfig = {
-            host: 'wisebond-server.postgres.database.azure.com',
-            port: 5432,
-            database: 'postgres',
-            username: 'elandre',
-            password: '*6CsqD325CX#9&HA9q#a5r9^9!8W%F'
-          };
-          
-          // Use object configuration instead of connection string to avoid URL encoding issues
-          config = {
-            host: azureConfig.host,
-            port: azureConfig.port,
-            database: azureConfig.database,
-            user: azureConfig.username,
-            password: azureConfig.password,
-            ssl: { rejectUnauthorized: false },
-            connectionTimeoutMillis: 25000,
-            source: 'azure_postgres_database',
-            tier: 3
-          };
-        }
+        // Use direct Azure configuration for Tier 3 to avoid URL parsing issues
+        config = {
+          host: 'wisebond-server.postgres.database.azure.com',
+          port: 5432,
+          database: 'postgres',
+          user: 'elandre',
+          password: '*6CsqD325CX#9&HA9q#a5r9^9!8W%F',
+          ssl: { rejectUnauthorized: false },
+          connectionTimeoutMillis: 20000,
+          source: 'azure_direct_config',
+          tier: 3
+        };
       }
       
       // Test connection with appropriate timeout for each tier
-      const testTimeout = tier === 3 ? 20000 : 5000; // Reduced timeout for Tier 3
+      const testTimeout = tier === 3 ? 20000 : 5000;
       
       const poolConfig = config.connectionString ? {
         connectionString: config.connectionString,
