@@ -80,8 +80,4 @@ pids
 
 # Deployment artifacts
 deploy-package/
-<<<<<<< HEAD
 deployment.zip
-=======
-deployment.zip
->>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99

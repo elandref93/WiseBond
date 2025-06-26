@@ -3,18 +3,9 @@ import { SecretClient } from "@azure/keyvault-secrets";
 
 const KEY_VAULT_URL = "https://wisebondvault.vault.azure.net/";
 
-<<<<<<< HEAD
 let secretClient: SecretClient | null = null;
 let keyVaultAvailable = false;
-=======
-// Azure Key Vault configuration
-const keyVaultName = "wisebondvault";
-const keyVaultUri = `https://${keyVaultName}.vault.azure.net/`;
-console.log(keyVaultUri);
-// Create a new secret client using the default Azure credential
-const credential = new DefaultAzureCredential();
-const secretClient = new SecretClient(keyVaultUri, credential);
->>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
+
 
 /**
  * Initialize the Azure Key Vault client with error handling
@@ -90,7 +81,7 @@ export async function getSecret(secretName: string, retries: number = 2): Promis
 export async function getAllSecrets(): Promise<{ name: string, value: string | undefined }[]> {
   try {
     const secrets: { name: string, value: string | undefined }[] = [];
-    const secretProperties = secretClient.listPropertiesOfSecrets();
+    const secretProperties:any = secretClient?.listPropertiesOfSecrets();
     
     for await (const secretProperty of secretProperties) {
       if (secretProperty.name) {
@@ -157,7 +148,7 @@ export async function initializeSecretsFromKeyVault(): Promise<void> {
 export async function listAvailableKeys(): Promise<string[]> {
   try {
     const keyNames: string[] = [];
-    const secretProperties = secretClient.listPropertiesOfSecrets();
+    const secretProperties:any = secretClient?.listPropertiesOfSecrets();
     
     for await (const secretProperty of secretProperties) {
       if (secretProperty.name) {
