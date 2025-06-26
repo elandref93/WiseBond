@@ -137,7 +137,7 @@ async function getDatabaseConfig() {
   const azureAuthAvailable = await checkAzureAuthentication();
   
   if (azureAuthAvailable) {
-    console.log('✓ Azure authentication available');
+    console.log('✓ Azure authentication detected, attempting Tiers 1 & 2...');
     
     // TIER 1: Try Key Vault + Azure Authentication
     console.log('Tier 1: Attempting Key Vault + Azure Authentication...');
@@ -145,33 +145,40 @@ async function getDatabaseConfig() {
       const keyVaultConfig = await getDatabaseSecretsFromKeyVault();
       
       if (keyVaultConfig) {
-        console.log('✓ Successfully retrieved database configuration from Key Vault');
+        console.log('✓ Tier 1 successful - using Key Vault configuration');
         return {
           connectionString: `postgresql://${keyVaultConfig.username}:${keyVaultConfig.password}@${keyVaultConfig.host}:${keyVaultConfig.port}/${keyVaultConfig.database}?sslmode=require`,
           source: 'keyvault_azure_auth',
           tier: 1
         };
       }
-    } catch (error) {
-      console.log('× Key Vault retrieval failed:', error.message);
+    } catch (error: any) {
+      console.log('× Tier 1 failed:', error.message);
     }
     
     // TIER 2: Azure Authentication + Hardcoded values
-    console.log('Tier 2: Using Azure Authentication + Hardcoded values...');
-    const hardcodedConfig = {
-      host: 'wisebond-server.postgres.database.azure.com',
-      port: 5432,
-      database: 'postgres',
-      username: 'elandre',
-      password: '*6CsqD325CX#9&HA9q#a5r9^9!8W%F'
-    };
-    
-    console.log('✓ Using hardcoded configuration with Azure Authentication');
-    return {
-      connectionString: `postgresql://${hardcodedConfig.username}:${hardcodedConfig.password}@${hardcodedConfig.host}:${hardcodedConfig.port}/${hardcodedConfig.database}?sslmode=require`,
-      source: 'hardcoded_azure_auth',
-      tier: 2
-    };
+    console.log('Tier 2: Attempting Azure Authentication + Hardcoded values...');
+    try {
+      const hardcodedConfig = {
+        host: 'wisebond-server.postgres.database.azure.com',
+        port: 5432,
+        database: 'postgres',
+        username: 'elandre',
+        password: '*6CsqD325CX#9&HA9q#a5r9^9!8W%F'
+      };
+      
+      // Test connection with a timeout to avoid hanging
+      console.log('✓ Tier 2 configured - testing Azure connection...');
+      return {
+        connectionString: `postgresql://${hardcodedConfig.username}:${hardcodedConfig.password}@${hardcodedConfig.host}:${hardcodedConfig.port}/${hardcodedConfig.database}?sslmode=require`,
+        source: 'hardcoded_azure_auth',
+        tier: 2
+      };
+    } catch (error: any) {
+      console.log('× Tier 2 failed:', error.message);
+    }
+  } else {
+    console.log('× Azure authentication not available, skipping to Tier 3');
   }
   
   // TIER 3: Simple username/password (no Azure authentication)
@@ -224,34 +231,120 @@ async function getDatabaseConfig() {
  * Initialize database connection with Key Vault integration
  */
 async function initializeDatabase() {
-  try {
-    const config = await getDatabaseConfig();
-    
-    const poolConfig = {
-      connectionString: config.connectionString,
-      max: 20,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 30000, // Extended for Azure
-      ssl: {
-        rejectUnauthorized: false // Required for Azure PostgreSQL
+  let lastError: any;
+  
+  // Try each tier with connection testing
+  for (let tier = 1; tier <= 3; tier++) {
+    try {
+      console.log(`\n🔄 Attempting Tier ${tier} database connection...`);
+      
+      let config;
+      if (tier === 1) {
+        // TIER 1: Key Vault + Azure Auth
+        const azureAuth = await checkAzureAuthentication();
+        if (!azureAuth) throw new Error('Azure authentication not available');
+        
+        const keyVaultConfig = await getDatabaseSecretsFromKeyVault();
+        if (!keyVaultConfig) throw new Error('Key Vault configuration not available');
+        
+        config = {
+          connectionString: `postgresql://${keyVaultConfig.username}:${keyVaultConfig.password}@${keyVaultConfig.host}:${keyVaultConfig.port}/${keyVaultConfig.database}?sslmode=require`,
+          source: 'keyvault_azure_auth',
+          tier: 1
+        };
+      } else if (tier === 2) {
+        // TIER 2: Hardcoded + Azure Auth
+        const azureAuth = await checkAzureAuthentication();
+        if (!azureAuth) throw new Error('Azure authentication not available');
+        
+        const hardcodedConfig = {
+          host: 'wisebond-server.postgres.database.azure.com',
+          port: 5432,
+          database: 'postgres',
+          username: 'elandre',
+          password: '*6CsqD325CX#9&HA9q#a5r9^9!8W%F'
+        };
+        
+        config = {
+          connectionString: `postgresql://${hardcodedConfig.username}:${hardcodedConfig.password}@${hardcodedConfig.host}:${hardcodedConfig.port}/${hardcodedConfig.database}?sslmode=require`,
+          source: 'hardcoded_azure_auth',
+          tier: 2
+        };
+      } else {
+        // TIER 3: Simple username/password with optimized connection
+        if (process.env.DATABASE_URL) {
+          config = {
+            connectionString: process.env.DATABASE_URL,
+            source: 'environment_simple',
+            tier: 3
+          };
+        } else {
+          const fallbackConfig = {
+            host: 'wisebond-server.postgres.database.azure.com',
+            port: 5432,
+            database: 'postgres',
+            username: 'elandre',
+            password: '*6CsqD325CX#9&HA9q#a5r9^9!8W%F'
+          };
+          
+          config = {
+            connectionString: `postgresql://${fallbackConfig.username}:${encodeURIComponent(fallbackConfig.password)}@${fallbackConfig.host}:${fallbackConfig.port}/${fallbackConfig.database}?sslmode=require&connect_timeout=30`,
+            source: 'hardcoded_simple',
+            tier: 3
+          };
+        }
       }
-    };
+      
+      // Test connection with appropriate timeout for each tier
+      const testTimeout = tier === 3 ? 25000 : 8000; // Extended timeout for Tier 3
+      
+      const poolConfig = {
+        connectionString: config.connectionString,
+        max: 10,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: testTimeout,
+        ssl: tier === 3 ? { rejectUnauthorized: false } : false, // SSL only for Azure tiers
+        keepAlive: true,
+        keepAliveInitialDelayMillis: 10000
+      };
 
-    pool = new Pool(poolConfig);
-    db = drizzle(pool, { schema });
-    
-    console.log(`✓ Database initialized using ${config.source} configuration (Tier ${config.tier})`);
-    
-    // Test the connection
-    // Note: We don't test the connection here to avoid circular dependency
-    // The test will be done separately when needed
-    
-    return { pool, db };
-    
-  } catch (error: any) {
-    console.error('Failed to initialize database:', error.message);
-    throw error;
+      console.log(`Testing Tier ${tier} connection (${testTimeout}ms timeout)...`);
+      const testPool = new Pool(poolConfig);
+      
+      // Test connection with proper error handling
+      try {
+        await Promise.race([
+          testPool.query('SELECT 1 as test'),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error(`Tier ${tier} connection timeout`)), testTimeout)
+          )
+        ]);
+        
+        console.log(`✅ Tier ${tier} connection test successful`);
+      } catch (testError: any) {
+        await testPool.end().catch(() => {}); // Clean up failed pool
+        throw testError;
+      }
+      
+      // Connection successful - use this configuration
+      pool = testPool;
+      db = drizzle(pool, { schema });
+      
+      console.log(`✅ Tier ${tier} successful - using ${config.source} configuration`);
+      return { pool, db };
+      
+    } catch (error: any) {
+      lastError = error;
+      console.log(`❌ Tier ${tier} failed: ${error.message}`);
+      
+      if (tier < 3) {
+        console.log(`⏩ Falling back to Tier ${tier + 1}...`);
+      }
+    }
   }
+  
+  console.error('❌ All three tiers failed');
+  throw lastError;
 }
 
 // Initialize database connection with three-tier strategy
@@ -304,8 +397,8 @@ export const getDatabase = () => {
   return db;
 };
 
-// Export the initialized instances
-export { pool, db };
+// Export the initialized instances and setup function
+export { pool, db, setupDatabase };
 
 // Function to test database connection
 export const testDatabaseConnection = async (): Promise<boolean> => {

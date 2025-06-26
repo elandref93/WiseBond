@@ -86,34 +86,22 @@ app.use((req, res, next) => {
     console.log('All required environment variables are set. Skipping Azure Key Vault.');
   }
   
-  // Ensure Azure database connection is required - no fallback
+  // Initialize Azure database with three-tier authentication strategy
   try {
-    console.log('Connecting to Azure PostgreSQL database...');
-    const { testDatabaseConnection } = await import('./db-simple');
+    console.log('Initializing Azure database with three-tier authentication...');
+    const { setupDatabase } = await import('./db');
     
-    // Test database connection with extended timeout for Azure
-    const connectionTimeout = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Azure database connection timeout')), 20000)
-    );
+    // Setup database using three-tier strategy (Tier 1 → Tier 2 → Tier 3)
+    await setupDatabase();
     
-    const connectionTest = testDatabaseConnection();
-    const isConnected = await Promise.race([connectionTest, connectionTimeout])
-      .then(() => true)
-      .catch((error) => {
-        console.error('❌ CRITICAL: Azure database connection failed:', error.message);
-        console.error('The application requires Azure PostgreSQL to function.');
-        console.error('Please verify DATABASE_URL and Azure database configuration.');
-        process.exit(1);
-      });
+    console.log('✅ Database connected successfully, running migrations...');
+    const { runMigrations } = await import('./migrate');
+    await runMigrations();
     
-    if (isConnected) {
-      console.log('✅ Azure database connected successfully, running migrations...');
-      const { runMigrations } = await import('./migrate');
-      await runMigrations();
-    }
   } catch (error: any) {
     console.error('❌ CRITICAL: Database setup failed:', error.message);
-    console.error('Application cannot continue without Azure database connection.');
+    console.error('All three authentication tiers failed.');
+    console.error('Application cannot continue without database connection.');
     process.exit(1);
   }
   
