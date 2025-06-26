@@ -80,9 +80,9 @@ app.use((req, res, next) => {
   // Initialize Azure database with three-tier authentication strategy
   try {    
 
-    // const { getPostgresClientTiered } = await import('./db');    
-    // // Setup database using three-tier strategy (Tier 1 → Tier 2 → Tier 3)
-    // await getPostgresClientTiered();
+    const { getPostgresClient } = await import('./db');    
+    // Setup database using three-tier strategy (Tier 1 → Tier 2 → Tier 3)
+    await getPostgresClient();
     console.log('✅ Database connected successfully, running migrations...');
     const { runMigrations } = await import('./migrate');
     await runMigrations();

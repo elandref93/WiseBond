@@ -48,7 +48,7 @@ let db: ReturnType<typeof drizzle> | null = null;
 //     return db;
 // }
 
-export async function getPostgresClientTiered() {
+async function getPostgresClientTiered() {
     if (db) return db;
 
     console.log("🔄 Attempting Tier 1: Azure Key Vault");
