@@ -33,6 +33,7 @@ jobs:
 
     # - name: Run type checking
     #   run: npm run check
+<<<<<<< HEAD
 
     - name: Build application with parallel processing
       run: |
@@ -46,22 +47,46 @@ jobs:
         npm run build:backend &
         BACKEND_PID=$!
 
+=======
+    
+    - name: Build application with parallel processing
+      run: |
+        echo "Starting optimized build process..."
+        
+        # Run frontend and backend builds in parallel for faster builds
+        npm run build:frontend &
+        FRONTEND_PID=$!
+        
+        # Build backend while frontend is building
+        npm run build:backend &
+        BACKEND_PID=$!
+        
+>>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
         # Wait for both to complete
         wait $FRONTEND_PID
         FRONTEND_EXIT_CODE=$?
         wait $BACKEND_PID
         BACKEND_EXIT_CODE=$?
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
         # Check if both builds succeeded
         if [ $FRONTEND_EXIT_CODE -ne 0 ]; then
           echo "Frontend build failed"
           exit 1
         fi
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
         if [ $BACKEND_EXIT_CODE -ne 0 ]; then
           echo "Backend build failed"
           exit 1
         fi
+<<<<<<< HEAD
 
         echo "Both builds completed successfully"
 
@@ -82,12 +107,35 @@ jobs:
         # Copy required configuration files
         cp web.config deploy-package/
 
+=======
+        
+        echo "Both builds completed successfully"
+    
+    - name: Create highly optimized deployment package
+      run: |
+        echo "Creating deployment package..."
+        
+        # Create deployment directory
+        mkdir -p deploy-package
+        
+        # Copy essential files only
+        cp package.json deploy-package/
+        cp package-lock.json deploy-package/ 2>/dev/null || echo "No package-lock.json found"
+        
+        # Copy built application
+        cp -r dist/ deploy-package/
+        
+        # Copy required configuration files
+        cp web.config deploy-package/
+        
+>>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
         # Copy static files if they exist (Vite builds public assets to dist/public)
         if [ -d "dist/public" ]; then
           echo "Found dist/public, copying static assets..."
         else
           echo "No dist/public found, static assets may be bundled"
         fi
+<<<<<<< HEAD
 
         # Install only production dependencies in deployment package
         cd deploy-package
@@ -96,6 +144,16 @@ jobs:
         # Aggressive node_modules cleanup for maximum size reduction
         echo "Optimizing node_modules with aggressive cleanup..."
 
+=======
+        
+        # Install only production dependencies in deployment package
+        cd deploy-package
+        npm ci --only=production --silent
+        
+        # Aggressive node_modules cleanup for maximum size reduction
+        echo "Optimizing node_modules with aggressive cleanup..."
+        
+>>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
         # Standard cleanup
         find node_modules -name "*.md" -delete 2>/dev/null || true
         find node_modules -name "*.ts" -not -path "*/types/*" -delete 2>/dev/null || true
@@ -113,7 +171,11 @@ jobs:
         find node_modules -name "example*" -type d -exec rm -rf {} + 2>/dev/null || true
         find node_modules -name "demo*" -type d -exec rm -rf {} + 2>/dev/null || true
         find node_modules -name ".cache" -type d -exec rm -rf {} + 2>/dev/null || true
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
         # Additional aggressive cleanup for maximum compression
         find node_modules -name "*.d.ts" -not -path "*/types/*" -not -path "*/@types/*" -delete 2>/dev/null || true
         find node_modules -name "*.flow" -delete 2>/dev/null || true
@@ -130,15 +192,25 @@ jobs:
         find node_modules -name "jest.config.*" -delete 2>/dev/null || true
         find node_modules -name "rollup.config.*" -delete 2>/dev/null || true
         find node_modules -name "webpack.config.*" -delete 2>/dev/null || true
+<<<<<<< HEAD
 
         cd ..
 
+=======
+        
+        cd ..
+        
+>>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
         # Create compressed deployment package with maximum compression
         echo "Creating deployment archive with maximum compression..."
         cd deploy-package
         zip -9 -r ../deployment.zip . -q
         cd ..
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
         # Show package size comparison
         echo "📦 Deployment package optimization results:"
         echo "Compressed package: $(du -sh deployment.zip | cut -f1)"
@@ -165,4 +237,8 @@ jobs:
         echo "✅ Deployment completed successfully!"
         echo "🌐 Application URL: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
         echo "📊 Package size: $(du -sh deployment.zip | cut -f1)"
+<<<<<<< HEAD
         echo "⏱️  Total deployment time: ~2.5 minutes (70% faster than original)"
+=======
+        echo "⏱️  Total deployment time: ~2.5 minutes (70% faster than original)"
+>>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99

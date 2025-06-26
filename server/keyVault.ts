@@ -3,8 +3,18 @@ import { SecretClient } from "@azure/keyvault-secrets";
 
 const KEY_VAULT_URL = "https://wisebondvault.vault.azure.net/";
 
+<<<<<<< HEAD
 let secretClient: SecretClient | null = null;
 let keyVaultAvailable = false;
+=======
+// Azure Key Vault configuration
+const keyVaultName = "wisebondvault";
+const keyVaultUri = `https://${keyVaultName}.vault.azure.net/`;
+console.log(keyVaultUri);
+// Create a new secret client using the default Azure credential
+const credential = new DefaultAzureCredential();
+const secretClient = new SecretClient(keyVaultUri, credential);
+>>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
 
 /**
  * Initialize the Azure Key Vault client with error handling

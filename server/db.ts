@@ -1,10 +1,12 @@
-import pkg from 'pg';
+import pkg, { Client } from 'pg';
 const { Pool } = pkg;
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 import dotenv from 'dotenv';
-dotenv.config(); 
+import { DefaultAzureCredential } from "@azure/identity";
+dotenv.config();
 
+<<<<<<< HEAD
 let dbUrl: string;
 
 // Use Azure PostgreSQL exclusively
@@ -39,11 +41,28 @@ if (process.env.NODE_ENV === 'production') {
     throw new Error(
       "Development environment requires PostgreSQL credentials (POSTGRES_USERNAME, POSTGRES_PASSWORD, POSTGRES_HOST, POSTGRES_DATABASE)"
     );
+=======
+// Helper to get Azure AD token
+async function getAzureToken() {
+  try {
+    const credential = new DefaultAzureCredential();
+    const tokenResponse = await credential.getToken("https://ossrdbms-aad.database.windows.net");
+    return tokenResponse.token;
+  } catch (error) {
+    console.error('Failed to get Azure token:', error);
+    throw error;
+>>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
   }
 }
 
-console.log('Connecting to database...');
+const getPoolConfig = async () => {
+  const token = await getAzureToken();
+  const user = "WiseBond";
+  const host = process.env.AZURE_POSTGRESQL_HOST;
+  const database = process.env.AZURE_POSTGRESQL_DATABASE;
+  const port = process.env.AZURE_POSTGRESQL_PORT || 5432;
 
+<<<<<<< HEAD
 // Create pool configuration with appropriate SSL settings and timeouts
 const poolConfig = {
   connectionString: dbUrl,
@@ -68,10 +87,30 @@ const poolConfig = {
         };
       }
       return false;
+=======
+  console.log(user);
+  console.log(token);
+  console.log(database);
+  console.log(port);
+  console.log(host);
+  if (!user || !host || !database) {
+    throw new Error("Missing environment variables: AZURE_USER_OBJECT_ID, AZURE_POSTGRESQL_HOST, AZURE_POSTGRESQL_DATABASE");
+  }
+
+  return {
+    user,
+    password: token,
+    host,
+    database,
+    port: Number(port),
+    ssl: {
+      rejectUnauthorized: false,
+>>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
     }
-  })()
+  };
 };
 
+<<<<<<< HEAD
 let pool: any;
 let db: ReturnType<typeof drizzle>;
 
@@ -411,64 +450,66 @@ export const getDatabase = () => {
 export { pool, db, setupDatabase };
 
 // Function to test database connection
+=======
+// Optional: Test connection
+>>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
 export const testDatabaseConnection = async (): Promise<boolean> => {
   try {
-    const client = await pool.connect();
-    const result = await client.query('SELECT NOW()');
-    client.release();
-    
-    console.log('✅ Database connection successful');
-    console.log(`Connected to: ${dbUrl.split('@')[1]?.split('/')[0] || 'Unknown database'}`);
-    console.log(`Server time: ${result.rows[0].now}`);
-    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    
+    const poolConfig = await getPoolConfig();
+    const client = new Client({
+      host: poolConfig.host,
+      database:poolConfig.database,
+      port: 5432,
+      user:poolConfig.user,
+      password: poolConfig.password,
+      ssl: {
+          rejectUnauthorized: true,
+      },
+  });
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS employees (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        role TEXT NOT NULL
+      );
+    `);
+
+    await client.query(`
+      INSERT INTO employees (name, role)
+      VALUES 
+        ('Alice', 'Developer'),
+        ('Bob', 'Designer'),
+        ('Charlie', 'Product Manager')
+      ON CONFLICT DO NOTHING;
+    `);
+
+    const result = await client.query('SELECT current_user');
+    console.log('✅ Connected as:', result.rows[0].current_user);
     return true;
-  } catch (unknownError: unknown) {
-    console.error('❌ Database connection failed:', unknownError);
-    
-    // Define an interface for the expected error structure
-    interface DatabaseError {
-      message?: string;
-      code?: string;
-      hostname?: string;
-      syscall?: string;
-    }
-    
-    // Safe type check
-    const isErrorObject = (err: unknown): err is DatabaseError => {
-      return err !== null && typeof err === 'object';
-    };
-    
-    if (isErrorObject(unknownError)) {
-      const errorDetails: DatabaseError = unknownError;
-      
-      console.log('Error details:', {
-        message: errorDetails.message || 'Unknown error',
-        code: errorDetails.code || 'none',
-        hostname: errorDetails.hostname || 'none',
-        syscall: errorDetails.syscall || 'none'
-      });
-      
-      // Provide specific guidance based on error type
-      if (errorDetails.code === 'ENOTFOUND') {
-        console.error('DNS lookup failed. This could mean:');
-        console.error('1. The database URL is incorrect');
-        console.error('2. The database server is not accessible');
-        console.error('3. Check if the database is provisioned correctly');
-        console.error('4. Verify network connectivity');
-      } else if (errorDetails.code === 'ECONNREFUSED') {
-        console.error('Connection refused. This could mean:');
-        console.error('1. The database server is not running');
-        console.error('2. Wrong port or host specified');
-        console.error('3. Firewall blocking the connection');
-      } else if (errorDetails.message?.includes('SSL')) {
-        console.error('SSL connection issue. Try:');
-        console.error('1. Setting DATABASE_SSL=false environment variable');
-        console.error('2. Adding ?ssl=false to your connection string');
-        console.error('3. Check if your database requires SSL');
-      }
-    }
-    
+  } catch (err) {
+    console.error('❌ Connection failed:', err);
     return false;
   }
 };
+
+// Create pool and db instances with lazy initialization
+let pool: any = null;
+let db: any = null;
+
+const initializeDatabase = async () => {
+  if (!pool) {
+    const config = await getPoolConfig();
+    pool = new Pool(config);
+    db = drizzle(pool, { schema });
+  }
+  return { pool, db };
+};
+
+// Export initialization function and lazy getters
+export const getDatabase = async () => {
+  await initializeDatabase();
+  return { pool, db };
+};
+
+export { pool, db };
