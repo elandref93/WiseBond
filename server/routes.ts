@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import session from "express-session";
 import MemoryStore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
 import { 
   insertUserSchema, loginSchema, insertCalculationResultSchema
 } from "@shared/schema";
@@ -42,7 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // PostgreSQL session store - no memory storage
-  const pgSession = require('connect-pg-simple')(session);
+  const pgSession = connectPgSimple(session);
   
   app.use(session({
     store: new pgSession({
