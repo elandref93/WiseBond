@@ -86,32 +86,35 @@ app.use((req, res, next) => {
     console.log('All required environment variables are set. Skipping Azure Key Vault.');
   }
   
-  // Test database connection with timeout, then run migrations if successful
+  // Ensure Azure database connection is required - no fallback
   try {
+    console.log('Connecting to Azure PostgreSQL database...');
     const { testDatabaseConnection } = await import('./db-simple');
     
-    // Test database connection with a shorter timeout
+    // Test database connection with extended timeout for Azure
     const connectionTimeout = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Database connection timeout')), 8000)
+      setTimeout(() => reject(new Error('Azure database connection timeout')), 20000)
     );
     
     const connectionTest = testDatabaseConnection();
     const isConnected = await Promise.race([connectionTest, connectionTimeout])
       .then(() => true)
       .catch((error) => {
-        console.log('Database connection failed:', error.message);
-        console.log('Continuing with in-memory storage for development');
-        return false;
+        console.error('❌ CRITICAL: Azure database connection failed:', error.message);
+        console.error('The application requires Azure PostgreSQL to function.');
+        console.error('Please verify DATABASE_URL and Azure database configuration.');
+        process.exit(1);
       });
     
     if (isConnected) {
-      console.log('Database connected successfully, running migrations...');
+      console.log('✅ Azure database connected successfully, running migrations...');
       const { runMigrations } = await import('./migrate');
       await runMigrations();
     }
-  } catch (error) {
-    console.log('Database setup skipped due to connection issues');
-    console.log('Application will use in-memory storage');
+  } catch (error: any) {
+    console.error('❌ CRITICAL: Database setup failed:', error.message);
+    console.error('Application cannot continue without Azure database connection.');
+    process.exit(1);
   }
   
   // Set development environment if not set

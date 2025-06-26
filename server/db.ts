@@ -227,8 +227,8 @@ async function setupDatabase() {
     const fallbackConnectionString = process.env.DATABASE_URL;
     
     if (!fallbackConnectionString) {
-      console.warn('⚠️ No DATABASE_URL found, using in-memory storage');
-      return; // Exit and use in-memory storage
+      console.error('❌ CRITICAL: No DATABASE_URL found, application requires Azure database');
+      process.exit(1);
     }
       
     const poolConfig = {

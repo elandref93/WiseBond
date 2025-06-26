@@ -41,10 +41,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Session middleware
+  // PostgreSQL session store - no memory storage
+  const pgSession = require('connect-pg-simple')(session);
+  
   app.use(session({
-    store: new MemStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
+    store: new pgSession({
+      conString: process.env.DATABASE_URL,
+      tableName: 'user_sessions',
+      createTableIfMissing: true
     }),
     secret: process.env.SESSION_SECRET || 'fallback-secret-key',
     resave: false,
