@@ -28,8 +28,12 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
     
-    - name: Install dependencies
-      run: npm ci
+    - name: Clean and install dependencies to fix Rollup native error
+      run: |
+        echo "Cleaning up previous installs..."
+        rm -rf node_modules package-lock.json
+        echo "Installing dependencies with fallback support for optional native modules..."
+        npm install
     
     # - name: Run type checking
     #   run: npm run check
