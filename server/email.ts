@@ -82,13 +82,19 @@ export async function sendEmail(params: EmailParams): Promise<{success: boolean,
   const mg = mailgun.client({ username: 'api', key: apiKey });
   
   try {
-    // Create the message data
+    // Create the message data with deliverability improvements
     const messageData = {
       from: params.from || fromEmail || 'noreply@example.com',
       to: params.to,
       subject: params.subject,
       text: params.text || '',
-      html: params.html || ''
+      html: params.html || '',
+      // Add headers to improve deliverability
+      'h:List-Unsubscribe': '<mailto:unsubscribe@wisebond.co.za>',
+      'h:X-Mailgun-Track-Opens': 'yes',
+      'h:X-Mailgun-Track-Clicks': 'yes',
+      'h:X-Mailgun-Tag': 'authentication',
+      'h:Reply-To': 'support@wisebond.co.za'
     };
     
     // Send the message
@@ -178,10 +184,12 @@ function formatCalculationEmailHtml(data: CalculationEmailData): string {
         
         <div style="text-align: center; color: #666666; font-size: 12px; margin-top: 30px;">
           <p>This is an automated message. Please do not reply to this email.</p>
-          <p>&copy; ${new Date().getFullYear()} WiseBond. All rights reserved.</p>
+          <p>&copy; ${new Date().getFullYear()} WiseBond (Pty) Ltd. All rights reserved.</p>
+          <p>Physical Address: 123 Financial District, Cape Town, 8001, South Africa</p>
           <p>
             <a href="https://wisebond.co.za/privacy" style="color: #1a3d6c; text-decoration: none;">Privacy Policy</a> | 
-            <a href="https://wisebond.co.za/terms" style="color: #1a3d6c; text-decoration: none;">Terms of Service</a>
+            <a href="https://wisebond.co.za/terms" style="color: #1a3d6c; text-decoration: none;">Terms of Service</a> | 
+            <a href="mailto:unsubscribe@wisebond.co.za" style="color: #1a3d6c; text-decoration: none;">Unsubscribe</a>
           </p>
         </div>
       </div>
@@ -400,7 +408,7 @@ export async function sendVerificationEmail(data: VerificationEmailData): Promis
   return await sendEmail({
     to: data.email,
     from: process.env.MAILGUN_FROM_EMAIL || 'verification@wisebond.co.za',
-    subject: variation === 1 ? 'Verify Your Email - WiseBond' : 'Your Verification Code from WiseBond',
+    subject: variation === 1 ? 'Complete your WiseBond account setup' : 'Welcome to WiseBond - Account verification',
     text: formatVerificationEmailText(data, variation),
     html: formatVerificationEmailHtml(data, variation)
   });
