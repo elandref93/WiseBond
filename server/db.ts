@@ -72,7 +72,7 @@ const poolConfig = {
   })()
 };
 
-let pool: Pool;
+let pool: any;
 let db: ReturnType<typeof drizzle>;
 
 /**
@@ -86,9 +86,44 @@ async function checkAzureAuthentication(): Promise<boolean> {
     // Try to get a token to test authentication
     const tokenResponse = await credential.getToken(['https://management.azure.com/.default']);
     return !!tokenResponse?.token;
-  } catch (error) {
+  } catch (error: any) {
     console.log('Azure authentication not available:', error.message.split('.')[0]);
     return false;
+  }
+}
+
+/**
+ * Get database secrets from Azure Key Vault
+ */
+async function getDatabaseSecretsFromKeyVault() {
+  try {
+    const { SecretClient } = await import('@azure/keyvault-secrets');
+    const { DefaultAzureCredential } = await import('@azure/identity');
+    
+    const credential = new DefaultAzureCredential();
+    const vaultName = process.env.AZURE_KEY_VAULT_NAME || 'WiseBondVault';
+    const url = `https://${vaultName}.vault.azure.net/`;
+    
+    const client = new SecretClient(url, credential);
+    
+    const [host, port, database, username, password] = await Promise.all([
+      client.getSecret('postgres-host'),
+      client.getSecret('postgres-port'),
+      client.getSecret('postgres-database'),
+      client.getSecret('postgres-username'),
+      client.getSecret('postgres-password')
+    ]);
+    
+    return {
+      host: host.value,
+      port: parseInt(port.value || '5432'),
+      database: database.value,
+      username: username.value,
+      password: password.value
+    };
+  } catch (error: any) {
+    console.log('Key Vault access failed:', error.message);
+    return null;
   }
 }
 
@@ -218,29 +253,22 @@ async function initializeDatabase() {
 
 // Initialize database connection with three-tier strategy
 async function setupDatabase() {
+  console.log('🔄 Setting up Azure database with three-tier authentication strategy...');
+  
   try {
+    // Use the three-tier strategy directly - no fallback to memory storage
     await initializeDatabase();
+    console.log('✅ Database setup completed successfully');
   } catch (error: any) {
-    console.warn('Three-tier database initialization failed, using fallback...');
+    console.error('❌ CRITICAL: All three database authentication tiers failed');
+    console.error('Error details:', error.message);
+    console.error('Tier 1: Key Vault + Azure Auth');
+    console.error('Tier 2: Hardcoded + Azure Auth'); 
+    console.error('Tier 3: Simple username/password');
+    console.error('Application requires Azure database connection to function.');
     
-    // Emergency fallback to simple connection
-    const fallbackConnectionString = process.env.DATABASE_URL;
-    
-    if (!fallbackConnectionString) {
-      console.error('❌ CRITICAL: No DATABASE_URL found, application requires Azure database');
-      process.exit(1);
-    }
-      
-    const poolConfig = {
-      connectionString: fallbackConnectionString,
-      max: 20,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
-    };
-
-    pool = new Pool(poolConfig);
-    db = drizzle(pool, { schema });
-    console.log('✓ Database initialized using emergency fallback');
+    // Exit application - no memory storage fallback allowed
+    process.exit(1);
   }
 }
 
@@ -250,9 +278,6 @@ setupDatabase().catch(error => {
   console.log('Application will continue with limited functionality...');
 });
 
-// Export the initialized instances and database getter
-export { pool, db };
-
 // Function to get database instance (for storage layer)
 export const getDatabase = () => {
   if (!db) {
@@ -260,6 +285,9 @@ export const getDatabase = () => {
   }
   return db;
 };
+
+// Export the initialized instances
+export { pool, db };
 
 // Function to test database connection
 export const testDatabaseConnection = async (): Promise<boolean> => {

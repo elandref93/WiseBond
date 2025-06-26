@@ -2,7 +2,7 @@ import { eq, sql } from 'drizzle-orm';
 import { users, calculationResults, properties, loanScenarios } from '@shared/schema';
 import type { User, InsertUser, CalculationResult, InsertCalculationResult, Property, InsertProperty, LoanScenario, InsertLoanScenario } from '@shared/schema';
 import bcrypt from 'bcrypt';
-import { db } from './db';
+import { getDatabase } from './db';
 
 // Storage interface focusing on essential functionality
 export interface IStorage {
