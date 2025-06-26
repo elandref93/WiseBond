@@ -320,6 +320,31 @@ let storage: IStorage;
 async function initializeStorage(): Promise<IStorage> {
   if (storage) return storage;
   
+  try {
+    // Try to use database storage first
+    const { DatabaseStorage } = await import('../server-storage-fixed.js');
+    const { testDatabaseConnection } = await import('./db-simple.js');
+    
+    // Test if database is available with a timeout
+    const connectionTimeout = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database connection timeout')), 5000)
+    );
+    
+    const isConnected = await Promise.race([
+      testDatabaseConnection(),
+      connectionTimeout
+    ]).then(() => true).catch(() => false);
+    
+    if (isConnected) {
+      console.log('✅ Connected to Azure PostgreSQL database');
+      storage = new DatabaseStorage();
+      return storage;
+    }
+  } catch (error) {
+    console.log('Database storage initialization failed:', error.message);
+  }
+  
+  // Fallback to in-memory storage
   console.log('⚠ Using in-memory storage for development');
   storage = new MemStorage();
   return storage;
