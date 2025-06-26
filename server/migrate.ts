@@ -1,6 +1,6 @@
-import { db } from './db-simple';
 import * as schema from '@shared/schema';
 import { sql } from 'drizzle-orm';
+import { getPostgresClient } from './db';
 
 /**
  * Simple migration function to ensure tables exist
@@ -9,6 +9,7 @@ export const runMigrations = async () => {
   console.log('Running database migrations...');
   
   // Check if database connection is working
+  const db=await getPostgresClient();
   try {
     console.log('Testing database connection...');
     await db.execute(sql`SELECT 1 as test`);

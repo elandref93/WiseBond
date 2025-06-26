@@ -33,22 +33,14 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
     // Optimize bundle splitting to fix 566KB chunk warning
     rollupOptions: {
       output: {
         manualChunks: {
           // Core React libraries
           'react-vendor': ['react', 'react-dom'],
-<<<<<<< HEAD
 
-=======
-          
->>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
           // Radix UI components (your largest dependency group)
           'radix-ui': [
             '@radix-ui/react-accordion',
@@ -69,7 +61,6 @@ export default defineConfig({
             '@radix-ui/react-toast',
             '@radix-ui/react-tooltip'
           ],
-<<<<<<< HEAD
 
           // Charts and data visualization (split for better loading)
           'chart-js': ['chart.js'],
@@ -78,16 +69,6 @@ export default defineConfig({
           // Form handling
           'forms': ['react-hook-form', '@hookform/resolvers', 'zod', 'zod-validation-error'],
 
-=======
-          
-          // Charts and data visualization (split for better loading)
-          'chart-js': ['chart.js'],
-          'recharts': ['recharts'],
-          
-          // Form handling
-          'forms': ['react-hook-form', '@hookform/resolvers', 'zod', 'zod-validation-error'],
-          
->>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
           // Utilities and helpers
           'utils': [
             'date-fns',
@@ -97,57 +78,33 @@ export default defineConfig({
             'tailwindcss-animate',
             'lodash.pick'
           ],
-<<<<<<< HEAD
 
-=======
-          
->>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
           // Large vendor libraries
           'vendor-large': ['axios', 'framer-motion', '@tanstack/react-query']
         }
       }
     },
-<<<<<<< HEAD
 
     // Performance optimizations (using esbuild - faster than terser)
     target: 'es2020',
     minify: true,
 
-=======
-    
-    // Performance optimizations (using esbuild - faster than terser)
-    target: 'es2020',
-    minify: true,
-    
->>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
     // Remove console logs in production
     esbuild: {
       drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
     },
-<<<<<<< HEAD
 
     // Increase chunk size warning limit to 1MB
     chunkSizeWarningLimit: 1000,
   },
 
-=======
-    
-    // Increase chunk size warning limit to 1MB
-    chunkSizeWarningLimit: 1000,
-  },
-  
->>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
   // Development server optimizations
   server: {
     hmr: {
       overlay: false // Since you're using runtime error overlay plugin
     }
   },
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99
   // Dependency optimization
   optimizeDeps: {
     include: [
@@ -157,8 +114,4 @@ export default defineConfig({
       '@tanstack/react-query'
     ]
   }
-<<<<<<< HEAD
 });
-=======
-});
->>>>>>> fb576460ac4c191b22eee23c2b797d997cecfb99

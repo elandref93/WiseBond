@@ -1,12 +1,4 @@
-// Only use Azure Key Vault for configuration
-import { initializeSecretsFromKeyVault, listAvailableKeys } from './keyVault';
-
-// We only need dotenv for non-secret configuration (e.g. SESSION_SECRET)
-import dotenv from 'dotenv';
-dotenv.config();
-
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
 import { serveStatic, log } from "./staticServer";
 
 const app = express();
@@ -54,46 +46,12 @@ app.use((req, res, next) => {
     'DATABASE_URL'
   ];
   
-  console.log('Available environment variables:');
   envVars.forEach(varName => {
     console.log(`- ${varName}: ${process.env[varName] ? 'Set' : 'Not set'}`);
   });
-  
-  // Ensure Google Maps API Key is copied to VITE_ version for frontend access
-  if (process.env.GOOGLE_MAPS_API_KEY && !process.env.VITE_GOOGLE_MAPS_API_KEY) {
-    process.env.VITE_GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
-    console.log('Copied GOOGLE_MAPS_API_KEY to VITE_GOOGLE_MAPS_API_KEY for frontend access');
-  }
-  
-  // Only try Azure Key Vault if environment variables are not available
-  const missingEnvVars = envVars.filter(varName => !process.env[varName]);
-  if (missingEnvVars.length > 0) {
-    console.log(`Missing environment variables: ${missingEnvVars.join(', ')}. Trying Azure Key Vault...`);
-    
-    try {
-      // Try to load secrets from Azure Key Vault
-      console.log('Attempting to load secrets from Azure Key Vault...');
-      await initializeSecretsFromKeyVault();
-      
-      // List available keys for debugging
-      const availableKeys = await listAvailableKeys();
-      console.log('Available keys in Azure Key Vault:', availableKeys);
-    } catch (error) {
-      console.error('Error initializing Azure Key Vault:', error);
-      console.log('Failed to load Azure Key Vault secrets. Some functionality may be limited.');
-    }
-  } else {
-    console.log('All required environment variables are set. Skipping Azure Key Vault.');
-  }
-  
+
   // Initialize Azure database with three-tier authentication strategy
-  try {
-    console.log('Initializing Azure database with three-tier authentication...');
-    const { setupDatabase } = await import('./db');
-    
-    // Setup database using three-tier strategy (Tier 1 → Tier 2 → Tier 3)
-    await setupDatabase();
-    
+  try {    
     console.log('✅ Database connected successfully, running migrations...');
     const { runMigrations } = await import('./migrate');
     await runMigrations();

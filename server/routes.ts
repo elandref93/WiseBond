@@ -1,6 +1,6 @@
 import express, { type Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { getStorage } from "./storage";
+import { storage } from "./storage";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import { 
@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
-      const storage = await getStorage();
+      //const storage = await getStorage();
       
       // Check if email already exists
       const existingEmail = await storage.getUserByEmail(userData.email);
@@ -137,7 +137,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/verify-otp", async (req, res) => {
     try {
       const { userId, otp } = req.body;
-      const storage = await getStorage();
+      
       
       const isValid = await storage.verifyOTP(userId, otp);
       if (!isValid) {
@@ -157,7 +157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const loginData = loginSchema.parse(req.body);
-      const storage = await getStorage();
+      //const storage = await getStorage();
       
       const user = await storage.getUserByEmail(loginData.username);
       
@@ -191,7 +191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
-      const storage = await getStorage();
+      //const storage = await getStorage();
       const user = await storage.getUserById(req.session.userId);
       
       if (!user) {
@@ -225,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/resend-otp", async (req, res) => {
     try {
       const { userId, email } = req.body;
-      const storage = await getStorage();
+      //const storage = await getStorage();
       
       if (!userId || !email) {
         return res.status(400).json({ message: "User ID and email are required" });
@@ -279,7 +279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/forgot-password", async (req, res) => {
     try {
       const { email } = req.body;
-      const storage = await getStorage();
+     // const storage = await getStorage();
       
       const user = await storage.getUserByEmail(email);
       if (!user) {
@@ -319,7 +319,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/reset-password", async (req, res) => {
     try {
       const { token, newPassword } = req.body;
-      const storage = await getStorage();
+     // const storage = await getStorage();
       
       // Verify reset token
       const isValid = await storage.verifyResetToken(token);
@@ -349,7 +349,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/validate-reset-token", async (req, res) => {
     try {
       const { token } = req.query;
-      const storage = await getStorage();
+     // const storage = await getStorage();
       
       const isValid = await storage.verifyResetToken(token as string);
       if (!isValid) {
@@ -366,7 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Properties routes
   app.get('/api/properties', isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const storage = await getStorage();
+      //const storage = await getStorage();
       const properties = await storage.getUserProperties(req.session.userId!);
       res.json(properties);
     } catch (error) {
@@ -377,7 +377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/properties', isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const storage = await getStorage();
+     // const storage = await getStorage();
       const property = await storage.createProperty({
         ...req.body,
         userId: req.session.userId!
@@ -391,7 +391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/properties/:propertyId/scenarios', isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const storage = await getStorage();
+      //const storage = await getStorage();
       const scenarios = await storage.getPropertyLoanScenarios(parseInt(req.params.propertyId));
       res.json(scenarios);
     } catch (error) {
@@ -402,7 +402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/properties/:propertyId/scenarios', isAuthenticated, async (req: Request, res: Response) => {
     try {
-      const storage = await getStorage();
+      //const storage = await getStorage();
       const scenario = await storage.createLoanScenario({
         ...req.body,
         propertyId: parseInt(req.params.propertyId)
