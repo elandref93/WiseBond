@@ -224,8 +224,12 @@ async function setupDatabase() {
     console.warn('Three-tier database initialization failed, using fallback...');
     
     // Emergency fallback to simple connection
-    const fallbackConnectionString = process.env.DATABASE_URL || 
-      'postgresql://elandre:*6CsqD325CX#9&HA9q#a5r9^9!8W%F@wisebond-server.postgres.database.azure.com:5432/postgres?sslmode=require';
+    const fallbackConnectionString = process.env.DATABASE_URL;
+    
+    if (!fallbackConnectionString) {
+      console.warn('⚠️ No DATABASE_URL found, using in-memory storage');
+      return; // Exit and use in-memory storage
+    }
       
     const poolConfig = {
       connectionString: fallbackConnectionString,
