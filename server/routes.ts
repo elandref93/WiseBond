@@ -472,9 +472,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   
-  httpServer.listen(port, "0.0.0.0", () => {
-    console.log(`Server running on http://0.0.0.0:${port}`);
-  });
-
+  // Don't start listening here - let the main server setup handle it
+  // This allows Vite middleware to be configured before server starts
   return httpServer;
 }

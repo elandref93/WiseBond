@@ -114,8 +114,20 @@ app.use((req, res, next) => {
     console.log('Application will use in-memory storage');
   }
   
-  const server = await registerRoutes(app);
+  // Set development environment if not set
+  if (!process.env.NODE_ENV) {
+    process.env.NODE_ENV = "development";
+  }
+  
+  console.log("ENV:", process.env.NODE_ENV);
+  
+  // Import registerRoutes function
+  const { registerRoutes } = await import("./routes.js");
+  
+  // Register API routes without starting server
+  await registerRoutes(app);
 
+  // Error handling middleware
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -124,21 +136,23 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // Set development environment if not set
-  if (!process.env.NODE_ENV) {
-    process.env.NODE_ENV = "development";
-  }
-  
-  console.log("ENV:", process.env.NODE_ENV);
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // Create HTTP server
+  const { createServer } = await import("http");
+  const server = createServer(app);
+
+  // Setup frontend serving AFTER API routes but BEFORE server starts
   if (process.env.NODE_ENV === "production") {
-    serveStatic(app); // ✅ Runs in Azure
+    serveStatic(app);
   } else {
     const { setupVite } = await import("./vite");
-    await setupVite(app, server); // Only in local dev
+    await setupVite(app, server);
   }
+
+  // Start the server after all middleware is configured  
+  const port = parseInt(process.env.PORT || "5000", 10);
+  server.listen(port, "0.0.0.0", () => {
+    console.log(`Server running on http://0.0.0.0:${port}`);
+  });
 
   // Server is already started by registerRoutes function
   // No need to call listen again
