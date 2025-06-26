@@ -250,8 +250,16 @@ setupDatabase().catch(error => {
   console.log('Application will continue with limited functionality...');
 });
 
-// Export the initialized instances
+// Export the initialized instances and database getter
 export { pool, db };
+
+// Function to get database instance (for storage layer)
+export const getDatabase = () => {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  return db;
+};
 
 // Function to test database connection
 export const testDatabaseConnection = async (): Promise<boolean> => {
