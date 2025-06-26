@@ -1,7 +1,17 @@
 import { ManagedIdentityCredential } from "@azure/identity";
 import { Client } from "pg";
- 
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from "@shared/schema";
+
+// Create a global database instance
+let db: ReturnType<typeof drizzle> | null = null;
+let client: Client | null = null;
+
 export async function getPostgresClient() {
+    if (client && db) {
+        return db;
+    }
+
     const credential = new ManagedIdentityCredential();
     const host = process.env["database_host"]?.trim();
     const database = process.env["database_name"]?.trim();
@@ -16,7 +26,7 @@ export async function getPostgresClient() {
     const tokenResponse = await credential.getToken("https://ossrdbms-aad.database.windows.net");
     const password = tokenResponse.token;
   
-    const client = new Client({
+    client = new Client({
         host,
         database,
         port,
@@ -28,5 +38,11 @@ export async function getPostgresClient() {
     });
  
     await client.connect();
-    return client;
+
+    console.log("Connected to database");
+    
+    // Create Drizzle instance with the connected client
+    db = drizzle(client, { schema });
+    
+    return db;
 }
