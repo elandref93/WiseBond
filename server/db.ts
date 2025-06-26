@@ -231,7 +231,10 @@ async function initializeDatabase() {
       connectionString: config.connectionString,
       max: 20,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
+      connectionTimeoutMillis: 30000, // Extended for Azure
+      ssl: {
+        rejectUnauthorized: false // Required for Azure PostgreSQL
+      }
     };
 
     pool = new Pool(poolConfig);
@@ -255,21 +258,36 @@ async function initializeDatabase() {
 async function setupDatabase() {
   console.log('🔄 Setting up Azure database with three-tier authentication strategy...');
   
-  try {
-    // Use the three-tier strategy directly - no fallback to memory storage
-    await initializeDatabase();
-    console.log('✅ Database setup completed successfully');
-  } catch (error: any) {
-    console.error('❌ CRITICAL: All three database authentication tiers failed');
-    console.error('Error details:', error.message);
-    console.error('Tier 1: Key Vault + Azure Auth');
-    console.error('Tier 2: Hardcoded + Azure Auth'); 
-    console.error('Tier 3: Simple username/password');
-    console.error('Application requires Azure database connection to function.');
-    
-    // Exit application - no memory storage fallback allowed
-    process.exit(1);
+  let lastError: any;
+  const maxRetries = 3;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Attempt ${attempt}/${maxRetries}: Initializing database connection...`);
+      await initializeDatabase();
+      console.log('✅ Database setup completed successfully');
+      return;
+    } catch (error: any) {
+      lastError = error;
+      console.error(`❌ Attempt ${attempt} failed:`, error.message);
+      
+      if (attempt < maxRetries) {
+        const delay = attempt * 2000; // 2s, 4s delay
+        console.log(`⏳ Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
   }
+  
+  console.error('❌ CRITICAL: All database connection attempts failed');
+  console.error('Error details:', lastError.message);
+  console.error('Tier 1: Key Vault + Azure Auth');
+  console.error('Tier 2: Hardcoded + Azure Auth'); 
+  console.error('Tier 3: Simple username/password');
+  console.error('Application requires Azure database connection to function.');
+  
+  // Exit application - no memory storage fallback allowed
+  process.exit(1);
 }
 
 // Initialize database on module load

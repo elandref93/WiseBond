@@ -47,17 +47,60 @@ export interface IStorage {
 
 /**
  * Azure PostgreSQL Database Storage Implementation
- * Uses three-tier authentication strategy for Azure database connection
  */
 export class DatabaseStorage implements IStorage {
   
   // User management methods
   async createUser(insertUser: InsertUser): Promise<User> {
     const db = getDatabase();
-    const hashedPassword = await bcrypt.hash(insertUser.password!, 10);
+    if (!insertUser.password) throw new Error('Password is required');
+    
+    const hashedPassword = await bcrypt.hash(insertUser.password, 10);
     const result = await db.insert(users).values({
-      ...insertUser,
+      firstName: insertUser.firstName,
+      lastName: insertUser.lastName,
+      email: insertUser.email,
       password: hashedPassword,
+      otpVerified: insertUser.otpVerified || false,
+      profileComplete: insertUser.profileComplete || false,
+      username: insertUser.username,
+      phone: insertUser.phone,
+      title: insertUser.title,
+      idNumber: insertUser.idNumber,
+      dateOfBirth: insertUser.dateOfBirth,
+      age: insertUser.age,
+      address: insertUser.address,
+      city: insertUser.city,
+      postalCode: insertUser.postalCode,
+      province: insertUser.province,
+      employmentStatus: insertUser.employmentStatus,
+      employerName: insertUser.employerName,
+      employmentSector: insertUser.employmentSector,
+      jobTitle: insertUser.jobTitle,
+      employmentDuration: insertUser.employmentDuration,
+      monthlyIncome: insertUser.monthlyIncome,
+      maritalStatus: insertUser.maritalStatus,
+      hasCoApplicant: insertUser.hasCoApplicant,
+      // Co-applicant fields
+      coApplicantTitle: insertUser.coApplicantTitle,
+      coApplicantFirstName: insertUser.coApplicantFirstName,
+      coApplicantLastName: insertUser.coApplicantLastName,
+      coApplicantEmail: insertUser.coApplicantEmail,
+      coApplicantPhone: insertUser.coApplicantPhone,
+      coApplicantIdNumber: insertUser.coApplicantIdNumber,
+      coApplicantDateOfBirth: insertUser.coApplicantDateOfBirth,
+      coApplicantAge: insertUser.coApplicantAge,
+      coApplicantEmploymentStatus: insertUser.coApplicantEmploymentStatus,
+      coApplicantEmployerName: insertUser.coApplicantEmployerName,
+      coApplicantEmploymentSector: insertUser.coApplicantEmploymentSector,
+      coApplicantJobTitle: insertUser.coApplicantJobTitle,
+      coApplicantEmploymentDuration: insertUser.coApplicantEmploymentDuration,
+      coApplicantMonthlyIncome: insertUser.coApplicantMonthlyIncome,
+      sameAddress: insertUser.sameAddress,
+      coApplicantAddress: insertUser.coApplicantAddress,
+      coApplicantCity: insertUser.coApplicantCity,
+      coApplicantPostalCode: insertUser.coApplicantPostalCode,
+      coApplicantProvince: insertUser.coApplicantProvince,
     }).returning();
     return result[0];
   }
@@ -86,7 +129,7 @@ export class DatabaseStorage implements IStorage {
   async deleteUser(id: number): Promise<boolean> {
     const db = getDatabase();
     const result = await db.delete(users).where(eq(users.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async listUsers(): Promise<User[]> {
@@ -97,7 +140,7 @@ export class DatabaseStorage implements IStorage {
   async verifyPassword(email: string, password: string): Promise<boolean> {
     const db = getDatabase();
     const user = await db.select().from(users).where(eq(users.email, email));
-    if (!user[0]) return false;
+    if (!user[0] || !user[0].password) return false;
     return await bcrypt.compare(password, user[0].password);
   }
 
@@ -184,7 +227,7 @@ export class DatabaseStorage implements IStorage {
   async deleteCalculationResult(id: number): Promise<boolean> {
     const db = getDatabase();
     const result = await db.delete(calculationResults).where(eq(calculationResults.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Property management methods
@@ -214,7 +257,7 @@ export class DatabaseStorage implements IStorage {
   async deleteProperty(id: number): Promise<boolean> {
     const db = getDatabase();
     const result = await db.delete(properties).where(eq(properties.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   // Loan scenario methods
@@ -244,7 +287,7 @@ export class DatabaseStorage implements IStorage {
   async deleteLoanScenario(id: number): Promise<boolean> {
     const db = getDatabase();
     const result = await db.delete(loanScenarios).where(eq(loanScenarios.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 }
 

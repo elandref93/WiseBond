@@ -49,7 +49,12 @@ export const users = pgTable("users", {
   coApplicantCity: text("co_applicant_city"), // Co-applicant's city if different
   coApplicantPostalCode: text("co_applicant_postal_code"), // Co-applicant's postal code if different
   coApplicantProvince: text("co_applicant_province"), // Co-applicant's province if different
+  // Authentication fields
   otpVerified: boolean("otp_verified").default(false),
+  otpCode: text("otp_code"), // Current OTP code
+  otpExpiresAt: timestamp("otp_expires_at"), // OTP expiration time
+  resetToken: text("reset_token"), // Password reset token
+  resetTokenExpiresAt: timestamp("reset_token_expires_at"), // Reset token expiration
   profileComplete: boolean("profile_complete").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
