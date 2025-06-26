@@ -17,20 +17,20 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-
+    
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-
+    
     - name: Install dependencies
-      run: npm i
-
+      run: npm ci
+    
     # - name: Run type checking
     #   run: npm run check
     
@@ -151,7 +151,7 @@ jobs:
         client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
+        
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v3
       with:
