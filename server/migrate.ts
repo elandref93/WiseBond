@@ -12,7 +12,12 @@ export const runMigrations = async () => {
   const db=await getPostgresClient();
   try {
     console.log('Testing database connection...');
-    await db.execute(sql`SELECT 1 as test`);
+    // Add timeout to this query
+    const testQuery = db.execute(sql`SELECT 1 as test`);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Query timeout')), 5000)
+    );
+    await Promise.race([testQuery, timeoutPromise]);
     console.log('✅ Database connection successful');
   } catch (e) {
     console.error('❌ Database connection failed:', e);
