@@ -55,10 +55,12 @@ async function getPostgresClientTiered() {
 
     // Tier 1: Key Vault + Default Azure Credential
     try {
-        const credential = new DefaultAzureCredential();
-        const vaultName = process.env.AZURE_KEY_VAULT_NAME || 'WiseBondVault';
+        const credential = new ManagedIdentityCredential();
+        const vaultName = process.env.AZURE_KEY_VAULT_NAME || 'wisebondvault';
         const url = `https://${vaultName}.vault.azure.net/`;
         const secretClient = new SecretClient(url, credential);
+        
+        console.log(url);
 
         const [host, port, database, user, password] = await Promise.all([
             secretClient.getSecret("database-host"),
