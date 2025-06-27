@@ -69,11 +69,11 @@ async function getPostgresClientTiered() {
             secretClient.getSecret("database-username"),
             secretClient.getSecret("database-password")
         ]);
-
+       
         console.log(host.value)
         console.log(port.value)
         console.log(database.value)
-        console.log(user.value)        
+        console.log(user.value)       
     
         const client = new Client({
             host: host.value,
@@ -87,6 +87,8 @@ async function getPostgresClientTiered() {
         await client.connect();
         console.log("✅ Tier 1: Connected using Key Vault secrets");
         db = drizzle(client, { schema });
+        process.env.DATABASE_URL =`postgresql://${user.value}:${password.value}@${host.value}:${port.value}/${database.value}`;
+        console.log(process.env.DATABASE_URL);
         return db;
 
     } catch (error: any) {
@@ -105,6 +107,7 @@ async function getPostgresClientTiered() {
         const port = parseInt(process.env["database_port"]?.trim() || "5432", 10);
         const database = process.env["database_name"]?.trim();
         const user = process.env["database_user"]?.trim();
+        const username = process.env["database-username"]?.trim();
 
         console.log(host)
         console.log(port)
@@ -118,11 +121,12 @@ async function getPostgresClientTiered() {
             user,
             password,
             ssl: { rejectUnauthorized: true }
-        });
-
+        });        
         await client.connect();
         console.log("✅ Tier 2: Connected using Managed Identity");
         db = drizzle(client, { schema });
+        process.env.DATABASE_URL =`postgresql://${username}:${password}@${host}:${port}/${database}`;
+        console.log(process.env.DATABASE_URL);
         return db;
     } catch (e) {
         const error = e as Error;
@@ -155,6 +159,8 @@ async function getPostgresClientTiered() {
 
         await client.connect();
         console.log("✅ Tier 3: Connected using fallback credentials");
+        process.env.DATABASE_URL =`postgresql://${user}:${password}@${host}:${port}/${database}`;
+        console.log(process.env.DATABASE_URL);
         db = drizzle(client, { schema });
         return db;
     } catch (e) {
