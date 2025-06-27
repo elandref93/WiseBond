@@ -1,6 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { serveStatic, log } from "./staticServer";
-import { initializeSecretsFromKeyVault, listAvailableKeys } from './keyVault';
+import { getPostgresClient } from "./db";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -80,7 +80,6 @@ app.use((req, res, next) => {
   // Initialize Azure database with three-tier authentication strategy
   try {    
 
-    const { getPostgresClient } = await import('./db');    
     // Setup database using three-tier strategy (Tier 1 → Tier 2 → Tier 3)
     await getPostgresClient();
     console.log('✅ Database connected successfully, running migrations...');
