@@ -89,6 +89,7 @@ export default function SignUpForm() {
         email: values.email,
         phone: values.phone || null,
         password: values.password,
+        username: values.email, 
       });
 
       setUserId((result as any).userId);

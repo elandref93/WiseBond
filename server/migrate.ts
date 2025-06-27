@@ -7,7 +7,7 @@ import { getPostgresClient } from './db';
  */
 export const runMigrations = async () => {
   console.log('Running database migrations...');
-  
+
   // Check if database connection is working
   const db=await getPostgresClient();
   try {
@@ -18,13 +18,13 @@ export const runMigrations = async () => {
     console.error('❌ Database connection failed:', e);
     throw new Error('Cannot connect to database');
   }
-  
+
   try {
     // Check if users table exists by trying to select from it
     try {
       await db.select().from(schema.users).limit(1);
       console.log('✅ Users table exists');
-      
+
       // Check and add co-applicant columns
       console.log('Checking for missing co-applicant columns in users table...');
       try {
@@ -37,6 +37,7 @@ export const runMigrations = async () => {
           ALTER TABLE users
           ADD COLUMN IF NOT EXISTS marital_status TEXT,
           ADD COLUMN IF NOT EXISTS has_co_applicant BOOLEAN DEFAULT FALSE,
+          ADD COLUMN IF NOT EXISTS co_applicant_title TEXT,
           ADD COLUMN IF NOT EXISTS co_applicant_first_name TEXT,
           ADD COLUMN IF NOT EXISTS co_applicant_last_name TEXT,
           ADD COLUMN IF NOT EXISTS co_applicant_email TEXT,
@@ -65,6 +66,10 @@ export const runMigrations = async () => {
           id SERIAL PRIMARY KEY,
           username TEXT NOT NULL UNIQUE,
           password TEXT NOT NULL,
+          provider_id TEXT,
+          provider_account_id TEXT,
+          image TEXT,
+          title TEXT,          
           first_name TEXT NOT NULL,
           last_name TEXT NOT NULL,
           email TEXT NOT NULL UNIQUE,
@@ -84,6 +89,7 @@ export const runMigrations = async () => {
           monthly_income INTEGER,
           marital_status TEXT,
           has_co_applicant BOOLEAN DEFAULT FALSE,
+          co_applicant_title TEXT,
           co_applicant_first_name TEXT,
           co_applicant_last_name TEXT,
           co_applicant_email TEXT,
@@ -103,6 +109,10 @@ export const runMigrations = async () => {
           co_applicant_postal_code TEXT,
           co_applicant_province TEXT,
           otp_verified BOOLEAN DEFAULT FALSE,
+          otp_code TEXT,
+          otp_expires_at TIMESTAMP,
+          reset_token TEXT,
+          reset_token_expires_at TIMESTAMP,
           profile_complete BOOLEAN DEFAULT FALSE,
           created_at TIMESTAMP DEFAULT NOW(),
           updated_at TIMESTAMP DEFAULT NOW()
@@ -124,17 +134,17 @@ export const runMigrations = async () => {
         ADD COLUMN IF NOT EXISTS provider_account_id TEXT,
         ADD COLUMN IF NOT EXISTS image TEXT
       `);
-      
+
       // Make username and password nullable for OAuth users
       await db.execute(sql`
         ALTER TABLE users
         ALTER COLUMN username DROP NOT NULL,
         ALTER COLUMN password DROP NOT NULL
       `);
-      
+
       console.log('✅ Added OAuth columns to users table');
     }
-    
+
     // Check if calculation_results table exists
     try {
       await db.select().from(schema.calculationResults).limit(1);
@@ -171,7 +181,7 @@ export const runMigrations = async () => {
       `);
       console.log('✅ Created budget_categories table');
     }
-    
+
     // Check if expenses table exists
     try {
       await db.select().from(schema.expenses).limit(1);
@@ -217,12 +227,12 @@ export const runMigrations = async () => {
     } catch (e) {
       console.log('Sessions table might be created by connect-pg-simple automatically');
     }
-    
+
     // Check notifications table
     try {
       await db.select().from(schema.notifications).limit(1);
       console.log('✅ Notifications table exists');
-      
+
       // Ensure notifications table has read column, not isRead
       try {
         await db.execute(sql`SELECT read FROM notifications LIMIT 1`);
@@ -261,7 +271,7 @@ export const runMigrations = async () => {
       `);
       console.log('✅ Created notifications table');
     }
-    
+
     console.log('✅ All migrations completed successfully');
     return true;
   } catch (error) {

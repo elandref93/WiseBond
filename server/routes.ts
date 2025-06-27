@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import connectPgSimple from "connect-pg-simple";
-import { 
+import {
   insertUserSchema, loginSchema, insertCalculationResultSchema
 } from "@shared/schema";
 import { ZodError } from "zod";
@@ -35,7 +35,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    
+
     if (req.method === 'OPTIONS') {
       return res.sendStatus(200);
     }
@@ -44,20 +44,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // PostgreSQL session store - no memory storage
   const pgSession = connectPgSimple(session);
-  
+
   app.use(session({
-    store: new pgSession({
-      conString: process.env.DATABASE_URL,
+      store: new pgSession({
+        conString: process.env.DATABASE_URL,
       tableName: 'user_sessions',
       createTableIfMissing: true
-    }),
+      }),
     secret: process.env.SESSION_SECRET || 'fallback-secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: false,
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: false,
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
       sameSite: 'lax'
     }
   }));
@@ -76,51 +76,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userData = insertUserSchema.parse(req.body);
       //const storage = await getStorage();
-      
+
       // Check if email already exists
       const existingEmail = await storage.getUserByEmail(userData.email);
       if (existingEmail) {
         return res.status(400).json({ message: "Email already exists" });
       }
-      
+
       const user = await storage.createUser(userData);
-      
+
       // Generate and store OTP
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = new Date();
       expiresAt.setMinutes(expiresAt.getMinutes() + 30); // OTP expires in 30 minutes
-      
+
       await storage.storeOTP(user.id, otp, expiresAt);
-      
+
       // Send verification email
       const emailResult = await sendVerificationEmail({
         firstName: user.firstName,
         email: user.email,
         verificationCode: otp
       });
-      
+
       console.log(`OTP for ${user.email}: ${otp}`); // Development only
       console.log(`Email send result:`, emailResult);
-      
+
       if (!emailResult.success) {
         console.warn(`Failed to send verification email to ${user.email}:`, emailResult.error);
         // In development, show the OTP in the response for testing
         if (process.env.NODE_ENV === 'development') {
-          return res.status(201).json({ 
+          return res.status(201).json({
             message: "User registered successfully. Email delivery failed - using development mode.", 
             userId: user.id,
             emailError: true,
             developmentOtp: otp // Only in development
           });
         }
-        return res.status(201).json({ 
+        return res.status(201).json({
           message: "User registered successfully, but email could not be sent. Please contact support.", 
           userId: user.id,
           emailError: true
         });
       }
-      
-      res.status(201).json({ 
+
+      res.status(201).json({
         message: "User registered successfully. Please check your email (including spam folder) for the verification code.", 
         userId: user.id,
         emailSent: true
@@ -139,15 +139,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId, otp } = req.body;
       
-      
+
       const isValid = await storage.verifyOTP(userId, otp);
       if (!isValid) {
         return res.status(400).json({ message: "Invalid or expired OTP" });
       }
-      
+
       // Update user as verified
       await storage.updateUser(userId, { otpVerified: true });
-      
+
       res.json({ message: "Email verified successfully" });
     } catch (error) {
       console.error("OTP verification error:", error);
@@ -159,16 +159,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const loginData = loginSchema.parse(req.body);
       //const storage = await getStorage();
-      
+
       const user = await storage.getUserByEmail(loginData.username);
-      
+
       if (!user || !(await storage.verifyPassword(loginData.username, loginData.password))) {
         return res.status(401).json({ message: "Invalid email or password" });
       }
-      
+
       req.session.userId = user.id;
-      res.json({ 
-        message: "Login successful", 
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ message: "Failed to save session" });
+        }
+      });
+      res.json({
+        message: "Login successful",
         user: {
           id: user.id,
           email: user.email,
@@ -194,7 +200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       //const storage = await getStorage();
       const user = await storage.getUserById(req.session.userId);
-      
+
       if (!user) {
         return res.status(401).json({ message: "User not found" });
       }
@@ -227,46 +233,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId, email } = req.body;
       //const storage = await getStorage();
-      
+
       if (!userId || !email) {
         return res.status(400).json({ message: "User ID and email are required" });
       }
-      
+
       const user = await storage.getUserById(userId);
       if (!user || user.email !== email) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Generate new OTP
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = new Date();
       expiresAt.setMinutes(expiresAt.getMinutes() + 30);
-      
+
       await storage.storeOTP(user.id, otp, expiresAt);
-      
+
       // Send verification email
       const emailResult = await sendVerificationEmail({
         firstName: user.firstName,
         email: user.email,
         verificationCode: otp
       });
-      
+
       console.log(`Resend OTP for ${user.email}: ${otp}`);
       console.log(`Resend email result:`, emailResult);
-      
+
       if (!emailResult.success) {
         console.warn(`Failed to resend verification email to ${user.email}:`, emailResult.error);
         if (process.env.NODE_ENV === 'development') {
-          return res.json({ 
-            message: "OTP resent (development mode - email delivery failed)", 
+          return res.json({
+            message: "OTP resent (development mode - email delivery failed)",
             emailError: true,
             developmentOtp: otp
           });
         }
         return res.status(500).json({ message: "Failed to resend verification email" });
       }
-      
-      res.json({ 
+
+      res.json({
         message: "Verification code resent. Please check your email and spam folder.",
         emailSent: true
       });
@@ -280,22 +286,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/forgot-password", async (req, res) => {
     try {
       const { email } = req.body;
-     // const storage = await getStorage();
-      
+      // const storage = await getStorage();
+
       const user = await storage.getUserByEmail(email);
       if (!user) {
         // Don't reveal if email exists for security
         return res.json({ message: "If the email exists, a password reset link has been sent." });
       }
-      
+
       // Generate reset token
       const resetToken = randomBytes(32).toString('hex');
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 1); // Token expires in 1 hour
-      
+
       // Store reset token (you'll need to add this method to storage)
       await storage.storeResetToken(user.id, resetToken, expiresAt);
-      
+
       // Send password reset email
       const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/reset-password?token=${resetToken}`;
       const emailResult = await sendPasswordResetEmail({
@@ -304,12 +310,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         resetToken,
         resetUrl
       });
-      
+
       if (!emailResult.success) {
         console.warn(`Failed to send password reset email to ${user.email}:`, emailResult.error);
         return res.status(500).json({ message: "Failed to send password reset email. Please try again." });
       }
-      
+
       res.json({ message: "If the email exists, a password reset link has been sent." });
     } catch (error) {
       console.error("Forgot password error:", error);
@@ -320,26 +326,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/reset-password", async (req, res) => {
     try {
       const { token, newPassword } = req.body;
-     // const storage = await getStorage();
-      
+      // const storage = await getStorage();
+
       // Verify reset token
       const isValid = await storage.verifyResetToken(token);
       if (!isValid) {
         return res.status(400).json({ message: "Invalid or expired reset token" });
       }
-      
+
       // Get user by token and update password
       const user = await storage.getUserByResetToken(token);
       if (!user) {
         return res.status(400).json({ message: "Invalid reset token" });
       }
-      
+
       // Update password
       await storage.updateUser(user.id, { password: newPassword });
-      
+
       // Clear the reset token
       await storage.clearResetToken(token);
-      
+
       res.json({ message: "Password reset successfully" });
     } catch (error) {
       console.error("Reset password error:", error);
@@ -350,13 +356,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/validate-reset-token", async (req, res) => {
     try {
       const { token } = req.query;
-     // const storage = await getStorage();
-      
+      // const storage = await getStorage();
+
       const isValid = await storage.verifyResetToken(token as string);
       if (!isValid) {
         return res.status(400).json({ message: "Invalid or expired reset token" });
       }
-      
+
       res.json({ message: "Token is valid" });
     } catch (error) {
       console.error("Token validation error:", error);
@@ -366,50 +372,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Properties routes
   app.get('/api/properties', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      //const storage = await getStorage();
-      const properties = await storage.getUserProperties(req.session.userId!);
-      res.json(properties);
-    } catch (error) {
+      try {
+        //const storage = await getStorage();
+        const properties = await storage.getUserProperties(req.session.userId!);
+        res.json(properties);
+      } catch (error) {
       console.error('Error fetching properties:', error);
       res.status(500).json({ message: 'Failed to fetch properties' });
     }
   });
 
   app.post('/api/properties', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-     // const storage = await getStorage();
-      const property = await storage.createProperty({
-        ...req.body,
+      try {
+        // const storage = await getStorage();
+        const property = await storage.createProperty({
+          ...req.body,
         userId: req.session.userId!
-      });
-      res.status(201).json(property);
-    } catch (error) {
+        });
+        res.status(201).json(property);
+      } catch (error) {
       console.error('Error creating property:', error);
       res.status(500).json({ message: 'Failed to create property' });
     }
   });
 
   app.get('/api/properties/:propertyId/scenarios', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      //const storage = await getStorage();
+      try {
+        //const storage = await getStorage();
       const scenarios = await storage.getPropertyLoanScenarios(parseInt(req.params.propertyId));
-      res.json(scenarios);
-    } catch (error) {
+        res.json(scenarios);
+      } catch (error) {
       console.error('Error fetching scenarios:', error);
       res.status(500).json({ message: 'Failed to fetch scenarios' });
     }
   });
 
   app.post('/api/properties/:propertyId/scenarios', isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      //const storage = await getStorage();
-      const scenario = await storage.createLoanScenario({
-        ...req.body,
+      try {
+        //const storage = await getStorage();
+        const scenario = await storage.createLoanScenario({
+          ...req.body,
         propertyId: parseInt(req.params.propertyId)
-      });
-      res.status(201).json(scenario);
-    } catch (error) {
+        });
+        res.status(201).json(scenario);
+      } catch (error) {
       console.error('Error creating scenario:', error);
       res.status(500).json({ message: 'Failed to create scenario' });
     }
@@ -432,14 +438,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (process.env.NODE_ENV !== 'development') {
       return res.status(403).json({ message: 'Debug endpoint only available in development' });
     }
-    
+
     try {
       const { email, type = 'otp' } = req.body;
-      
+
       if (!email) {
         return res.status(400).json({ message: 'Email is required' });
       }
-      
+
       let result;
       if (type === 'otp') {
         result = await sendVerificationEmail({
@@ -457,7 +463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         return res.status(400).json({ message: 'Invalid email type' });
       }
-      
+
       res.json({
         success: result.success,
         error: result.error,
@@ -468,7 +474,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Debug email test error:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: 'Failed to send test email',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -476,7 +482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
-  
+
   // Don't start listening here - let the main server setup handle it
   // This allows Vite middleware to be configured before server starts
   return httpServer;

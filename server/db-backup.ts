@@ -63,7 +63,7 @@ const getPoolConfig = async () => {
   const host = process.env.AZURE_POSTGRESQL_HOST;
   const database = process.env.AZURE_POSTGRESQL_DATABASE;
   const port = process.env.AZURE_POSTGRESQL_PORT || 5432;
-
+}
 
 // Create pool configuration with appropriate SSL settings and timeouts
 const poolConfig = {
@@ -90,7 +90,8 @@ const poolConfig = {
       }
       return false;
     }
-  
+  }
+)};
 
 let pool: any;
 let db: ReturnType<typeof drizzle>;
