@@ -154,18 +154,10 @@ async function getPostgresClientTiered() {
             database,
             user,
             password,
-            ssl: { rejectUnauthorized: false },
-            connectionTimeoutMillis: 10000,
-            query_timeout: 10000
+            ssl: { rejectUnauthorized: false }
         });
 
-        // Add timeout to connection
-        const connectionPromise = client.connect();
-        const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Connection timeout')), 15000)
-        );
-        
-        await Promise.race([connectionPromise, timeoutPromise]);
+        await client.connect();
         console.log("✅ Tier 3: Connected using fallback credentials");
         process.env.DATABASE_URL =`postgresql://${user}:${password}@${host}:${port}/${database}`;
         console.log(process.env.DATABASE_URL);
