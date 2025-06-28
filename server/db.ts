@@ -55,7 +55,7 @@ async function getPostgresClientTiered() {
 
     // Tier 1: Key Vault + Default Azure Credential
     try {
-        const credential = new ManagedIdentityCredential();
+        const credential = new DefaultAzureCredential();
         const vaultName = process.env.AZURE_KEY_VAULT_NAME || 'wisebondvault';
         const url = `https://${vaultName}.vault.azure.net/`;
         const secretClient = new SecretClient(url, credential);
@@ -68,8 +68,9 @@ async function getPostgresClientTiered() {
             secretClient.getSecret("database-name"),
             secretClient.getSecret("database-username"),
             secretClient.getSecret("database-password")
-        ]);
-       
+        ]);       
+        const encodedPassword = encodeURIComponent(password.value!);
+        
         console.log(host.value)
         console.log(port.value)
         console.log(database.value)
@@ -87,8 +88,7 @@ async function getPostgresClientTiered() {
         await client.connect();
         console.log("✅ Tier 1: Connected using Key Vault secrets");
         db = drizzle(client, { schema });
-        process.env.DATABASE_URL =`postgresql://${user.value}:${password.value}@${host.value}:${port.value}/${database.value}`;
-        console.log(process.env.DATABASE_URL);
+        process.env.DATABASE_URL =`postgresql://${user.value}:${encodedPassword}@${host.value}:${port.value}/${database.value}?sslmode=require`;
         return db;
 
     } catch (error: any) {
@@ -108,7 +108,7 @@ async function getPostgresClientTiered() {
         const database = process.env["database_name"]?.trim();
         const user = process.env["database_user"]?.trim();
         const username = process.env["database-username"]?.trim();
-
+        const encodedPassword = encodeURIComponent(password);
         console.log(host)
         console.log(port)
         console.log(database)
@@ -125,8 +125,8 @@ async function getPostgresClientTiered() {
         await client.connect();
         console.log("✅ Tier 2: Connected using Managed Identity");
         db = drizzle(client, { schema });
-        process.env.DATABASE_URL =`postgresql://${username}:${password}@${host}:${port}/${database}`;
-        console.log(process.env.DATABASE_URL);
+        process.env.DATABASE_URL =`postgresql://${username}:${encodedPassword}@${host}:${port}/${database}?sslmode=require`;
+      
         return db;
     } catch (e) {
         const error = e as Error;
@@ -142,7 +142,7 @@ async function getPostgresClientTiered() {
         const database = process.env.POSTGRES_DATABASE || 'postgres';
         const user = process.env.POSTGRES_USERNAME || 'elandre';
         const password = process.env.POSTGRES_PASSWORD || '*6CsqD325CX#9&HA9q#a5r9^9!8W%F';
-
+        const encodedPassword = encodeURIComponent(password);
         console.log(host)
         console.log(port)
         console.log(database)
@@ -159,7 +159,7 @@ async function getPostgresClientTiered() {
 
         await client.connect();
         console.log("✅ Tier 3: Connected using fallback credentials");
-        process.env.DATABASE_URL =`postgresql://${user}:${password}@${host}:${port}/${database}`;
+        process.env.DATABASE_URL =`postgresql://${user}:${encodedPassword}@${host}:${port}/${database}?sslmode=require`;
         console.log(process.env.DATABASE_URL);
         db = drizzle(client, { schema });
         return db;
