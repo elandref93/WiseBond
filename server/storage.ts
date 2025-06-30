@@ -55,6 +55,7 @@ export class DatabaseStorage implements IStorage {
 
     const db = await getPostgresClient();
 
+    const username = insertUser.username || insertUser.email;
     const hashedPassword = await bcrypt.hash(insertUser.password, 10);
     const result = await db.insert(users).values({
       firstName: insertUser.firstName,
@@ -63,7 +64,7 @@ export class DatabaseStorage implements IStorage {
       password: hashedPassword,
       otpVerified: insertUser.otpVerified || false,
       profileComplete: insertUser.profileComplete || false,
-      username: insertUser.username,
+      username: username,
       phone: insertUser.phone,
       title: insertUser.title,
       idNumber: insertUser.idNumber,

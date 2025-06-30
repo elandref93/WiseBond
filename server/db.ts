@@ -1,9 +1,12 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
-import * as schema from '@shared/schema';
-import { SecretClient } from '@azure/keyvault-secrets';
-import { DefaultAzureCredential, ManagedIdentityCredential } from '@azure/identity';
-import dotenv from 'dotenv';
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Client } from "pg";
+import * as schema from "@shared/schema";
+import { SecretClient } from "@azure/keyvault-secrets";
+import {
+    DefaultAzureCredential,
+    ManagedIdentityCredential,
+} from "@azure/identity";
+import dotenv from "dotenv";
 dotenv.config();
 
 let db: ReturnType<typeof drizzle> | null = null;
@@ -18,15 +21,15 @@ let db: ReturnType<typeof drizzle> | null = null;
 //     const database = process.env["database_name"]?.trim();
 //     const user = process.env["database_user"]?.trim();
 //     const port = parseInt(process.env["database_port"]?.trim() || "5432", 10);
- 
+
 //     console.log(host)
 //     console.log(database)
 //     console.log(port)
 //     console.log(user)
- 
+
 //     const tokenResponse = await credential.getToken("https://ossrdbms-aad.database.windows.net");
 //     const password = tokenResponse.token;
-  
+
 //     client = new Client({
 //         host,
 //         database,
@@ -37,14 +40,14 @@ let db: ReturnType<typeof drizzle> | null = null;
 //             rejectUnauthorized: true,
 //         },
 //     });
- 
+
 //     await client.connect();
 
 //     console.log("Connected to database");
-    
+
 //     // Create Drizzle instance with the connected client
 //     db = drizzle(client, { schema });
-    
+
 //     return db;
 // }
 
@@ -55,11 +58,11 @@ async function getPostgresClientTiered() {
 
     // Tier 1: Key Vault + Default Azure Credential
     try {
-        const credential = new ManagedIdentityCredential();
-        const vaultName = process.env.AZURE_KEY_VAULT_NAME || 'wisebondvault';
+        const credential = new DefaultAzureCredential();
+        const vaultName = process.env.AZURE_KEY_VAULT_NAME || "wisebondvault";
         const url = `https://${vaultName}.vault.azure.net/`;
         const secretClient = new SecretClient(url, credential);
-        
+
         console.log(url);
 
         const [host, port, database, user, password] = await Promise.all([
@@ -67,30 +70,29 @@ async function getPostgresClientTiered() {
             secretClient.getSecret("database-port"),
             secretClient.getSecret("database-name"),
             secretClient.getSecret("database-username"),
-            secretClient.getSecret("database-password")
+            secretClient.getSecret("database-password"),
         ]);
-       
-        console.log(host.value)
-        console.log(port.value)
-        console.log(database.value)
-        console.log(user.value)       
-    
+        const encodedPassword = encodeURIComponent(password.value!);
+
+        console.log(host.value);
+        console.log(port.value);
+        console.log(database.value);
+        console.log(user.value);
+
         const client = new Client({
             host: host.value,
             port: parseInt(port.value || "5432", 10),
             database: database.value,
             user: user.value,
             password: password.value,
-            ssl: { rejectUnauthorized: false }
+            ssl: { rejectUnauthorized: false },
         });
 
         await client.connect();
         console.log("✅ Tier 1: Connected using Key Vault secrets");
         db = drizzle(client, { schema });
-        process.env.DATABASE_URL =`postgresql://${user.value}:${password.value}@${host.value}:${port.value}/${database.value}`;
-        console.log(process.env.DATABASE_URL);
+        process.env.DATABASE_URL = `postgresql://${user.value}:${encodedPassword}@${host.value}:${port.value}/${database.value}?sslmode=require`;
         return db;
-
     } catch (error: any) {
         console.warn("⚠️ Tier 1 failed:", error.message);
     }
@@ -100,19 +102,24 @@ async function getPostgresClientTiered() {
     // Tier 2: Managed Identity
     try {
         const credential = new ManagedIdentityCredential();
-        const tokenResponse = await credential.getToken("https://ossrdbms-aad.database.windows.net");
+        const tokenResponse = await credential.getToken(
+            "https://ossrdbms-aad.database.windows.net",
+        );
         const password = tokenResponse.token;
 
         const host = process.env["database_host"]?.trim();
-        const port = parseInt(process.env["database_port"]?.trim() || "5432", 10);
+        const port = parseInt(
+            process.env["database_port"]?.trim() || "5432",
+            10,
+        );
         const database = process.env["database_name"]?.trim();
         const user = process.env["database_user"]?.trim();
         const username = process.env["database-username"]?.trim();
-
-        console.log(host)
-        console.log(port)
-        console.log(database)
-        console.log(user)        
+        const encodedPassword = encodeURIComponent(password);
+        console.log(host);
+        console.log(port);
+        console.log(database);
+        console.log(user);
 
         const client = new Client({
             host,
@@ -120,47 +127,52 @@ async function getPostgresClientTiered() {
             database,
             user,
             password,
-            ssl: { rejectUnauthorized: true }
-        });        
+            ssl: { rejectUnauthorized: true },
+        });
         await client.connect();
         console.log("✅ Tier 2: Connected using Managed Identity");
         db = drizzle(client, { schema });
-        process.env.DATABASE_URL =`postgresql://${username}:${password}@${host}:${port}/${database}`;
-        console.log(process.env.DATABASE_URL);
+        process.env.DATABASE_URL = `postgresql://${username}:${encodedPassword}@${host}:${port}/${database}?sslmode=require`;
+
         return db;
     } catch (e) {
         const error = e as Error;
         console.warn("⚠️ Tier 2 failed:", error.message);
     }
 
-    console.log("🔄 Attempting Tier 3: Fallback to hardcoded/environment credentials");
+    console.log(
+        "🔄 Attempting Tier 3: Fallback to hardcoded/environment credentials",
+    );
 
     // Tier 3: Hardcoded or env with enhanced SSL settings
     try {
-        const host = process.env.POSTGRES_HOST || 'wisebond-server.postgres.database.azure.com';
-        const port = parseInt(process.env.POSTGRES_PORT || '5432', 10);
-        const database = process.env.POSTGRES_DATABASE || 'postgres';
-        const user = process.env.POSTGRES_USERNAME || 'elandre';
-        const password = process.env.POSTGRES_PASSWORD || '*6CsqD325CX#9&HA9q#a5r9^9!8W%F';
+        const host =
+            process.env.POSTGRES_HOST ||
+            "wisebond-server.postgres.database.azure.com";
+        const port = parseInt(process.env.POSTGRES_PORT || "5432", 10);
+        const database = process.env.POSTGRES_DATABASE || "postgres";
+        const user = process.env.POSTGRES_USERNAME || "elandre";
+        const password =
+            process.env.POSTGRES_PASSWORD || "*6CsqD325CX#9&HA9q#a5r9^9!8W%F";
 
-        console.log('Connection details:')
-        console.log('Host:', host)
-        console.log('Port:', port)
-        console.log('Database:', database)
-        console.log('User:', user)  
+        const encodedPassword = encodeURIComponent(password);
+        console.log(host);
+        console.log(port);
+        console.log(database);
+        console.log(user);
 
         // Try different SSL configurations for Azure PostgreSQL
         const sslConfigs = [
-            { rejectUnauthorized: false, sslmode: 'require' },
-            { rejectUnauthorized: true, sslmode: 'require' },
+            { rejectUnauthorized: false, sslmode: "require" },
+            { rejectUnauthorized: true, sslmode: "require" },
             { rejectUnauthorized: false },
-            false
+            false,
         ];
 
         for (let i = 0; i < sslConfigs.length; i++) {
             const sslConfig = sslConfigs[i];
             console.log(`Trying SSL configuration ${i + 1}:`, sslConfig);
-            
+
             try {
                 const client = new Client({
                     host,
@@ -175,7 +187,7 @@ async function getPostgresClientTiered() {
                 await client.connect();
                 console.log(`✅ Tier 3: Connected using SSL config ${i + 1}`);
                 process.env.DATABASE_URL = `postgresql://${user}:${password}@${host}:${port}/${database}?sslmode=require`;
-                console.log('Database URL set successfully');
+                console.log("Database URL set successfully");
                 db = drizzle(client, { schema });
                 return db;
             } catch (configError: any) {
@@ -185,22 +197,36 @@ async function getPostgresClientTiered() {
                 }
             }
         }
+
+        /* await client.connect();
+        console.log("✅ Tier 3: Connected using fallback credentials");
+        process.env.DATABASE_URL =`postgresql://${user}:${encodedPassword}@${host}:${port}/${database}?sslmode=require`;
+        console.log(process.env.DATABASE_URL);
+        db = drizzle(client, { schema });
+        return db;*/
     } catch (e) {
         const error = e as Error;
         console.error("❌ Tier 3 failed:", error.message);
         console.error("Full error details:", error);
-        
+
         // Check if it's a network connectivity issue
-        if (error.message.includes('ETIMEDOUT') || error.message.includes('timeout')) {
-            console.error("🔥 NETWORK ISSUE: Cannot reach Azure PostgreSQL server");
+        if (
+            error.message.includes("ETIMEDOUT") ||
+            error.message.includes("timeout")
+        ) {
+            console.error(
+                "🔥 NETWORK ISSUE: Cannot reach Azure PostgreSQL server",
+            );
             console.error("This could be due to:");
             console.error("1. Azure firewall blocking Replit's IP ranges");
             console.error("2. Server requires specific SSL certificates");
             console.error("3. Server is in a private network");
             console.error("4. Incorrect server hostname or port");
         }
-        
-        throw new Error("All connection strategies failed. Application cannot proceed.");
+
+        throw new Error(
+            "All connection strategies failed. Application cannot proceed.",
+        );
     }
 }
 
