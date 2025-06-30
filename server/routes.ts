@@ -10,8 +10,8 @@ import {
 import { ZodError } from "zod";
 import { fromZodError } from 'zod-validation-error';
 import { randomBytes } from "crypto";
-import { sendVerificationEmail, sendPasswordResetEmail } from "./email.js";
-
+import { sendVerificationEmail, sendPasswordResetEmail, sendCalculationEmail } from "./email.js";
+import { getPrimeRateHandler } from "./services/primeRate/primeRateController.js";
 const MemStore = MemoryStore(session);
 
 interface SessionData {
@@ -69,7 +69,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(401).json({ message: "Not authenticated" });
     }
   };
+  
+  app.post("/api/calculations/email", async (req, res) => {
+    try {
+      // Validate request body
+      const { firstName, lastName, email, calculationType, calculationData } = req.body;
+      
+      if (!firstName || !lastName || !email || !calculationType || !calculationData) {
+        return res.status(400).json({ 
+          message: "Missing required fields: firstName, lastName, email, calculationType, calculationData" 
+        });
+      }
 
+      // Store as a lead in the database
+      const contactData = {
+        name: `${firstName} ${lastName}`,
+        email,
+        message: `Requested ${calculationType} calculator results to be emailed`,
+      };
+// await storage.createContactSubmission(contactData);
+      
+      // Send the email
+      const emailResult = await sendCalculationEmail({
+        firstName,
+        lastName,
+        email,
+        calculationType,
+        calculationData
+      });
+      
+      if (emailResult.success) {
+        // Email sent successfully
+        res.status(200).json({ 
+          success: true, 
+          message: "Calculation sent successfully" 
+        });
+      } else if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
+        // Email service not configured - still return success in development
+        console.log(`[Dev mode] Email would be sent to ${email} with ${calculationType} results`);
+        res.status(200).json({ 
+          success: true, 
+          message: "Email would be sent in production. Email service not fully configured in development." 
+        });
+      } else if (emailResult.isSandboxAuthError) {
+        // Sandbox domain authorization error
+        console.warn(`Sandbox authorization error sending email to ${email}`);
+        res.status(400).json({ 
+          success: false, 
+          message: "Your email address is not authorized to receive emails from our test environment. The calculation has been saved, but we couldn't send the email. Please contact support to authorize your email or try a different email address.",
+          errorType: "sandboxAuth"
+        });
+      } else {
+        // Email service configured but sending failed
+        console.error(`Failed to send email to ${email}: ${emailResult.error}`);
+        res.status(500).json({ 
+          success: false, 
+          message: "The calculation has been saved, but there was a problem sending the email. Please try again later.",
+          error: emailResult.error
+        });
+      }
+    } catch (error) {
+      console.error("Error sending calculation email:", error);
+      res.status(500).json({ success: false, message: "Failed to send calculation email" });
+    }
+  });
+    app.post("/api/calculations", isAuthenticated, async (req, res) => {
+      try {
+        // const calculationData = insertCalculationResultSchema.parse({
+        //   ...req.body,
+        //   userId: req.session.userId
+        // });
+        const calculationData = insertCalculationResultSchema.parse({
+          calculationType: req.body.calculationType,
+          inputData: JSON.stringify(req.body.inputData),      // ✅ Stringify here
+          resultData: JSON.stringify(req.body.resultData),    // ✅ Stringify here
+          userId: req.session.userId,
+        });
+        
+        const result = await storage.createCalculationResult(calculationData);
+        res.status(201).json(result);
+      } catch (error) {
+        if (error instanceof ZodError) {
+          const validationError = fromZodError(error);
+          return res.status(400).json({ message: validationError.message });
+        }
+        res.status(500).json({ message: "Failed to save calculation" });
+      }
+    });
+  
+    app.get("/api/calculations", isAuthenticated, async (req, res) => {
+      try {
+        const results = await storage.getUserCalculationResults(req.session.userId!);
+        res.status(200).json({ user: results });
+      } catch (error) {
+        res.status(500).json({ message: "Failed to get calculations" });
+      }
+    });
+  
+   app.get("/api/prime-rate", getPrimeRateHandler);
+   app.post("/api/auth/logout", (req, res) => {
+       req.session.destroy((err) => {
+         if (err) {
+           return res.status(500).json({ message: "Failed to logout" });
+         }
+         res.clearCookie("connect.sid");
+         console.log("User logged out successfully");
+         res.status(200).json({ message: "Logged out successfully" });
+       });
+     });
   // API Routes
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {

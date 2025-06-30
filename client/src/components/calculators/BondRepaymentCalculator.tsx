@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -59,6 +59,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   } | null>(null);
   const { user } = useAuth();
   const [lastSavedValues, setLastSavedValues] = useState<Partial<BondRepaymentFormValues> | null>(null);
+  const lastSavedValuesRef = useRef<Partial<BondRepaymentFormValues> | null>(null);
 
   // Default form values
   const defaultValues: BondRepaymentFormValues = {
@@ -79,107 +80,86 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   const formValues = useWatch({
     control: form.control,
   });
-
-  // Calculate results whenever any form value changes
-  useEffect(() => {
-    const calculateResults = async () => {
-      try {
-        // Make sure all required values are present
-        if (!formValues.propertyValue || !formValues.interestRate || 
-            !formValues.loanTerm || !formValues.deposit) {
-          return;
-        }
-        
-        // Parse input values
-        const propertyValue = parseCurrency(formValues.propertyValue);
-        const interestRate = Number(formValues.interestRate);
-        const loanTerm = Number(formValues.loanTerm);
-        const deposit = parseCurrency(formValues.deposit);
-
-        // Calculate results
-        const results = calculateBondRepayment(propertyValue, interestRate, loanTerm, deposit, formValues.includeBondFees);
-        
-        // Calculate loan amount
-        let loanAmount = propertyValue - deposit;
-        
-        // If including bond fees, add the costs to the loan amount
-        if (formValues.includeBondFees) {
-          // Calculate additional financing costs based on the pre-fee loan amount
-          const baseLoanAmount = propertyValue - deposit;
-          const transferDuty = Math.round(baseLoanAmount * 0.08);
-          const transferAttorneyFees = Math.round(baseLoanAmount * 0.015);
-          const bondRegistrationFee = Math.round(baseLoanAmount * 0.012);
-          const deedsOfficeFee = 1500;
-          
-          loanAmount += transferDuty + transferAttorneyFees + bondRegistrationFee + deedsOfficeFee;
-        }
-        
-        // Store loan details for chart
-        console.log('=== LOAN DETAILS BEING SET ===');
-        console.log(`Property Value: R${propertyValue.toLocaleString()}`);
-        console.log(`Deposit: R${deposit.toLocaleString()}`);
-        console.log(`Calculated Loan Amount: R${loanAmount.toLocaleString()}`);
-        console.log(`Interest Rate: ${interestRate}%`);
-        console.log(`Loan Term: ${loanTerm} years`);
-        console.log(`Bond Fees Included: ${formValues.includeBondFees}`);
-        
-        setLoanDetails({
-          loanAmount: loanAmount,
-          interestRate,
-          loanTerm,
-          propertyValue,
-          deposit,
-          depositPercentage: (deposit / propertyValue) * 100
-        });
-        
-        // Pass results and form values back to parent component
-        onCalculate(results, formValues);
-
-        // Save calculation if user is logged in (but only every 5 seconds to avoid too many requests)
-        if (user && 
-            JSON.stringify(formValues) !== JSON.stringify(lastSavedValues)) {
-          // Throttle saving to database
-          const saveDebounceTimeout = setTimeout(async () => {
-            try {
-              await apiRequest("/api/calculations", {
-                method: "POST",
-                body: JSON.stringify({
-                  calculationType: "bond",
-                  inputData: JSON.stringify(formValues),
-                  resultData: JSON.stringify(results),
-                })
-              });
-              
-              // Update last saved values
-              const safeFormValues = {
-                propertyValue: formValues.propertyValue || "",
-                interestRate: formValues.interestRate || "",
-                loanTerm: formValues.loanTerm || "",
-                includeBondFees: formValues.includeBondFees
-              };
-              setLastSavedValues(safeFormValues);
-              
-              // Invalidate the calculations query to refetch
-              queryClient.invalidateQueries({ queryKey: ['/api/calculations'] });
-            } catch (error) {
-              console.error("Error saving calculation:", error);
-            }
-          }, 5000);  // Save at most every 5 seconds
-          
-          return () => clearTimeout(saveDebounceTimeout);
-        }
-      } catch (error) {
-        console.error("Calculation error:", error);
+  const calculateAndSave = async (formValues: BondRepaymentFormValues) => {
+    try {
+      if (!formValues.propertyValue || !formValues.interestRate || !formValues.loanTerm || !formValues.deposit) {
+        return;
       }
-    };
-    
-    // Debounce calculation to prevent excessive calculations
-    const debounceTimeout = setTimeout(() => {
-      calculateResults();
-    }, 300);
-    
-    return () => clearTimeout(debounceTimeout);
-  }, [formValues, onCalculate, user, lastSavedValues]);
+  
+      const propertyValue = parseCurrency(formValues.propertyValue);
+      const interestRate = Number(formValues.interestRate);
+      const loanTerm = Number(formValues.loanTerm);
+      const deposit = parseCurrency(formValues.deposit);
+  
+      const results = calculateBondRepayment(propertyValue, interestRate, loanTerm, deposit, formValues.includeBondFees);
+  
+      let loanAmount = propertyValue - deposit;
+  
+      if (formValues.includeBondFees) {
+        const baseLoanAmount = propertyValue - deposit;
+        const transferDuty = Math.round(baseLoanAmount * 0.08);
+        const transferAttorneyFees = Math.round(baseLoanAmount * 0.015);
+        const bondRegistrationFee = Math.round(baseLoanAmount * 0.012);
+        const deedsOfficeFee = 1500;
+  
+        loanAmount += transferDuty + transferAttorneyFees + bondRegistrationFee + deedsOfficeFee;
+      }
+  
+      setLoanDetails({
+        loanAmount: loanAmount,
+        interestRate,
+        loanTerm,
+        propertyValue,
+        deposit,
+        depositPercentage: (deposit / propertyValue) * 100,
+      });
+  
+      onCalculate(results, formValues);
+  
+      // Optional: Save to backend but throttle
+      if (user) {
+        const isNewData = JSON.stringify(formValues) !== JSON.stringify(lastSavedValuesRef.current);
+        if (isNewData) {
+          await apiRequest("/api/calculations", {
+            method: "POST",
+            body: JSON.stringify({
+              calculationType: "bond",
+              inputData:formValues,
+              resultData: results,
+            }),
+          });
+          lastSavedValuesRef.current = formValues;
+          queryClient.invalidateQueries({ queryKey: ['/api/calculations'] });
+        }
+      }
+    } catch (error) {
+      console.error("Calculation error:", error);
+    }
+  };
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      // Debounce calculation
+      const timeout = setTimeout(() => {
+        const currentValues: BondRepaymentFormValues = {
+          propertyValue: values.propertyValue || "",
+          interestRate: values.interestRate || "",
+          loanTerm: values.loanTerm || "",
+          deposit: values.deposit || "",
+          includeBondFees: values.includeBondFees ?? false,
+        };
+  
+        calculateAndSave(currentValues);
+      }, 300);
+  
+      return () => clearTimeout(timeout);  // Cleanup for each watch event
+    });
+  
+    return () => subscription.unsubscribe();
+  }, [user, onCalculate]); 
+  
+  useEffect(() => {
+    calculateAndSave(form.getValues());
+  }, []);
 
   // For property value slider
   const handlePropertyValueSliderChange = (value: number[]) => {
