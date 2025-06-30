@@ -135,7 +135,7 @@ async function getPostgresClientTiered() {
 
     console.log("🔄 Attempting Tier 3: Fallback to hardcoded/environment credentials");
 
-    // Tier 3: Hardcoded or env
+    // Tier 3: Hardcoded or env with enhanced SSL settings
     try {
         const host = process.env.POSTGRES_HOST || 'wisebond-server.postgres.database.azure.com';
         const port = parseInt(process.env.POSTGRES_PORT || '5432', 10);
@@ -143,29 +143,63 @@ async function getPostgresClientTiered() {
         const user = process.env.POSTGRES_USERNAME || 'elandre';
         const password = process.env.POSTGRES_PASSWORD || '*6CsqD325CX#9&HA9q#a5r9^9!8W%F';
 
-        console.log(host)
-        console.log(port)
-        console.log(database)
-        console.log(user)  
+        console.log('Connection details:')
+        console.log('Host:', host)
+        console.log('Port:', port)
+        console.log('Database:', database)
+        console.log('User:', user)  
 
-        const client = new Client({
-            host,
-            port,
-            database,
-            user,
-            password,
-            ssl: { rejectUnauthorized: false }
-        });
+        // Try different SSL configurations for Azure PostgreSQL
+        const sslConfigs = [
+            { rejectUnauthorized: false, sslmode: 'require' },
+            { rejectUnauthorized: true, sslmode: 'require' },
+            { rejectUnauthorized: false },
+            false
+        ];
 
-        await client.connect();
-        console.log("✅ Tier 3: Connected using fallback credentials");
-        process.env.DATABASE_URL =`postgresql://${user}:${password}@${host}:${port}/${database}`;
-        console.log(process.env.DATABASE_URL);
-        db = drizzle(client, { schema });
-        return db;
+        for (let i = 0; i < sslConfigs.length; i++) {
+            const sslConfig = sslConfigs[i];
+            console.log(`Trying SSL configuration ${i + 1}:`, sslConfig);
+            
+            try {
+                const client = new Client({
+                    host,
+                    port,
+                    database,
+                    user,
+                    password,
+                    ssl: sslConfig,
+                    connectionTimeoutMillis: 10000, // 10 second timeout
+                });
+
+                await client.connect();
+                console.log(`✅ Tier 3: Connected using SSL config ${i + 1}`);
+                process.env.DATABASE_URL = `postgresql://${user}:${password}@${host}:${port}/${database}?sslmode=require`;
+                console.log('Database URL set successfully');
+                db = drizzle(client, { schema });
+                return db;
+            } catch (configError: any) {
+                console.log(`SSL config ${i + 1} failed:`, configError.message);
+                if (i === sslConfigs.length - 1) {
+                    throw configError;
+                }
+            }
+        }
     } catch (e) {
         const error = e as Error;
         console.error("❌ Tier 3 failed:", error.message);
+        console.error("Full error details:", error);
+        
+        // Check if it's a network connectivity issue
+        if (error.message.includes('ETIMEDOUT') || error.message.includes('timeout')) {
+            console.error("🔥 NETWORK ISSUE: Cannot reach Azure PostgreSQL server");
+            console.error("This could be due to:");
+            console.error("1. Azure firewall blocking Replit's IP ranges");
+            console.error("2. Server requires specific SSL certificates");
+            console.error("3. Server is in a private network");
+            console.error("4. Incorrect server hostname or port");
+        }
+        
         throw new Error("All connection strategies failed. Application cannot proceed.");
     }
 }
