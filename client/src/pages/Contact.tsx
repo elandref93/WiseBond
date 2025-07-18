@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Phone, Mail, MapPin, Clock } from "lucide-react";
+import { Phone, Mail, Clock } from "lucide-react";
 
 // Form validation schema
 const formSchema = z.object({
@@ -226,8 +226,7 @@ export default function Contact() {
             <div className="mt-12 lg:mt-0">
               <h2 className="text-2xl font-bold text-gray-900">Contact information</h2>
               <p className="mt-4 text-gray-500">
-                Prefer to reach out directly? Use any of the contact methods below
-                or visit one of our offices.
+                Prefer to reach out directly? Use any of the contact methods below.
               </p>
 
               <div className="mt-8 space-y-6">
@@ -260,7 +259,7 @@ export default function Contact() {
                       Send us an email anytime
                     </p>
                     <p className="mt-2 text-xl font-medium text-primary">
-                      info@homebondsa.co.za
+                      info@wisebond.co.za
                     </p>
                   </div>
                 </div>
@@ -284,68 +283,44 @@ export default function Contact() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-              <div className="mt-12">
-                <h3 className="text-lg font-medium text-gray-900">Our offices</h3>
-                <div className="mt-6 space-y-8">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <div className="flex items-center justify-center h-10 w-10 rounded-md bg-secondary-500 text-white">
-                        <MapPin className="h-5 w-5" />
-                      </div>
-                    </div>
-                    <div className="ml-4">
-                      <h4 className="text-base font-medium text-gray-900">
-                        Johannesburg (Head Office)
-                      </h4>
-                      <p className="mt-1 text-gray-500">
-                        123 Main Street<br />
-                        Sandton<br />
-                        Johannesburg, 2031<br />
-                        +27 11 234 5678
-                      </p>
-                    </div>
-                  </div>
+      {/* Offices Section */}
+      <div className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center">
+            <h2 className="text-3xl font-extrabold text-gray-900">
+              Our Offices
+            </h2>
+            <p className="mt-4 text-lg text-gray-500 max-w-3xl mx-auto">
+              Visit us at any of our locations across South Africa
+            </p>
+          </div>
+          <div className="mt-12 grid gap-8 md:grid-cols-2">
+            {/* Johannesburg */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h3 className="text-lg font-medium text-gray-900">Johannesburg (Head Office)</h3>
+              <p className="mt-2 text-gray-500">
+                Coldstream Office Park<br />
+                Unit 17, 2 Coldstream Street<br />
+                Wilgespruit, Roodepoort<br />
+                Johannesburg, 1735<br />
+                <span className="text-primary">+27 11 234 5678</span>
+              </p>
+            </div>
 
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <div className="flex items-center justify-center h-10 w-10 rounded-md bg-secondary-500 text-white">
-                        <MapPin className="h-5 w-5" />
-                      </div>
-                    </div>
-                    <div className="ml-4">
-                      <h4 className="text-base font-medium text-gray-900">
-                        Cape Town
-                      </h4>
-                      <p className="mt-1 text-gray-500">
-                        456 Beach Road<br />
-                        Sea Point<br />
-                        Cape Town, 8001<br />
-                        +27 21 345 6789
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <div className="flex items-center justify-center h-10 w-10 rounded-md bg-secondary-500 text-white">
-                        <MapPin className="h-5 w-5" />
-                      </div>
-                    </div>
-                    <div className="ml-4">
-                      <h4 className="text-base font-medium text-gray-900">
-                        Durban
-                      </h4>
-                      <p className="mt-1 text-gray-500">
-                        789 Umhlanga Drive<br />
-                        Umhlanga Rocks<br />
-                        Durban, 4320<br />
-                        +27 31 456 7890
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            {/* Cape Town */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h3 className="text-lg font-medium text-gray-900">Cape Town</h3>
+              <p className="mt-2 text-gray-500">
+                Subtropica Office Park<br />
+                Klapmuts<br />
+                Cape Town, 7625<br />
+                <span className="text-primary">+27 21 345 6789</span>
+              </p>
             </div>
           </div>
         </div>

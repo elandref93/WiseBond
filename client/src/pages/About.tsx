@@ -271,14 +271,15 @@ export default function About() {
               with us online.
             </p>
           </div>
-          <div className="mt-12 grid gap-8 md:grid-cols-3">
+          <div className="mt-12 grid gap-8 md:grid-cols-2">
             {/* Johannesburg */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <h3 className="text-lg font-medium text-gray-900">Johannesburg</h3>
               <p className="mt-2 text-gray-500">
-                123 Main Street<br />
-                Sandton<br />
-                Johannesburg, 2031<br />
+                Coldstream Office Park<br />
+                Unit 17, 2 Coldstream Street<br />
+                Wilgespruit, Roodepoort<br />
+                Johannesburg, 1735<br />
                 <span className="text-primary">+27 11 234 5678</span>
               </p>
             </div>
@@ -287,21 +288,10 @@ export default function About() {
             <div className="bg-white rounded-lg shadow-md p-6">
               <h3 className="text-lg font-medium text-gray-900">Cape Town</h3>
               <p className="mt-2 text-gray-500">
-                456 Beach Road<br />
-                Sea Point<br />
-                Cape Town, 8001<br />
+                Subtropica Office Park<br />
+                Klapmuts<br />
+                Cape Town, 7625<br />
                 <span className="text-primary">+27 21 345 6789</span>
-              </p>
-            </div>
-
-            {/* Durban */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-medium text-gray-900">Durban</h3>
-              <p className="mt-2 text-gray-500">
-                789 Umhlanga Drive<br />
-                Umhlanga Rocks<br />
-                Durban, 4320<br />
-                <span className="text-primary">+27 31 456 7890</span>
               </p>
             </div>
           </div>

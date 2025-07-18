@@ -55,7 +55,7 @@ interface PasswordResetEmailData {
 const mailgun = new Mailgun(FormData);
 
 /**
- * Send an email using Mailgun
+ * Send an email using Mailgun with enhanced deliverability
  * @param params Email parameters including recipient, subject, etc.
  * @returns Promise resolving to object with success status and error details
  */
@@ -82,19 +82,46 @@ export async function sendEmail(params: EmailParams): Promise<{success: boolean,
   const mg = mailgun.client({ username: 'api', key: apiKey });
   
   try {
-    // Create the message data with deliverability improvements
+    // Create the message data with enhanced deliverability headers
     const messageData = {
-      from: params.from || fromEmail || 'noreply@example.com',
+      from: params.from || fromEmail || 'noreply@wisebond.co.za',
       to: params.to,
       subject: params.subject,
       text: params.text || '',
       html: params.html || '',
-      // Add headers to improve deliverability
-      'h:List-Unsubscribe': '<mailto:unsubscribe@wisebond.co.za>',
+      
+      // Enhanced deliverability headers
+      'h:List-Unsubscribe': '<mailto:unsubscribe@wisebond.co.za>, <https://wisebond.co.za/unsubscribe>',
+      'h:List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      'h:Precedence': 'bulk',
       'h:X-Mailgun-Track-Opens': 'yes',
       'h:X-Mailgun-Track-Clicks': 'yes',
-      'h:X-Mailgun-Tag': 'authentication',
-      'h:Reply-To': 'support@wisebond.co.za'
+      'h:X-Mailgun-Tag': 'transactional',
+      'h:Reply-To': 'support@wisebond.co.za',
+      'h:Return-Path': 'bounces@wisebond.co.za',
+      'h:Message-ID': `<${Date.now()}.${Math.random().toString(36).substr(2, 9)}@${domain}>`,
+      'h:Date': new Date().toUTCString(),
+      'h:MIME-Version': '1.0',
+      'h:Content-Type': 'text/html; charset=UTF-8',
+      'h:Content-Transfer-Encoding': 'quoted-printable',
+      
+      // Authentication and reputation headers
+      'h:DKIM-Signature': 'v=1; a=rsa-sha256; c=relaxed/relaxed; d=wisebond.co.za;',
+      'h:SPF': 'v=spf1 include:_spf.mailgun.org ~all',
+      'h:DMARC': 'v=DMARC1; p=quarantine; rua=mailto:dmarc@wisebond.co.za',
+      
+      // Custom headers for better deliverability
+      'h:X-Priority': '3',
+      'h:X-MSMail-Priority': 'Normal',
+      'h:Importance': 'Normal',
+      'h:X-Auto-Response-Suppress': 'All',
+      
+      // Content optimization
+      'h:X-Mailgun-Variables': JSON.stringify({
+        'campaign_id': 'wisebond_transactional',
+        'user_segment': 'active',
+        'email_type': 'transactional'
+      })
     };
     
     // Send the message
@@ -136,16 +163,24 @@ function formatCalculationEmailHtml(data: CalculationEmailData): string {
 
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="color-scheme" content="light">
+      <meta name="supported-color-schemes" content="light">
       <title>Your ${getCalculatorTitle(data.calculationType)} Results</title>
+      <style>
+        @media only screen and (max-width: 600px) {
+          .container { width: 100% !important; }
+          .mobile-padding { padding: 10px !important; }
+        }
+      </style>
     </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; color: #333333;">
-      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; color: #333333; background-color: #f4f4f4;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
         <div style="text-align: center; margin-bottom: 20px;">
-          <img src="https://wisebond.co.za/logo.png" alt="WiseBond Logo" style="max-width: 200px;">
+          <img src="https://wisebond.co.za/logo.png" alt="WiseBond Logo" style="max-width: 200px; height: auto;">
         </div>
         
         <div style="background-color: #f7f7f7; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
@@ -182,14 +217,18 @@ function formatCalculationEmailHtml(data: CalculationEmailData): string {
           </p>
         </div>
         
-        <div style="text-align: center; color: #666666; font-size: 12px; margin-top: 30px;">
-          <p>This is an automated message. Please do not reply to this email.</p>
-          <p>&copy; ${new Date().getFullYear()} WiseBond (Pty) Ltd. All rights reserved.</p>
-          <p>Physical Address: 123 Financial District, Cape Town, 8001, South Africa</p>
-          <p>
-            <a href="https://wisebond.co.za/privacy" style="color: #1a3d6c; text-decoration: none;">Privacy Policy</a> | 
-            <a href="https://wisebond.co.za/terms" style="color: #1a3d6c; text-decoration: none;">Terms of Service</a> | 
-            <a href="mailto:unsubscribe@wisebond.co.za" style="color: #1a3d6c; text-decoration: none;">Unsubscribe</a>
+        <div style="text-align: center; color: #666666; font-size: 12px; margin-top: 30px; border-top: 1px solid #eeeeee; padding-top: 20px;">
+          <p style="margin: 5px 0;">This is an automated message from WiseBond. Please do not reply to this email.</p>
+          <p style="margin: 5px 0;">&copy; ${new Date().getFullYear()} WiseBond (Pty) Ltd. Registration No: 2025/291726/07. All rights reserved.</p>
+          <p style="margin: 5px 0;">Physical Address: Coldstream Office Park, Unit 17, 2 Coldstream Street, Wilgespruit, Roodepoort, Johannesburg, 1735</p>
+          <p style="margin: 15px 0;">
+            <a href="https://wisebond.co.za/privacy" style="color: #1a3d6c; text-decoration: none; margin: 0 10px;">Privacy Policy</a> | 
+            <a href="https://wisebond.co.za/terms" style="color: #1a3d6c; text-decoration: none; margin: 0 10px;">Terms of Service</a> | 
+            <a href="https://wisebond.co.za/unsubscribe" style="color: #1a3d6c; text-decoration: none; margin: 0 10px;">Unsubscribe</a>
+          </p>
+          <p style="margin: 5px 0; font-size: 11px; color: #999999;">
+            You received this email because you used our calculator service. 
+            To unsubscribe, <a href="https://wisebond.co.za/unsubscribe" style="color: #1a3d6c;">click here</a>.
           </p>
         </div>
       </div>

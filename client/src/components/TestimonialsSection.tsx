@@ -31,7 +31,7 @@ export default function TestimonialsSection() {
         "I was skeptical at first about using a bond originator, but I'm so glad I did! WiseBond made the entire process stress-free and managed to get me approved for a larger loan amount than I expected.",
       author: {
         name: "Lerato Khumalo",
-        location: "Durban",
+        location: "Pretoria",
         image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&q=80",
       },
       rating: 4.5,
