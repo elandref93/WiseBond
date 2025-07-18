@@ -6,8 +6,8 @@ import Mailgun from 'mailgun.js';
 import readline from 'readline';
 import dotenv from 'dotenv';
 
-// Initialize environment
-dotenv.config();
+// Initialize environment - load .env.local for local development
+dotenv.config({ path: '.env.local' });
 
 // Create readline interface for user input
 const rl = readline.createInterface({

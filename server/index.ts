@@ -1,6 +1,11 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { serveStatic, log } from "./staticServer";
 import { getPostgresClient } from "./db";
+
+// Load environment variables from .env.local for local development
+import dotenv from "dotenv";
+dotenv.config({ path: '.env.local' });
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

@@ -1,14 +1,24 @@
+// Import bank logos properly for production builds
+import bankLogo1 from "@/assets/images/banks/bank-logo-1.png";
+import bankLogo2 from "@/assets/images/banks/bank-logo-2.png";
+import bankLogo3 from "@/assets/images/banks/bank-logo-3.png";
+import bankLogo4 from "@/assets/images/banks/bank-logo-4.png";
+import bankLogo5 from "@/assets/images/banks/bank-logo-5.png";
+import bankLogo6 from "@/assets/images/banks/bank-logo-6.png";
+import bankLogo7 from "@/assets/images/banks/bank-logo-7.png";
+import bankLogo8 from "@/assets/images/banks/bank-logo-8.png";
+
 export default function Partners() {
-  // Bank logos with image paths
+  // Bank logos with proper imports
   const bankLogos = [
-    { name: "Standard Bank", src: "/src/assets/images/banks/bank-logo-1.png" },
-    { name: "ABSA", src: "/src/assets/images/banks/bank-logo-2.png" },
-    { name: "FNB", src: "/src/assets/images/banks/bank-logo-3.png" },
-    { name: "Nedbank", src: "/src/assets/images/banks/bank-logo-4.png" },
-    { name: "Investec", src: "/src/assets/images/banks/bank-logo-5.png" },
-    { name: "SA Home Loans", src: "/src/assets/images/banks/bank-logo-6.png" },
-    { name: "RMB", src: "/src/assets/images/banks/bank-logo-7.png" },
-    { name: "Sentinel Home Loans", src: "/src/assets/images/banks/bank-logo-8.png" }
+    { name: "Standard Bank", src: bankLogo1 },
+    { name: "ABSA", src: bankLogo2 },
+    { name: "FNB", src: bankLogo3 },
+    { name: "Nedbank", src: bankLogo4 },
+    { name: "Investec", src: bankLogo5 },
+    { name: "SA Home Loans", src: bankLogo6 },
+    { name: "RMB", src: bankLogo7 },
+    { name: "Sentinel Home Loans", src: bankLogo8 }
   ];
 
   return (

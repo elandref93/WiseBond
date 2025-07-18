@@ -1,17 +1,27 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
+// Import bank logos properly for production builds
+import bankLogo1 from "@/assets/images/banks/bank-logo-1.png";
+import bankLogo2 from "@/assets/images/banks/bank-logo-2.png";
+import bankLogo3 from "@/assets/images/banks/bank-logo-3.png";
+import bankLogo4 from "@/assets/images/banks/bank-logo-4.png";
+import bankLogo5 from "@/assets/images/banks/bank-logo-5.png";
+import bankLogo6 from "@/assets/images/banks/bank-logo-6.png";
+import bankLogo7 from "@/assets/images/banks/bank-logo-7.png";
+import bankLogo8 from "@/assets/images/banks/bank-logo-8.png";
+
 export default function BankingPartners() {
-  // Import all bank logos
+  // Bank logos with proper imports
   const bankLogos = [
-    { src: "/src/assets/images/banks/bank-logo-1.png", alt: "Standard Bank" },
-    { src: "/src/assets/images/banks/bank-logo-2.png", alt: "Absa Bank" },
-    { src: "/src/assets/images/banks/bank-logo-3.png", alt: "FNB" },
-    { src: "/src/assets/images/banks/bank-logo-4.png", alt: "Nedbank" },
-    { src: "/src/assets/images/banks/bank-logo-5.png", alt: "Investec" },
-    { src: "/src/assets/images/banks/bank-logo-6.png", alt: "SA Home Loans" },
-    { src: "/src/assets/images/banks/bank-logo-7.png", alt: "RMB" },
-    { src: "/src/assets/images/banks/bank-logo-8.png", alt: "Sentinel Home Loans" },
+    { src: bankLogo1, alt: "Standard Bank" },
+    { src: bankLogo2, alt: "Absa Bank" },
+    { src: bankLogo3, alt: "FNB" },
+    { src: bankLogo4, alt: "Nedbank" },
+    { src: bankLogo5, alt: "Investec" },
+    { src: bankLogo6, alt: "SA Home Loans" },
+    { src: bankLogo7, alt: "RMB" },
+    { src: bankLogo8, alt: "Sentinel Home Loans" },
   ];
 
   return (

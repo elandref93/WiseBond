@@ -17,7 +17,8 @@
     "outdated": "npm outdated",
     "deploy:prepare": "npm run build:prod && npm prune --production",
     "deploy:local": "npm run deploy:prepare && node dist/index.js",
-    "analyze": "npm run build -- --analyze"
+    "analyze": "npm run build -- --analyze",
+    "setup:local": "node setup-local-env.js"
   },
   "files": [
     "dist",
