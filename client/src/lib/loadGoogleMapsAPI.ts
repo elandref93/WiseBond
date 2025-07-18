@@ -55,18 +55,11 @@ Google Maps API key not found. Please check:
     // Create script element
     const script = document.createElement('script');
     
-    // Enhance security: Only use API key on production domains or localhost
-    const hostname = window.location.hostname;
-    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-    const isProductionDomain = hostname.endsWith('wisebond.co.za') || 
-                              hostname.endsWith('replit.app') ||
-                              hostname.endsWith('azurewebsites.net');
-                              
-    // Use API key from environment without logging it, and only on allowed domains
-    if (isProductionDomain || isLocalhost) {
+    // Use API key from environment - allow on all domains for better compatibility
+    if (apiKey) {
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
     } else {
-      console.warn('Using Google Maps API without key on non-production domain');
+      console.warn('Google Maps API key not found. Maps functionality will be limited.');
       script.src = 'https://maps.googleapis.com/maps/api/js?libraries=places';
     }
     

@@ -30,7 +30,7 @@ export default function GooglePlacesAutocomplete({
   
   // Refs
   const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const autocompleteRef = useRef<any>(null);
   const hasBeenInitialized = useRef<boolean>(false);
 
   // Try to load the Google Maps API
@@ -47,7 +47,7 @@ export default function GooglePlacesAutocomplete({
         .catch((err) => {
           console.error('Failed to load Google Maps API:', err);
           setStatus('error');
-          setError('Could not load address search functionality. Please enter your address manually.');
+          setError('Address search is temporarily unavailable. You can still enter your address manually below.');
         });
     }
     
@@ -66,7 +66,7 @@ export default function GooglePlacesAutocomplete({
     if (status === 'ready' && inputRef.current && !hasBeenInitialized.current) {
       try {
         // Create the autocomplete instance
-        autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
+        autocompleteRef.current = new (window as any).google.maps.places.Autocomplete(inputRef.current, {
           componentRestrictions: { country: 'za' },
           fields: ['address_components', 'formatted_address'],
           types: ['address']
@@ -90,14 +90,14 @@ export default function GooglePlacesAutocomplete({
               // Helper functions to extract components
               const findComponent = (type: string): string => {
                 const component = place.address_components?.find(
-                  (comp) => comp.types.includes(type)
+                  (comp: any) => comp.types.includes(type)
                 );
                 return component ? component.long_name : '';
               };
               
               const findShortComponent = (type: string): string => {
                 const component = place.address_components?.find(
-                  (comp) => comp.types.includes(type)
+                  (comp: any) => comp.types.includes(type)
                 );
                 return component ? component.short_name : '';
               };

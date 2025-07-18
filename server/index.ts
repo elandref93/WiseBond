@@ -4,7 +4,19 @@ import { getPostgresClient } from "./db";
 
 // Load environment variables from .env.local for local development
 import dotenv from "dotenv";
-dotenv.config({ path: '.env.local' });
+import path from "path";
+import fs from "fs";
+
+const envPath = path.resolve('.env.local');
+console.log('🔧 Loading environment from:', envPath);
+console.log('📁 File exists:', fs.existsSync(envPath));
+
+const result = dotenv.config({ path: envPath });
+if (result.error) {
+  console.error('❌ Error loading .env.local:', result.error);
+} else {
+  console.log('✅ Environment variables loaded successfully');
+}
 
 const app = express();
 app.use(express.json());
