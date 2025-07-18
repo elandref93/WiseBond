@@ -114,10 +114,28 @@ export default function OTPVerification({ userId, email, onVerified, development
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text');
+    const pastedData = e.clipboardData.getData('text').trim();
     
     // If the pasted content is 6 digits, fill all inputs
     if (/^\d{6}$/.test(pastedData)) {
+      const digits = pastedData.split('');
+      setOtpDigits(digits);
+      form.setValue('otp', pastedData, { shouldValidate: true });
+      
+      // Focus the last input
+      if (inputRefs.current[5]) {
+        inputRefs.current[5].focus();
+      }
+    }
+  };
+
+  // Global paste handler for the entire form
+  const handleGlobalPaste = (e: React.ClipboardEvent) => {
+    const pastedData = e.clipboardData.getData('text').trim();
+    
+    // If the pasted content is 6 digits, fill all inputs
+    if (/^\d{6}$/.test(pastedData)) {
+      e.preventDefault();
       const digits = pastedData.split('');
       setOtpDigits(digits);
       form.setValue('otp', pastedData, { shouldValidate: true });
@@ -167,9 +185,15 @@ export default function OTPVerification({ userId, email, onVerified, development
         }
         
         console.log("Auto-login successful after OTP verification");
+        console.log("User data received:", loginData.user);
         
-        // Invalidate the auth context to ensure it refreshes
+        // Set the user data immediately in the query cache
+        queryClient.setQueryData(['/api/auth/me'], loginData.user);
+        console.log("Query cache updated with user data");
+        
+        // Also invalidate the auth context to ensure it refreshes
         queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+        console.log("Auth queries invalidated");
       } catch (loginError) {
         console.error('Auto-login after verification failed:', loginError);
         // Show a warning but still continue with verification success
@@ -190,7 +214,10 @@ export default function OTPVerification({ userId, email, onVerified, development
         variant: "default",
       });
 
-      onVerified();
+      // Small delay to ensure authentication state is updated
+      setTimeout(() => {
+        onVerified();
+      }, 500);
     } catch (error) {
       console.error('OTP verification failed:', error);
       toast({
@@ -286,7 +313,7 @@ export default function OTPVerification({ userId, email, onVerified, development
         )}
       </div>
       
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form onSubmit={form.handleSubmit(onSubmit)} onPaste={handleGlobalPaste}>
         <div className="space-y-6">
           {/* Custom OTP input grid */}
           <div className="flex justify-center gap-2">
@@ -300,7 +327,7 @@ export default function OTPVerification({ userId, email, onVerified, development
                 className="w-12 h-12 text-center text-lg border-gray-300"
                 onChange={(e) => handleDigitChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
-                onPaste={index === 0 ? handlePaste : undefined}
+                onPaste={handlePaste}
                 ref={(el) => { inputRefs.current[index] = el; }}
                 autoComplete="off"
               />
