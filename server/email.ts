@@ -219,7 +219,7 @@ function formatCalculationEmailHtml(data: CalculationEmailData): string {
         
         <div style="text-align: center; color: #666666; font-size: 12px; margin-top: 30px; border-top: 1px solid #eeeeee; padding-top: 20px;">
           <p style="margin: 5px 0;">This is an automated message from WiseBond. Please do not reply to this email.</p>
-          <p style="margin: 5px 0;">&copy; ${new Date().getFullYear()} WiseBond (Pty) Ltd. Registration No: 2025/291726/07. All rights reserved.</p>
+          <p style="margin: 5px 0;">&copy; ${new Date().getFullYear()} WiseBond (Pty) Ltd. Registration No: 2025/291726/07. Wise Bond is a registered credit provider. Registration number NCRCP21939. All rights reserved.</p>
           <p style="margin: 5px 0;">Physical Address: Coldstream Office Park, Unit 17, 2 Coldstream Street, Wilgespruit, Roodepoort, Johannesburg, 1735</p>
           <p style="margin: 15px 0;">
             <a href="https://wisebond.co.za/privacy" style="color: #1a3d6c; text-decoration: none; margin: 0 10px;">Privacy Policy</a> | 
@@ -374,7 +374,7 @@ function formatVerificationEmailHtml(data: VerificationEmailData, variation: 1 |
           
           <div style="text-align: center; color: #666666; font-size: 12px; margin-top: 30px;">
             <p>If you didn't create an account with Wise Bond, please disregard this email.</p>
-            <p>&copy; ${new Date().getFullYear()} Wise Bond (Pty) Ltd. Registration No: 2025/291726/07. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Wise Bond (Pty) Ltd. Registration No: 2025/291726/07. Wise Bond is a registered credit provider. Registration number NCRCP21939. All rights reserved.</p>
             <p>
               <a href="https://wisebond.co.za/privacy" style="color: #1a3d6c; text-decoration: none;">Privacy Policy</a> | 
               <a href="https://wisebond.co.za/terms" style="color: #1a3d6c; text-decoration: none;">Terms of Service</a>
@@ -561,7 +561,7 @@ function formatWelcomeEmailHtml(data: WelcomeEmailData, variation: 1 | 2): strin
           </div>
           
           <div style="text-align: center; color: #666666; font-size: 12px; margin-top: 30px;">
-            <p>&copy; ${new Date().getFullYear()} Wise Bond (Pty) Ltd. Registration No: 2025/291726/07. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Wise Bond (Pty) Ltd. Registration No: 2025/291726/07. Wise Bond is a registered credit provider. Registration number NCRCP21939. All rights reserved.</p>
             <p>
               <a href="https://wisebond.co.za/privacy" style="color: #1a3d6c; text-decoration: none;">Privacy Policy</a> | 
               <a href="https://wisebond.co.za/terms" style="color: #1a3d6c; text-decoration: none;">Terms of Service</a>
@@ -734,7 +734,7 @@ function formatPasswordResetEmailHtml(data: PasswordResetEmailData, variation: 1
           
           <div style="text-align: center; color: #666666; font-size: 12px; margin-top: 30px;">
             <p>If you didn't request a password reset, please ignore this email or contact our support team.</p>
-            <p>&copy; ${new Date().getFullYear()} Wise Bond (Pty) Ltd. Registration No: 2025/291726/07. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Wise Bond (Pty) Ltd. Registration No: 2025/291726/07. Wise Bond is a registered credit provider. Registration number NCRCP21939. All rights reserved.</p>
             <p>
               <a href="https://wisebond.co.za/privacy" style="color: #1a3d6c; text-decoration: none;">Privacy Policy</a> | 
               <a href="https://wisebond.co.za/terms" style="color: #1a3d6c; text-decoration: none;">Terms of Service</a>

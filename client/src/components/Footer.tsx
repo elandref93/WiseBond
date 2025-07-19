@@ -161,18 +161,18 @@ export default function Footer() {
                 </h3>
                 <ul role="list" className="mt-4 space-y-4">
                   <li>
-                    <span
-                      className="text-base text-gray-500 hover:text-gray-900 cursor-pointer"
-                    >
-                      Privacy
-                    </span>
+                    <Link href="/privacy">
+                      <span className="text-base text-gray-500 hover:text-gray-900 cursor-pointer">
+                        Privacy
+                      </span>
+                    </Link>
                   </li>
                   <li>
-                    <span
-                      className="text-base text-gray-500 hover:text-gray-900 cursor-pointer"
-                    >
-                      Terms
-                    </span>
+                    <Link href="/terms">
+                      <span className="text-base text-gray-500 hover:text-gray-900 cursor-pointer">
+                        Terms
+                      </span>
+                    </Link>
                   </li>
                   <li>
                     <span
@@ -196,7 +196,7 @@ export default function Footer() {
         <div className="mt-12 border-t border-gray-200 pt-8">
           <p className="text-base text-gray-400 xl:text-center">
             &copy; {new Date().getFullYear()} Wise Bond (Pty) Ltd. All rights reserved.
-            Registration No: 2025/291726/07. Wise Bond is a registered Financial Service Provider (FSP12345).
+            Registration No: 2025/291726/07. Wise Bond is a registered credit provider. Registration number NCRCP21939.
           </p>
         </div>
       </div>

@@ -42,7 +42,7 @@ const defaultOptions: PdfGenerationOptions = {
   includeTimestamp: false,
   orientation: 'portrait',
   footerTemplate: '<div style="width: 100%; font-size: 8px; text-align: center; color: #999; padding: 10px;">' +
-                  '<span>Wise Bond (Pty) Ltd | Reg No: 2025/291726/07 | www.wisebond.co.za | Generated on {{date}}</span>' +
+                  '<span>Wise Bond (Pty) Ltd | Reg No: 2025/291726/07 | NCRCP21939 | www.wisebond.co.za | Generated on {{date}}</span>' +
                   '<span style="float: right;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>' +
                   '</div>'
 };

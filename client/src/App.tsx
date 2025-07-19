@@ -29,6 +29,8 @@ const ResetPassword = lazy(() => import("@/pages/ResetPasswordPage"));
 const AgentDashboard = lazy(() => import("@/pages/AgentDashboard"));
 const Documents = lazy(() => import("@/pages/DocumentsPage"));
 const Properties = lazy(() => import("@/pages/Properties"));
+const Privacy = lazy(() => import("@/pages/Privacy"));
+const Terms = lazy(() => import("@/pages/Terms"));
 const AuthError = lazy(() => import("@/pages/auth-error"));
 
 function Router() {
@@ -43,6 +45,8 @@ function Router() {
       <Route path="/loan-eligibility" component={LoanEligibility} />
       <Route path="/faq" component={FAQ} />
       <Route path="/contact" component={Contact} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/terms" component={Terms} />
       <Route path="/signup" component={SignUp} />
       <Route path="/login" component={Login} />
       <Route path="/auth/error" component={AuthError} />
