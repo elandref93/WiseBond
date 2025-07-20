@@ -6,6 +6,7 @@ import { getPostgresClient } from "./db";
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
+import { createServer } from "http";
 
 const envPath = path.resolve('.env.local');
 console.log('🔧 Loading environment from:', envPath);
@@ -143,7 +144,6 @@ app.use((req, res, next) => {
   });
 
   // Create HTTP server
-  const { createServer } = await import("http");
   const server = createServer(app);
 
   // Setup frontend serving AFTER API routes but BEFORE server starts

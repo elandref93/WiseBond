@@ -85,13 +85,15 @@ export default defineConfig({
   },
   root: path.resolve(__dirname, "client"),
   build: {
-    target: 'esnext',
+    target: 'es2022',
     outDir: path.resolve(__dirname, 'dist/public'),
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'client/index.html'),
       },
     },
+    minify: 'esbuild',
+    sourcemap: false,
   },
 
   // Development server optimizations
