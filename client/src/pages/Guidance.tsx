@@ -63,12 +63,12 @@ export default function Guidance() {
   return (
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20 px-4 sm:px-6 lg:px-8">
+      <div className="bg-gradient-to-r from-orange-600 to-orange-800 text-white py-20 px-4 sm:px-6 lg:px-8">
         <div className="w-full mx-auto text-center">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl mb-6">
             Property Advice Hub
           </h1>
-          <p className="text-xl text-blue-100 max-w-3xl mx-auto mb-8">
+          <p className="text-xl text-orange-100 max-w-3xl mx-auto mb-8">
             Your complete guide to homeownership and property investment. Expert insights, 
             step-by-step guides, and market analysis to help you make informed decisions.
           </p>
@@ -81,7 +81,7 @@ export default function Guidance() {
               className="w-full"
             />
             {isSearching && (
-              <p className="text-blue-200 mt-2">Searching...</p>
+              <p className="text-orange-200 mt-2">Searching...</p>
             )}
           </div>
         </div>
@@ -242,7 +242,7 @@ function CategoryCard({
     <Card 
       className={`h-full cursor-pointer transition-all ${
         isSelected 
-          ? 'ring-2 ring-blue-500 shadow-lg' 
+          ? 'ring-2 ring-orange-500 shadow-lg' 
           : 'hover:shadow-md'
       }`}
       onClick={onClick}

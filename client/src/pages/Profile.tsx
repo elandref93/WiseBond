@@ -327,7 +327,7 @@ export default function Profile() {
                   onClick={() => !tab.disabled && setActiveTab(tab.id)}
                   className={`flex items-center w-full p-3 text-left rounded-md transition-colors ${
                     activeTab === tab.id 
-                      ? 'bg-blue-50 text-blue-700 font-medium' 
+                      ? 'bg-orange-50 text-orange-700 font-medium' 
                       : tab.disabled 
                         ? 'text-gray-400 cursor-not-allowed'
                         : 'text-gray-700 hover:bg-gray-100'
@@ -726,40 +726,42 @@ export default function Profile() {
                         
                         {/* Show co-applicant option when married */}
                         {watchedMaritalStatus === 'Married' && (
-                          <div className="p-4 border border-blue-100 bg-blue-50 rounded-lg">
-                            <div className="flex items-center gap-2 mb-3">
-                              <Info className="h-5 w-5 text-blue-500" />
-                              <h4 className="text-sm font-medium text-blue-700">
-                                You indicated that you're married
-                              </h4>
+                          <div className="p-4 border border-orange-100 bg-orange-50 rounded-lg">
+                            <div className="flex items-start">
+                              <Info className="h-5 w-5 text-orange-500" />
+                              <div className="ml-3">
+                                <h4 className="text-sm font-medium text-orange-700">
+                                  You indicated that you're married
+                                </h4>
+                                <p className="text-sm text-orange-600 mb-4">
+                                  Would you like to include your spouse as a co-applicant on your home loan application? 
+                                  This may increase your chances of approval and potentially qualify you for a higher loan amount.
+                                </p>
+                                
+                                <FormField
+                                  control={form.control}
+                                  name="hasCoApplicant"
+                                  render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-orange-200 bg-white p-4">
+                                      <div className="space-y-0.5">
+                                        <FormLabel className="text-base">
+                                          Include spouse as co-applicant
+                                        </FormLabel>
+                                        <FormDescription>
+                                          We'll need some basic information about your spouse
+                                        </FormDescription>
+                                      </div>
+                                      <FormControl>
+                                        <Switch
+                                          checked={field.value}
+                                          onCheckedChange={field.onChange}
+                                        />
+                                      </FormControl>
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
                             </div>
-                            <p className="text-sm text-blue-600 mb-4">
-                              Would you like to include your spouse as a co-applicant on your home loan application? 
-                              This may increase your chances of approval and potentially qualify you for a higher loan amount.
-                            </p>
-                            
-                            <FormField
-                              control={form.control}
-                              name="hasCoApplicant"
-                              render={({ field }) => (
-                                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-blue-200 bg-white p-4">
-                                  <div className="space-y-0.5">
-                                    <FormLabel className="text-base">
-                                      Include spouse as co-applicant
-                                    </FormLabel>
-                                    <FormDescription>
-                                      We'll need some basic information about your spouse
-                                    </FormDescription>
-                                  </div>
-                                  <FormControl>
-                                    <Switch
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
                           </div>
                         )}
                         
@@ -791,12 +793,12 @@ export default function Profile() {
                       </div>
                       
                       {showCoApplicantSection && (
-                        <div className="space-y-6 mt-6 p-4 border border-blue-100 bg-blue-50 rounded-lg">
+                        <div className="space-y-6 mt-6 p-4 border border-orange-100 bg-orange-50 rounded-lg">
                           <div className="flex items-center gap-2">
-                            <UserIcon className="h-5 w-5 text-blue-500" />
-                            <h3 className="text-lg font-medium text-blue-700">Co-Applicant Information</h3>
+                            <UserIcon className="h-5 w-5 text-orange-500" />
+                            <h3 className="text-lg font-medium text-orange-700">Co-Applicant Information</h3>
                           </div>
-                          <p className="text-sm text-blue-600">
+                          <p className="text-sm text-orange-600">
                             Adding a co-applicant may increase your chances of loan approval and may allow for a higher loan amount.
                           </p>
                           
@@ -1333,7 +1335,7 @@ export default function Profile() {
 
                       {form.watch('employmentStatus') && (form.watch('employmentStatus') === 'unemployed' || 
                         form.watch('employmentStatus') === 'retired' || form.watch('employmentStatus') === 'student') && (
-                        <Alert className="mt-4 bg-blue-50 text-blue-700 border-blue-200">
+                        <Alert className="mt-4 bg-orange-50 text-orange-700 border-orange-200">
                           <AlertDescription>
                             Please visit the Financial Management section to provide details about your income sources and expenses.
                           </AlertDescription>

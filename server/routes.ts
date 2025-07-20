@@ -45,12 +45,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // PostgreSQL session store - no memory storage
   const pgSession = connectPgSimple(session);
 
-  app.use(session({
-      store: new pgSession({
+  console.log("🔧 Session configuration:");
+  console.log("- DATABASE_URL available:", !!process.env.DATABASE_URL);
+  console.log("- SESSION_SECRET available:", !!process.env.SESSION_SECRET);
+
+  let sessionStore;
+  try {
+    if (process.env.DATABASE_URL) {
+      sessionStore = new pgSession({
         conString: process.env.DATABASE_URL,
-      tableName: 'user_sessions',
-      createTableIfMissing: true
-      }),
+        tableName: 'user_sessions',
+        createTableIfMissing: true
+      });
+      console.log("✅ PostgreSQL session store initialized");
+    } else {
+      console.log("⚠️ DATABASE_URL not available, using memory store as fallback");
+      sessionStore = new MemStore({
+        checkPeriod: 86400000 // prune expired entries every 24h
+      });
+    }
+  } catch (error) {
+    console.error("❌ Session store initialization failed:", error);
+    console.log("⚠️ Falling back to memory store");
+    sessionStore = new MemStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    });
+  }
+
+  app.use(session({
+      store: sessionStore,
     secret: process.env.SESSION_SECRET || 'fallback-secret-key',
       resave: false,
       saveUninitialized: false,
@@ -312,33 +335,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/login", async (req, res) => {
     try {
+      console.log("🔐 Login attempt for:", req.body.username);
+      
       const loginData = loginSchema.parse(req.body);
-      //const storage = await getStorage();
+      console.log("✅ Login data validated");
 
       const user = await storage.getUserByEmail(loginData.username);
+      console.log("👤 User lookup result:", user ? "Found" : "Not found");
 
-      if (!user || !(await storage.verifyPassword(loginData.username, loginData.password))) {
+      if (!user) {
+        console.log("❌ User not found:", loginData.username);
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
+      console.log("🔑 Verifying password...");
+      const passwordValid = await storage.verifyPassword(loginData.username, loginData.password);
+      console.log("🔑 Password verification result:", passwordValid);
+
+      if (!passwordValid) {
+        console.log("❌ Invalid password for user:", loginData.username);
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      console.log("✅ Password verified, setting session...");
       req.session.userId = user.id;
+      
       req.session.save((err) => {
         if (err) {
-          console.error("Session save error:", err);
+          console.error("❌ Session save error:", err);
           return res.status(500).json({ message: "Failed to save session" });
         }
-      });
-      
-      // Return complete user data without password
-      const { password, ...userWithoutPassword } = user;
-      res.json({
-        message: "Login successful",
-        user: userWithoutPassword
+        
+        console.log("✅ Session saved successfully for user:", user.id);
+        
+        // Return complete user data without password
+        const { password, ...userWithoutPassword } = user;
+        res.json({
+          message: "Login successful",
+          user: userWithoutPassword
+        });
       });
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("❌ Login error:", error);
       if (error instanceof ZodError) {
         const validationError = fromZodError(error);
+        console.log("❌ Validation error:", validationError.toString());
         return res.status(400).json({ message: validationError.toString() });
       }
       res.status(500).json({ message: "Login failed" });

@@ -69,33 +69,26 @@ export default function GuidanceArticle() {
   return (
     <div className="bg-white min-h-screen">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-8 px-4 sm:px-6 lg:px-8">
+      <div className="bg-gradient-to-r from-orange-600 to-orange-800 text-white py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          <Link href="/guidance">
-            <Button variant="ghost" className="text-white hover:bg-blue-700 mb-4">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Guidance
-            </Button>
-          </Link>
+          <Button variant="ghost" className="text-white hover:bg-orange-700 mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Guidance
+          </Button>
           
-          <div className="flex items-center gap-2 mb-4">
-            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-              {article.categoryId.split('-').map(word => 
-                word.charAt(0).toUpperCase() + word.slice(1)
-              ).join(' ')}
-            </Badge>
-            <div className="flex items-center gap-1 text-blue-100">
+          <div className="flex items-center gap-4 text-sm mb-4">
+            <div className="flex items-center gap-1 text-orange-100">
               <Clock className="h-4 w-4" />
               {article.readingTime}
             </div>
-            <div className="flex items-center gap-1 text-blue-100">
+            <div className="flex items-center gap-1 text-orange-100">
               <Users className="h-4 w-4" />
               {formatTargetAudience(article.targetAudience)}
             </div>
           </div>
           
-          <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
-          <p className="text-xl text-blue-100">{article.summary}</p>
+          <h1 className="text-3xl font-bold text-white mb-4">{article.title}</h1>
+          <p className="text-xl text-orange-100">{article.summary}</p>
         </div>
       </div>
 
@@ -121,8 +114,8 @@ export default function GuidanceArticle() {
                   <ul className="space-y-3">
                     {article.keyPoints.map((point, index) => (
                       <li key={index} className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
-                          <span className="text-blue-600 font-semibold text-sm">{index + 1}</span>
+                        <div className="flex-shrink-0 w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center mt-0.5">
+                          <span className="text-orange-600 font-semibold text-sm">{index + 1}</span>
                         </div>
                         <p className="text-gray-700 leading-relaxed">{point}</p>
                       </li>
