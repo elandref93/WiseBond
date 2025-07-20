@@ -232,7 +232,7 @@ export default function Privacy() {
                     <p><strong>Information Officer:</strong> [To be appointed]</p>
                     <p><strong>Email:</strong> privacy@wisebond.co.za</p>
                     <p><strong>Phone:</strong> +27 11 234 5678</p>
-                    <p><strong>Address:</strong> Coldstream Office Park, Unit 17, 2 Coldstream Street, Wilgespruit, Roodepoort, Johannesburg, 1735</p>
+                    <p><strong>Address:</strong> Head Office: Klapmuts, Western Cape, South Africa</p>
                   </div>
                 </div>
                 
@@ -259,7 +259,7 @@ export default function Privacy() {
                   <div className="space-y-2 text-gray-700">
                     <p><strong>Registration Number:</strong> 2025/291726/07</p>
                     <p><strong>NCR Registration:</strong> NCRCP21939</p>
-                    <p><strong>Physical Address:</strong> Coldstream Office Park, Unit 17, 2 Coldstream Street, Wilgespruit, Roodepoort, Johannesburg, 1735</p>
+                    <p><strong>Physical Address:</strong> Head Office: Klapmuts, Western Cape, South Africa</p>
                     <p><strong>Main Phone:</strong> +27 11 234 5678</p>
                     <p><strong>Email:</strong> info@wisebond.co.za</p>
                     <p><strong>Website:</strong> www.wisebond.co.za</p>

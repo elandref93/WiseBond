@@ -31,6 +31,7 @@ const Documents = lazy(() => import("@/pages/DocumentsPage"));
 const Properties = lazy(() => import("@/pages/Properties"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
+const CookiePolicy = lazy(() => import("@/pages/CookiePolicy"));
 const AuthError = lazy(() => import("@/pages/auth-error"));
 
 function Router() {
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/contact" component={Contact} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
+      <Route path="/cookies" component={CookiePolicy} />
       <Route path="/signup" component={SignUp} />
       <Route path="/login" component={Login} />
       <Route path="/auth/error" component={AuthError} />
