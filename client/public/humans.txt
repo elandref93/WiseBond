@@ -1,0 +1,22 @@
+/* TEAM */
+    Developer: WiseBond Development Team
+    Contact: info@wisebond.co.za
+    From: South Africa
+
+/* SITE */
+    Last update: 2025/01/15
+    Language: English, Afrikaans
+    Doctype: HTML5
+    IDE: Visual Studio Code
+    Standards: HTML5, CSS3, JavaScript ES6+
+    Components: React, TypeScript, Tailwind CSS
+    Software: Node.js, Vite, Drizzle ORM
+
+/* MISSION */
+    To make home loan applications simpler, faster, and more transparent for South Africans.
+    We believe everyone deserves a fair chance at homeownership.
+
+/* THANKS */
+    Name: Our amazing clients
+    Name: South African banking partners
+    Name: The open source community 

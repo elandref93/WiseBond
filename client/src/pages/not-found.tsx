@@ -1,10 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, HomeIcon } from "lucide-react";
 import { Link } from "wouter";
+import SEO from "@/components/SEO";
 
 export default function NotFound() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-4">
+    <>
+      <SEO
+        title="Page Not Found - WiseBond"
+        description="The page you're looking for doesn't exist. Return to WiseBond's homepage to find home loan solutions and mortgage advice."
+        noindex={true}
+        nofollow={true}
+      />
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-4">
       <div className="max-w-md w-full text-center space-y-8">
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-100">
           <span className="text-4xl font-bold text-red-500">404</span>
@@ -35,6 +43,7 @@ export default function NotFound() {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

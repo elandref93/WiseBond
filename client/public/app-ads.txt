@@ -1,0 +1,13 @@
+# WiseBond App-Ads.txt file
+# This file is used for mobile app advertising verification
+# Add your app store and advertising network information here when you have a mobile app
+
+# Example format for iOS App Store:
+# ios-app, YOUR_APP_ID, YOUR_APP_STORE_ID, DIRECT, YOUR_PUBLISHER_ID
+
+# Example format for Google Play Store:
+# android-app, YOUR_PACKAGE_NAME, YOUR_PUBLISHER_ID, DIRECT, YOUR_PUBLISHER_ID
+
+# Placeholder - replace with actual app information when available
+# ios-app, com.wisebond.app, 123456789, DIRECT, YOUR_PUBLISHER_ID
+# android-app, com.wisebond.app, YOUR_PUBLISHER_ID, DIRECT, YOUR_PUBLISHER_ID 

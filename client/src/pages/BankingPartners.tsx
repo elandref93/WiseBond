@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import SEO from "@/components/SEO";
 
 // Import bank logos properly for production builds
 import bankLogo1 from "@/assets/images/banks/bank-logo-1.png";
@@ -25,9 +26,25 @@ export default function BankingPartners() {
   ];
 
   return (
-    <div className="bg-white">
-      {/* Hero Section */}
-      <div className="bg-gray-50 py-20 px-4 sm:px-6 lg:px-8">
+    <>
+      <SEO
+        title="Banking Partners - WiseBond"
+        description="WiseBond works with South Africa's leading banks including Standard Bank, FNB, Absa, Nedbank, and more to find you the best home loan rates."
+        openGraph={{
+          title: "Banking Partners - WiseBond",
+          description: "WiseBond works with South Africa's leading banks to find you the best home loan rates.",
+          url: "https://wisebond.co.za/banking-partners",
+        }}
+        additionalMetaTags={[
+          {
+            name: "keywords",
+            content: "banking partners, home loan banks, Standard Bank, FNB, Absa, Nedbank, Investec, South Africa",
+          },
+        ]}
+      />
+      <div className="bg-white">
+        {/* Hero Section */}
+        <div className="bg-gray-50 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
             Banking Partners
@@ -168,6 +185,7 @@ export default function BankingPartners() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

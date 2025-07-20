@@ -7,6 +7,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import SEO from "@/components/SEO";
 
 export default function FAQ() {
   const generalFaqs = [
@@ -143,6 +144,21 @@ export default function FAQ() {
 
   return (
     <div className="bg-white">
+      <SEO
+        title="Frequently Asked Questions - WiseBond"
+        description="Find answers to common questions about home loans, our services, and the property buying process in South Africa. Expert guidance on mortgages, applications, and property transactions."
+        openGraph={{
+          title: "Frequently Asked Questions - WiseBond",
+          description: "Find answers to common questions about home loans, our services, and the property buying process in South Africa.",
+          url: "https://wisebond.co.za/faq",
+        }}
+        additionalMetaTags={[
+          {
+            name: "keywords",
+            content: "home loan FAQ, mortgage questions, property buying South Africa, bond application help, first-time buyer questions",
+          },
+        ]}
+      />
       {/* Hero Section */}
       <div className="bg-gray-50 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">

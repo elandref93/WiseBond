@@ -9,6 +9,8 @@ import { updateProfileSchema } from '@shared/schema';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import ImprovedAddressInput from '@/components/ImprovedAddressInput';
 import PropertiesManager from '@/components/PropertiesManager';
+import SEO from '@/components/SEO';
+import { pageSEO } from '@/lib/seo';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -63,7 +65,13 @@ import DocumentManager from '@/components/documents/DocumentManager';
 export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<string>('personal');
+  
+  // Add SEO for profile page
+  if (!user) {
+    return null; // This should not happen as Profile is protected
+  }
+  
+    const [activeTab, setActiveTab] = useState<string>('personal');
   const [showOtpDialog, setShowOtpDialog] = useState<boolean>(false);
   const [mobileOtp, setMobileOtp] = useState<string>('');
   const [verifyingMobile, setVerifyingMobile] = useState<boolean>(false);
@@ -308,7 +316,23 @@ export default function Profile() {
   ];
 
   return (
-    <div className="container max-w-6xl mx-auto py-8 px-4">
+    <>
+      <SEO
+        title={pageSEO.profile.title}
+        description={pageSEO.profile.description}
+        openGraph={{
+          title: pageSEO.profile.title,
+          description: pageSEO.profile.description,
+          url: "https://wisebond.co.za/profile",
+        }}
+        additionalMetaTags={[
+          {
+            name: "keywords",
+            content: pageSEO.profile.keywords,
+          },
+        ]}
+      />
+      <div className="container max-w-6xl mx-auto py-8 px-4">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">
           Welcome back, {profileData?.firstName || 'there'}!
@@ -1509,6 +1533,7 @@ export default function Profile() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </>
   );
 }

@@ -1,0 +1,37 @@
+User-agent: *
+Allow: /
+
+# Allow all major search engines to crawl the site
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# Allow important pages
+Allow: /
+Allow: /about
+Allow: /services
+Allow: /calculators
+Allow: /contact
+Allow: /guidance
+Allow: /faq
+Allow: /privacy
+Allow: /terms
+Allow: /cookies
+Allow: /banking-partners
+
+# Sitemap location
+Sitemap: https://wisebond.co.za/sitemap.xml
+
+# Crawl delay (optional - helps with server load)
+Crawl-delay: 1 

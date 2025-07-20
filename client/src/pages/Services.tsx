@@ -2,10 +2,27 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
+import SEO from "@/components/SEO";
+import { pageSEO } from "@/lib/seo";
 
 export default function Services() {
   return (
     <div className="bg-white">
+      <SEO
+        title={pageSEO.services.title}
+        description={pageSEO.services.description}
+        openGraph={{
+          title: pageSEO.services.title,
+          description: pageSEO.services.description,
+          url: "https://wisebond.co.za/services",
+        }}
+        additionalMetaTags={[
+          {
+            name: "keywords",
+            content: pageSEO.services.keywords,
+          },
+        ]}
+      />
       {/* Hero Section */}
       <div className="bg-gray-50 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">

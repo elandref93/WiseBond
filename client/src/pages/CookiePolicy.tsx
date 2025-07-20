@@ -1,6 +1,23 @@
+import SEO from "@/components/SEO";
+
 export default function CookiePolicy() {
   return (
     <div className="bg-white">
+      <SEO
+        title="Cookie Policy - WiseBond"
+        description="Learn how WiseBond uses cookies and tracking technologies to enhance your website experience. Understand your privacy choices and cookie preferences."
+        openGraph={{
+          title: "Cookie Policy - WiseBond",
+          description: "Learn how WiseBond uses cookies and tracking technologies to enhance your website experience.",
+          url: "https://wisebond.co.za/cookies",
+        }}
+        additionalMetaTags={[
+          {
+            name: "keywords",
+            content: "cookie policy, tracking technologies, website cookies, privacy preferences, WiseBond, South Africa",
+          },
+        ]}
+      />
       {/* Hero Section */}
       <div className="bg-gray-50 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">

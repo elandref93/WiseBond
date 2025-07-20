@@ -1,6 +1,23 @@
+import SEO from "@/components/SEO";
+
 export default function Privacy() {
   return (
     <div className="bg-white">
+      <SEO
+        title="Privacy Policy - WiseBond"
+        description="Learn how WiseBond collects, uses, and protects your personal information in accordance with POPIA and South African law. Your privacy and data security are our priority."
+        openGraph={{
+          title: "Privacy Policy - WiseBond",
+          description: "Learn how WiseBond collects, uses, and protects your personal information in accordance with POPIA and South African law.",
+          url: "https://wisebond.co.za/privacy",
+        }}
+        additionalMetaTags={[
+          {
+            name: "keywords",
+            content: "privacy policy, data protection, POPIA, personal information, WiseBond, South Africa",
+          },
+        ]}
+      />
       {/* Hero Section */}
       <div className="bg-gray-50 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">

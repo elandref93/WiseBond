@@ -1,0 +1,9 @@
+# WiseBond Ads.txt file
+# This file helps prevent unauthorized inventory sales
+# Add your advertising partners here when you start using Google AdSense or other ad networks
+
+# Example format:
+# google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
+
+# Placeholder - replace with actual ad network information when available
+# google.com, pub-YOUR_PUBLISHER_ID, DIRECT, f08c47fec0942fa0 

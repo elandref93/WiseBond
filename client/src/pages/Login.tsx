@@ -4,6 +4,8 @@ import LoginForm from "@/components/auth/LoginForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import Loading from "@/components/Loading";
+import SEO from "@/components/SEO";
+import { pageSEO } from "@/lib/seo";
 
 export default function Login() {
   const { user, isLoading } = useAuth();
@@ -25,6 +27,21 @@ export default function Login() {
   if (!user) {
     return (
       <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
+        <SEO
+          title={pageSEO.login.title}
+          description={pageSEO.login.description}
+          openGraph={{
+            title: pageSEO.login.title,
+            description: pageSEO.login.description,
+            url: "https://wisebond.co.za/login",
+          }}
+          additionalMetaTags={[
+            {
+              name: "keywords",
+              content: pageSEO.login.keywords,
+            },
+          ]}
+        />
         <div className="w-full max-w-md">
           <div className="text-center mb-6">
             <h1 className="text-3xl font-extrabold text-gray-900">

@@ -13,6 +13,7 @@ import PropertyScenarios from "@/components/properties/PropertyScenarios";
 import { Property } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import SEO from "@/components/SEO";
 
 export default function Properties() {
   const { user, isLoading: authLoading } = useAuth();
@@ -89,8 +90,24 @@ export default function Properties() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <>
+      <SEO
+        title="My Properties - WiseBond"
+        description="Manage your property portfolio and analyze loan scenarios. Track your home loans, compare options, and optimize your mortgage strategy."
+        openGraph={{
+          title: "My Properties - WiseBond",
+          description: "Manage your property portfolio and analyze loan scenarios.",
+          url: "https://wisebond.co.za/properties",
+        }}
+        additionalMetaTags={[
+          {
+            name: "keywords",
+            content: "property portfolio, loan scenarios, mortgage management, home loan tracking, WiseBond",
+          },
+        ]}
+      />
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -239,7 +256,8 @@ export default function Properties() {
             }}
           />
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

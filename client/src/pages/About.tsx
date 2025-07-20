@@ -1,6 +1,24 @@
+import SEO from "@/components/SEO";
+import { pageSEO } from "@/lib/seo";
+
 export default function About() {
   return (
     <div className="bg-white">
+      <SEO
+        title={pageSEO.about.title}
+        description={pageSEO.about.description}
+        openGraph={{
+          title: pageSEO.about.title,
+          description: pageSEO.about.description,
+          url: "https://wisebond.co.za/about",
+        }}
+        additionalMetaTags={[
+          {
+            name: "keywords",
+            content: pageSEO.about.keywords,
+          },
+        ]}
+      />
       {/* Hero Section */}
       <div className="bg-gray-50 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">

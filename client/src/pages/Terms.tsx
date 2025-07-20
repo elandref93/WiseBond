@@ -1,6 +1,23 @@
+import SEO from "@/components/SEO";
+
 export default function Terms() {
   return (
     <div className="bg-white">
+      <SEO
+        title="Terms and Conditions - WiseBond"
+        description="Read the terms and conditions governing your use of Wise Bond's bond origination services and website. Understand your rights and obligations when using our services."
+        openGraph={{
+          title: "Terms and Conditions - WiseBond",
+          description: "Read the terms and conditions governing your use of Wise Bond's bond origination services and website.",
+          url: "https://wisebond.co.za/terms",
+        }}
+        additionalMetaTags={[
+          {
+            name: "keywords",
+            content: "terms and conditions, bond origination, WiseBond, legal terms, service agreement, South Africa",
+          },
+        ]}
+      />
       {/* Hero Section */}
       <div className="bg-gray-50 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">

@@ -47,6 +47,10 @@ export const defaultSEO: DefaultSeoProps = {
       name: 'keywords',
       content: 'home loan, mortgage, South Africa, property finance, bond calculator, home loan rates, mortgage broker, property investment',
     },
+    {
+      name: 'google-analytics',
+      content: 'G-XNFR4FQSPR',
+    },
   ],
   additionalLinkTags: [
     {
