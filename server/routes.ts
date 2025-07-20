@@ -50,23 +50,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log("- SESSION_SECRET available:", !!process.env.SESSION_SECRET);
 
   let sessionStore;
+  let useMemoryStore = false;
+  
   try {
-    if (process.env.DATABASE_URL) {
-      sessionStore = new pgSession({
-        conString: process.env.DATABASE_URL,
-        tableName: 'user_sessions',
-        createTableIfMissing: true
-      });
-      console.log("✅ PostgreSQL session store initialized");
+    // Try to construct DATABASE_URL if not available
+    let databaseUrl = process.env.DATABASE_URL;
+    if (!databaseUrl) {
+      const host = process.env.POSTGRES_HOST || "wisebond-server.postgres.database.azure.com";
+      const port = process.env.POSTGRES_PORT || "5432";
+      const database = process.env.POSTGRES_DATABASE || "postgres";
+      const user = process.env.POSTGRES_USERNAME || "elandre";
+      const password = process.env.POSTGRES_PASSWORD || "*6CsqD325CX#9&HA9q#a5r9^9!8W%F";
+      const encodedPassword = encodeURIComponent(password);
+      
+      databaseUrl = `postgresql://${user}:${encodedPassword}@${host}:${port}/${database}?sslmode=require`;
+      console.log("🔧 Constructed DATABASE_URL from individual environment variables");
+    }
+
+    if (databaseUrl) {
+      try {
+        sessionStore = new pgSession({
+          conString: databaseUrl,
+          tableName: 'user_sessions',
+          createTableIfMissing: true
+        });
+        console.log("✅ PostgreSQL session store initialized");
+      } catch (pgError: any) {
+        console.error("❌ PostgreSQL session store failed:", pgError.message);
+        useMemoryStore = true;
+      }
     } else {
-      console.log("⚠️ DATABASE_URL not available, using memory store as fallback");
-      sessionStore = new MemStore({
-        checkPeriod: 86400000 // prune expired entries every 24h
-      });
+      console.log("⚠️ No database connection available, using memory store as fallback");
+      useMemoryStore = true;
     }
   } catch (error) {
     console.error("❌ Session store initialization failed:", error);
-    console.log("⚠️ Falling back to memory store");
+    useMemoryStore = true;
+  }
+
+  // Fallback to memory store if PostgreSQL fails
+  if (useMemoryStore) {
+    console.log("🔄 Falling back to memory store");
     sessionStore = new MemStore({
       checkPeriod: 86400000 // prune expired entries every 24h
     });
@@ -515,24 +539,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/reset-password", async (req, res) => {
     try {
       const { token, newPassword } = req.body;
-      // const storage = await getStorage();
+      //const storage = await getStorage();
 
-      // Verify reset token
-      const isValid = await storage.verifyResetToken(token);
-      if (!isValid) {
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: "Token and new password are required" });
+      }
+
+      const user = await storage.getUserByResetToken(token);
+      if (!user) {
         return res.status(400).json({ message: "Invalid or expired reset token" });
       }
 
-      // Get user by token and update password
-      const user = await storage.getUserByResetToken(token);
-      if (!user) {
-        return res.status(400).json({ message: "Invalid reset token" });
-      }
-
-      // Update password
-      await storage.updateUser(user.id, { password: newPassword });
-
-      // Clear the reset token
+      // Update password using any type since password is not in UpdateProfile
+      await storage.updateUser(user.id, { password: newPassword } as any);
       await storage.clearResetToken(token);
 
       res.json({ message: "Password reset successfully" });

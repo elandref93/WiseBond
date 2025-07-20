@@ -1,284 +1,217 @@
-import * as schema from '@shared/schema';
 import { sql } from 'drizzle-orm';
-import { getPostgresClient } from './db';
+import * as schema from '@shared/schema';
+import { db } from './db';
 
-/**
- * Simple migration function to ensure tables exist
- */
-export const runMigrations = async () => {
-  console.log('Running database migrations...');
+export async function migrate() {
+  console.log('🔄 Starting database migration...');
 
-  // Check if database connection is working
-  const db=await getPostgresClient();
   try {
-    console.log('Testing database connection...');
+    // Test connection
     await db.execute(sql`SELECT 1 as test`);
     console.log('✅ Database connection successful');
-  } catch (e) {
-    console.error('❌ Database connection failed:', e);
-    throw new Error('Cannot connect to database');
-  }
 
-  try {
-    // Check if users table exists by trying to select from it
+    // Check if users table exists
     try {
       await db.select().from(schema.users).limit(1);
       console.log('✅ Users table exists');
-
-      // Check and add co-applicant columns
-      console.log('Checking for missing co-applicant columns in users table...');
-      try {
-        // Check if marital_status column exists
-        await db.execute(sql`SELECT marital_status FROM users LIMIT 1`);
-        console.log('✅ Co-applicant columns already exist');
-      } catch (e) {
-        console.log('Adding co-applicant columns to users table...');
-        await db.execute(sql`
-          ALTER TABLE users
-          ADD COLUMN IF NOT EXISTS marital_status TEXT,
-          ADD COLUMN IF NOT EXISTS has_co_applicant BOOLEAN DEFAULT FALSE,
-          ADD COLUMN IF NOT EXISTS co_applicant_title TEXT,
-          ADD COLUMN IF NOT EXISTS co_applicant_first_name TEXT,
-          ADD COLUMN IF NOT EXISTS co_applicant_last_name TEXT,
-          ADD COLUMN IF NOT EXISTS co_applicant_email TEXT,
-          ADD COLUMN IF NOT EXISTS co_applicant_phone TEXT,
-          ADD COLUMN IF NOT EXISTS co_applicant_id_number TEXT,
-          ADD COLUMN IF NOT EXISTS co_applicant_date_of_birth TEXT,
-          ADD COLUMN IF NOT EXISTS co_applicant_age INTEGER,
-          ADD COLUMN IF NOT EXISTS co_applicant_employment_status TEXT,
-          ADD COLUMN IF NOT EXISTS co_applicant_employer_name TEXT,
-          ADD COLUMN IF NOT EXISTS co_applicant_employment_sector TEXT,
-          ADD COLUMN IF NOT EXISTS co_applicant_job_title TEXT,
-          ADD COLUMN IF NOT EXISTS co_applicant_employment_duration TEXT,
-          ADD COLUMN IF NOT EXISTS co_applicant_monthly_income INTEGER,
-          ADD COLUMN IF NOT EXISTS same_address BOOLEAN DEFAULT TRUE,
-          ADD COLUMN IF NOT EXISTS co_applicant_address TEXT,
-          ADD COLUMN IF NOT EXISTS co_applicant_city TEXT,
-          ADD COLUMN IF NOT EXISTS co_applicant_postal_code TEXT,
-          ADD COLUMN IF NOT EXISTS co_applicant_province TEXT
-        `);
-        console.log('✅ Added co-applicant columns to users table');
-      }
-    } catch (e) {
-      console.log('Creating users table...');
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS users (
-          id SERIAL PRIMARY KEY,
-          username TEXT NOT NULL UNIQUE,
-          password TEXT NOT NULL,
-          provider_id TEXT,
-          provider_account_id TEXT,
-          image TEXT,
-          title TEXT,          
-          first_name TEXT NOT NULL,
-          last_name TEXT NOT NULL,
-          email TEXT NOT NULL UNIQUE,
-          phone TEXT,
-          id_number TEXT,
-          date_of_birth TEXT,
-          age INTEGER,
-          address TEXT,
-          city TEXT,
-          postal_code TEXT,
-          province TEXT,
-          employment_status TEXT,
-          employer_name TEXT,
-          employment_sector TEXT,
-          job_title TEXT,
-          employment_duration TEXT,
-          monthly_income INTEGER,
-          marital_status TEXT,
-          has_co_applicant BOOLEAN DEFAULT FALSE,
-          co_applicant_title TEXT,
-          co_applicant_first_name TEXT,
-          co_applicant_last_name TEXT,
-          co_applicant_email TEXT,
-          co_applicant_phone TEXT,
-          co_applicant_id_number TEXT,
-          co_applicant_date_of_birth TEXT,
-          co_applicant_age INTEGER,
-          co_applicant_employment_status TEXT,
-          co_applicant_employer_name TEXT,
-          co_applicant_employment_sector TEXT,
-          co_applicant_job_title TEXT,
-          co_applicant_employment_duration TEXT,
-          co_applicant_monthly_income INTEGER,
-          same_address BOOLEAN DEFAULT TRUE,
-          co_applicant_address TEXT,
-          co_applicant_city TEXT,
-          co_applicant_postal_code TEXT,
-          co_applicant_province TEXT,
-          otp_verified BOOLEAN DEFAULT FALSE,
-          otp_code TEXT,
-          otp_expires_at TIMESTAMP,
-          phone_verified BOOLEAN DEFAULT FALSE,
-          phone_otp_code TEXT,
-          phone_otp_expires_at TIMESTAMP,
-          reset_token TEXT,
-          reset_token_expires_at TIMESTAMP,
-          profile_complete BOOLEAN DEFAULT FALSE,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
-        )
-      `);
-      console.log('✅ Created users table with co-applicant columns');
+    } catch (error) {
+      console.log('❌ Users table does not exist');
+      return;
     }
 
-    // Add OAuth columns to existing users table
+    // Check for marital_status column
     try {
-      console.log('Checking for OAuth columns in users table...');
-      await db.execute(sql`SELECT provider_id FROM users LIMIT 1`);
-      console.log('✅ OAuth columns already exist');
-    } catch (e) {
-      console.log('Adding OAuth columns to users table...');
+      await db.execute(sql`SELECT marital_status FROM users LIMIT 1`);
+      console.log('✅ marital_status column exists');
+    } catch (error) {
+      console.log('🔄 Adding marital_status column...');
       await db.execute(sql`
-        ALTER TABLE users
-        ADD COLUMN IF NOT EXISTS provider_id TEXT,
-        ADD COLUMN IF NOT EXISTS provider_account_id TEXT,
-        ADD COLUMN IF NOT EXISTS image TEXT
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS marital_status VARCHAR(20),
+        ADD COLUMN IF NOT EXISTS has_co_applicant BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS co_applicant_title VARCHAR(10),
+        ADD COLUMN IF NOT EXISTS co_applicant_first_name VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS co_applicant_last_name VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS co_applicant_email VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS co_applicant_phone VARCHAR(20),
+        ADD COLUMN IF NOT EXISTS co_applicant_id_number VARCHAR(13),
+        ADD COLUMN IF NOT EXISTS co_applicant_date_of_birth VARCHAR(10),
+        ADD COLUMN IF NOT EXISTS co_applicant_age INTEGER,
+        ADD COLUMN IF NOT EXISTS co_applicant_employment_status VARCHAR(20),
+        ADD COLUMN IF NOT EXISTS co_applicant_employer_name VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS co_applicant_employment_sector VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS co_applicant_job_title VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS co_applicant_employment_duration VARCHAR(50),
+        ADD COLUMN IF NOT EXISTS co_applicant_monthly_income INTEGER,
+        ADD COLUMN IF NOT EXISTS same_address BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS co_applicant_address TEXT,
+        ADD COLUMN IF NOT EXISTS co_applicant_city VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS co_applicant_postal_code VARCHAR(10),
+        ADD COLUMN IF NOT EXISTS co_applicant_province VARCHAR(50)
       `);
-
-      // Make username and password nullable for OAuth users
-      await db.execute(sql`
-        ALTER TABLE users
-        ALTER COLUMN username DROP NOT NULL,
-        ALTER COLUMN password DROP NOT NULL
-      `);
-
-      console.log('✅ Added OAuth columns to users table');
+      console.log('✅ Co-applicant columns added');
     }
 
-    // Check if calculation_results table exists
+    // Check for OTP columns
+    try {
+      await db.execute(sql`SELECT otp_code FROM users LIMIT 1`);
+      console.log('✅ OTP columns exist');
+    } catch (error) {
+      console.log('🔄 Adding OTP columns...');
+      await db.execute(sql`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS otp_code VARCHAR(6),
+        ADD COLUMN IF NOT EXISTS otp_expires_at TIMESTAMP,
+        ADD COLUMN IF NOT EXISTS otp_verified BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS phone_otp_code VARCHAR(6),
+        ADD COLUMN IF NOT EXISTS phone_otp_expires_at TIMESTAMP,
+        ADD COLUMN IF NOT EXISTS phone_verified BOOLEAN DEFAULT FALSE,
+        ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS reset_token_expires_at TIMESTAMP
+      `);
+      console.log('✅ OTP columns added');
+    }
+
+    // Check for provider_id column (OAuth)
+    try {
+      await db.execute(sql`SELECT provider_id FROM users LIMIT 1`);
+      console.log('✅ OAuth columns exist');
+    } catch (error) {
+      console.log('🔄 Adding OAuth columns...');
+      await db.execute(sql`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS provider_id VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS provider_account_id VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS image VARCHAR(255)
+      `);
+      console.log('✅ OAuth columns added');
+    }
+
+    // Check for calculation_results table
     try {
       await db.select().from(schema.calculationResults).limit(1);
-      console.log('✅ Calculation results table exists');
-    } catch (e) {
-      console.log('Creating calculation_results table...');
+      console.log('✅ calculation_results table exists');
+    } catch (error) {
+      console.log('🔄 Creating calculation_results table...');
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS calculation_results (
           id SERIAL PRIMARY KEY,
-          user_id INTEGER NOT NULL,
-          calculation_type TEXT NOT NULL,
-          input_data JSONB NOT NULL,
-          result_data JSONB NOT NULL,
-          created_at TIMESTAMP DEFAULT NOW()
+          user_id INTEGER REFERENCES users(id),
+          calculation_type VARCHAR(50) NOT NULL,
+          input_data TEXT NOT NULL,
+          result_data TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
-      console.log('✅ Created calculation_results table');
+      console.log('✅ calculation_results table created');
     }
 
-    // Check if budget_categories table exists
+    // Check for budget_categories table
     try {
       await db.select().from(schema.budgetCategories).limit(1);
-      console.log('✅ Budget categories table exists');
-    } catch (e) {
-      console.log('Creating budget_categories table...');
+      console.log('✅ budget_categories table exists');
+    } catch (error) {
+      console.log('🔄 Creating budget_categories table...');
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS budget_categories (
           id SERIAL PRIMARY KEY,
-          name TEXT NOT NULL,
+          user_id INTEGER REFERENCES users(id),
+          name VARCHAR(100) NOT NULL,
           description TEXT,
-          is_default BOOLEAN DEFAULT FALSE,
-          sort_order INTEGER DEFAULT 0
+          monthly_budget INTEGER,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
-      console.log('✅ Created budget_categories table');
+      console.log('✅ budget_categories table created');
     }
 
-    // Check if expenses table exists
+    // Check for expenses table
     try {
       await db.select().from(schema.expenses).limit(1);
-      console.log('✅ Expenses table exists');
-    } catch (e) {
-      console.log('Creating expenses table...');
+      console.log('✅ expenses table exists');
+    } catch (error) {
+      console.log('🔄 Creating expenses table...');
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS expenses (
           id SERIAL PRIMARY KEY,
-          user_id INTEGER NOT NULL,
-          category_id INTEGER NOT NULL,
+          user_id INTEGER REFERENCES users(id),
+          category_id INTEGER REFERENCES budget_categories(id),
+          description VARCHAR(255) NOT NULL,
           amount INTEGER NOT NULL,
-          description TEXT,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+          date DATE NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
-      console.log('✅ Created expenses table');
+      console.log('✅ expenses table created');
     }
 
-    // Check if contact_submissions table exists
+    // Check for contact_submissions table
     try {
       await db.select().from(schema.contactSubmissions).limit(1);
-      console.log('✅ Contact submissions table exists');
-    } catch (e) {
-      console.log('Creating contact_submissions table...');
+      console.log('✅ contact_submissions table exists');
+    } catch (error) {
+      console.log('🔄 Creating contact_submissions table...');
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS contact_submissions (
           id SERIAL PRIMARY KEY,
-          name TEXT NOT NULL,
-          email TEXT NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL,
+          phone VARCHAR(20),
           message TEXT NOT NULL,
-          created_at TIMESTAMP DEFAULT NOW()
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
-      console.log('✅ Created contact_submissions table');
+      console.log('✅ contact_submissions table created');
     }
 
-    // Check if sessions table exists
+    // Check for user_sessions table
     try {
-      await db.execute(sql`SELECT 1 FROM sessions LIMIT 1`);
-      console.log('✅ Sessions table exists');
-    } catch (e) {
-      console.log('Sessions table might be created by connect-pg-simple automatically');
+      await db.execute(sql`SELECT 1 FROM user_sessions LIMIT 1`);
+      console.log('✅ user_sessions table exists');
+    } catch (error) {
+      console.log('🔄 Creating user_sessions table...');
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS user_sessions (
+          sid VARCHAR NOT NULL COLLATE "default",
+          sess JSON NOT NULL,
+          expire TIMESTAMP(6) NOT NULL
+        )
+        WITH (OIDS=FALSE)
+      `);
+      await db.execute(sql`
+        ALTER TABLE user_sessions ADD CONSTRAINT session_pkey PRIMARY KEY (sid) NOT DEFERRABLE INITIALLY IMMEDIATE
+      `);
+      await db.execute(sql`
+        CREATE INDEX IDX_session_expire ON user_sessions (expire)
+      `);
+      console.log('✅ user_sessions table created');
     }
 
-    // Check notifications table
+    // Check for notifications table
     try {
       await db.select().from(schema.notifications).limit(1);
-      console.log('✅ Notifications table exists');
-
-      // Ensure notifications table has read column, not isRead
-      try {
-        await db.execute(sql`SELECT read FROM notifications LIMIT 1`);
-        console.log('✅ Notifications table has correct column structure');
-      } catch (e) {
-        // The error could be because either the table doesn't exist or the column doesn't exist
-        try {
-          // Check if isRead exists
-          await db.execute(sql`SELECT "is_read" FROM notifications LIMIT 1`);
-          // If we get here, it means isRead exists but read doesn't, so we need to rename
-          console.log('Renaming is_read column to read in notifications table...');
-          await db.execute(sql`ALTER TABLE notifications RENAME COLUMN "is_read" TO "read"`);
-          console.log('✅ Renamed is_read to read in notifications table');
-        } catch (e2) {
-          // If we get here, neither column exists, so we need to add read
-          console.log('Adding read column to notifications table...');
-          await db.execute(sql`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS "read" BOOLEAN DEFAULT FALSE`);
-          console.log('✅ Added read column to notifications table');
-        }
-      }
-    } catch (e) {
-      // Notifications table doesn't exist
-      console.log('Creating notifications table...');
+      console.log('✅ notifications table exists');
+    } catch (error) {
+      console.log('🔄 Creating notifications table...');
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS notifications (
           id SERIAL PRIMARY KEY,
-          user_id INTEGER NOT NULL,
-          type TEXT NOT NULL,
-          title TEXT NOT NULL,
+          user_id INTEGER REFERENCES users(id),
+          title VARCHAR(255) NOT NULL,
           message TEXT NOT NULL,
-          related_id INTEGER,
-          related_type TEXT,
-          read BOOLEAN DEFAULT FALSE,
-          created_at TIMESTAMP DEFAULT NOW()
+          type VARCHAR(50) DEFAULT 'info',
+          is_read BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
-      console.log('✅ Created notifications table');
+      console.log('✅ notifications table created');
     }
 
-    console.log('✅ All migrations completed successfully');
-    return true;
+    console.log('✅ Database migration completed successfully');
   } catch (error) {
     console.error('❌ Migration failed:', error);
-    return false;
+    throw error;
   }
-};
+}
