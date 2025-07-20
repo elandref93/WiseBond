@@ -836,3 +836,97 @@ function getCalculatorTitle(type: string): string {
       return 'Calculator';
   }
 }
+
+// Contact form email function
+export async function sendContactFormEmail(params: {
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+}): Promise<{success: boolean, error?: string, isSandboxAuthError?: boolean}> {
+  const subject = `New Contact Form Submission from ${params.name}`;
+  
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>New Contact Form Submission</title>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; }
+        .field { margin-bottom: 15px; }
+        .label { font-weight: bold; color: #374151; }
+        .value { background: white; padding: 10px; border-radius: 4px; border-left: 4px solid #f97316; }
+        .message-box { background: white; padding: 15px; border-radius: 4px; border: 1px solid #e5e7eb; }
+        .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>New Contact Form Submission</h1>
+          <p>A new inquiry has been submitted through the WiseBond website.</p>
+        </div>
+        
+        <div class="content">
+          <div class="field">
+            <div class="label">Name:</div>
+            <div class="value">${params.name}</div>
+          </div>
+          
+          <div class="field">
+            <div class="label">Email:</div>
+            <div class="value">${params.email}</div>
+          </div>
+          
+          ${params.phone ? `
+          <div class="field">
+            <div class="label">Phone:</div>
+            <div class="value">${params.phone}</div>
+          </div>
+          ` : ''}
+          
+          <div class="field">
+            <div class="label">Message:</div>
+            <div class="message-box">${params.message.replace(/\n/g, '<br>')}</div>
+          </div>
+          
+          <div class="footer">
+            <p><strong>Submission Details:</strong></p>
+            <p>• Submitted: ${new Date().toLocaleString('en-ZA', { timeZone: 'Africa/Johannesburg' })}</p>
+            <p>• Source: WiseBond Contact Form</p>
+            <p>• Please respond within 24 hours</p>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const textContent = `
+New Contact Form Submission
+
+Name: ${params.name}
+Email: ${params.email}
+${params.phone ? `Phone: ${params.phone}` : ''}
+
+Message:
+${params.message}
+
+---
+Submitted: ${new Date().toLocaleString('en-ZA', { timeZone: 'Africa/Johannesburg' })}
+Source: WiseBond Contact Form
+Please respond within 24 hours
+  `;
+
+  return await sendEmail({
+    from: 'noreply@wisebond.co.za',
+    to: 'info@wisebond.co.za',
+    subject,
+    html: htmlContent,
+    text: textContent
+  });
+}

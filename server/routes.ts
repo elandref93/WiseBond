@@ -5,12 +5,12 @@ import session from "express-session";
 import MemoryStore from "memorystore";
 import connectPgSimple from "connect-pg-simple";
 import {
-  insertUserSchema, loginSchema, insertCalculationResultSchema, updateProfileSchema
+  insertUserSchema, loginSchema, insertCalculationResultSchema, updateProfileSchema, insertContactSubmissionSchema
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from 'zod-validation-error';
 import { randomBytes } from "crypto";
-import { sendVerificationEmail, sendPasswordResetEmail, sendCalculationEmail } from "./email.js";
+import { sendVerificationEmail, sendPasswordResetEmail, sendCalculationEmail, sendContactFormEmail } from "./email.js";
 import { getPrimeRateHandler } from "./services/primeRate/primeRateController.js";
 const MemStore = MemoryStore(session);
 
@@ -736,6 +736,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
       console.error('Error creating scenario:', error);
       res.status(500).json({ message: 'Failed to create scenario' });
+    }
+  });
+
+  // Contact submission route
+  app.post("/api/contact", async (req, res) => {
+    try {
+      const contactData = insertContactSubmissionSchema.parse(req.body);
+      
+      // Store the contact submission in the database
+      const submission = await storage.createContactSubmission(contactData);
+      
+      // Send email notification to info@wisebond.co.za
+      const emailResult = await sendContactFormEmail({
+        name: contactData.name,
+        email: contactData.email,
+        phone: contactData.phone,
+        message: contactData.message
+      });
+      
+      if (emailResult.success) {
+        res.status(201).json({ 
+          success: true,
+          message: "Thank you for your message. We'll get back to you within 24 hours.",
+          submission 
+        });
+      } else {
+        // Still return success since the submission was saved
+        res.status(201).json({ 
+          success: true,
+          message: "Thank you for your message. We've received your inquiry and will contact you soon.",
+          submission,
+          emailNote: "Your message has been saved and our team will review it shortly."
+        });
+      }
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error("Contact form error:", error);
+      res.status(500).json({ message: "Failed to submit contact form. Please try again." });
     }
   });
 

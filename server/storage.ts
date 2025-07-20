@@ -1,8 +1,9 @@
 import { eq, sql } from 'drizzle-orm';
-import { users, calculationResults, properties, loanScenarios } from '@shared/schema';
-import type { User, InsertUser, UpdateProfile, CalculationResult, InsertCalculationResult, Property, InsertProperty, LoanScenario, InsertLoanScenario } from '@shared/schema';
+import { users, calculationResults, properties, loanScenarios, contactSubmissions } from '@shared/schema';
+import type { User, InsertUser, UpdateProfile, CalculationResult, InsertCalculationResult, Property, InsertProperty, LoanScenario, InsertLoanScenario, ContactSubmission, InsertContactSubmission } from '@shared/schema';
 import bcrypt from 'bcrypt';
 import { db } from './db';
+import { desc } from 'drizzle-orm';
 
 // Storage interface focusing on essential functionality
 export interface IStorage {
@@ -47,6 +48,10 @@ export interface IStorage {
   createLoanScenario(insertLoanScenario: InsertLoanScenario): Promise<LoanScenario>;
   updateLoanScenario(id: number, updates: Partial<InsertLoanScenario>): Promise<LoanScenario | undefined>;
   deleteLoanScenario(id: number): Promise<boolean>;
+
+  // Contact submission methods
+  createContactSubmission(data: InsertContactSubmission): Promise<ContactSubmission>;
+  getContactSubmissions(): Promise<ContactSubmission[]>;
 }
 
 /**
@@ -290,6 +295,16 @@ export class DatabaseStorage implements IStorage {
   async deleteLoanScenario(id: number): Promise<boolean> {
     const result = await db.delete(loanScenarios).where(eq(loanScenarios.id, id));
     return result.length > 0;
+  }
+
+  // Contact submission methods
+  async createContactSubmission(data: InsertContactSubmission): Promise<ContactSubmission> {
+    const result = await db.insert(contactSubmissions).values(data).returning();
+    return result[0];
+  }
+
+  async getContactSubmissions(): Promise<ContactSubmission[]> {
+    return await db.select().from(contactSubmissions).orderBy(desc(contactSubmissions.createdAt));
   }
 }
 

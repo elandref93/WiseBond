@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, BookOpen, Clock, Users, Tag } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { Search, Clock, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { 
-  knowledgeBaseData, 
   searchKnowledgeBase, 
-  type Article, 
-  type Category 
+  getArticleById, 
+  knowledgeBaseData,
+  type Article,
+  type Category
 } from "@/data/knowledgeBase";
+import { useLocation } from "wouter";
 
 interface SearchDropdownProps {
   placeholder?: string;
@@ -16,11 +16,18 @@ interface SearchDropdownProps {
   onArticleSelect?: (article: Article) => void;
 }
 
-// Helper function to highlight search terms in text
-function highlightText(text: string, searchTerm: string) {
-  if (!searchTerm.trim()) return text;
+// Helper function to format target audience
+const formatTargetAudience = (audience: string) => {
+  return audience.split('-').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ');
+};
+
+// Helper function to highlight search terms
+const highlightText = (text: string, query: string) => {
+  if (!query.trim()) return text;
   
-  const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  const regex = new RegExp(`(${query})`, 'gi');
   const parts = text.split(regex);
   
   return parts.map((part, index) => 
@@ -30,13 +37,6 @@ function highlightText(text: string, searchTerm: string) {
       </mark>
     ) : part
   );
-}
-
-// Helper function to format target audience
-const formatTargetAudience = (audience: string) => {
-  return audience.split('-').map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ');
 };
 
 export default function SearchDropdown({ 
@@ -51,6 +51,12 @@ export default function SearchDropdown({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [, setLocation] = useLocation();
+
+  // Get category for an article
+  const getCategory = (article: Article): Category | undefined => {
+    return knowledgeBaseData.find(cat => cat.categoryId === article.categoryId);
+  };
 
   // Handle search
   useEffect(() => {
@@ -102,10 +108,13 @@ export default function SearchDropdown({
   const handleArticleSelect = (article: Article) => {
     if (onArticleSelect) {
       onArticleSelect(article);
+    } else {
+      // Default navigation to article page
+      setLocation(`/guidance/article/${article.id}`);
     }
-    setSearchQuery("");
     setIsDropdownOpen(false);
-    setSelectedIndex(-1);
+    setSearchQuery("");
+    setSearchResults([]);
   };
 
   // Handle click outside to close dropdown
@@ -121,17 +130,12 @@ export default function SearchDropdown({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Get category for an article
-  const getCategory = (article: Article): Category | undefined => {
-    return knowledgeBaseData.find(cat => cat.categoryId === article.categoryId);
-  };
-
   return (
     <div className={`relative w-full ${className}`} ref={dropdownRef}>
       {/* Search Input */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" />
-        <Input
+        <input
           ref={inputRef}
           type="text"
           placeholder={placeholder}
@@ -213,7 +217,6 @@ export default function SearchDropdown({
                         {article.keyPoints.length > 0 && (
                           <div className="mt-2">
                             <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                              <Tag className="h-3 w-3" />
                               <span>Key points:</span>
                             </div>
                             <div className="flex flex-wrap gap-1">
@@ -248,7 +251,6 @@ export default function SearchDropdown({
             </div>
           ) : searchQuery.trim() ? (
             <div className="p-4 text-center text-gray-500">
-              <BookOpen className="mx-auto h-8 w-8 text-gray-300 mb-2" />
               <p className="text-sm">No results found</p>
               <p className="text-xs">Try different keywords</p>
             </div>

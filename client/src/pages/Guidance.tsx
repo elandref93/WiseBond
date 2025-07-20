@@ -179,52 +179,48 @@ export default function Guidance() {
 function SearchResultCard({ article }: { article: Article }) {
   const category = knowledgeBaseData.find(cat => cat.categoryId === article.categoryId);
   
-  const handleArticleClick = () => {
-    // Navigate to the article page or show article content
-    console.log("Opening article:", article.id);
-    // You can implement navigation here, e.g., window.location.href = `/article/${article.id}`;
-  };
-  
   return (
-    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer" onClick={handleArticleClick}>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">{category?.icon}</span>
-              <Badge variant="outline" className="text-xs">
-                {category?.title}
-              </Badge>
+    <Link href={`/guidance/article/${article.id}`}>
+      <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">{category?.icon}</span>
+                <Badge variant="outline" className="text-xs">
+                  {category?.title}
+                </Badge>
+              </div>
+              <CardTitle className="text-lg leading-tight">
+                {article.title}
+              </CardTitle>
             </div>
-            <CardTitle className="text-lg leading-tight">
-              {article.title}
-            </CardTitle>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <CardDescription className="mb-4">
-          {article.summary}
-        </CardDescription>
-        <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-          <div className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            {article.readingTime}
+        </CardHeader>
+        <CardContent>
+          <CardDescription className="mb-4">
+            {article.summary}
+          </CardDescription>
+          <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              {article.readingTime}
+            </div>
+            <div className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              {formatTargetAudience(article.targetAudience)}
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Users className="h-4 w-4" />
-            {formatTargetAudience(article.targetAudience)}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {article.relatedTopics.slice(0, 3).map((topic) => (
+              <Badge key={topic} variant="secondary" className="text-xs">
+                {topic}
+              </Badge>
+            ))}
           </div>
-        </div>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {article.relatedTopics.slice(0, 3).map((topic) => (
-            <Badge key={topic} variant="secondary" className="text-xs">
-              {topic}
-            </Badge>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
@@ -281,41 +277,37 @@ function CategoryCard({
 
 // Article Card Component
 function ArticleCard({ article }: { article: Article }) {
-  const handleArticleClick = () => {
-    // Navigate to the article page or show article content
-    console.log("Opening article:", article.id);
-    // You can implement navigation here, e.g., window.location.href = `/article/${article.id}`;
-  };
-
   return (
-    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer" onClick={handleArticleClick}>
-      <CardHeader>
-        <CardTitle className="text-lg leading-tight">
-          {article.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <CardDescription className="mb-4">
-          {article.summary}
-        </CardDescription>
-        <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-          <div className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            {article.readingTime}
+    <Link href={`/guidance/article/${article.id}`}>
+      <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
+        <CardHeader>
+          <CardTitle className="text-lg leading-tight">
+            {article.title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CardDescription className="mb-4">
+            {article.summary}
+          </CardDescription>
+          <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              {article.readingTime}
+            </div>
+            <div className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              {formatTargetAudience(article.targetAudience)}
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Users className="h-4 w-4" />
-            {formatTargetAudience(article.targetAudience)}
+          <div className="flex flex-wrap gap-2">
+            {article.relatedTopics.slice(0, 3).map((topic) => (
+              <Badge key={topic} variant="secondary" className="text-xs">
+                {topic}
+              </Badge>
+            ))}
           </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {article.relatedTopics.slice(0, 3).map((topic) => (
-            <Badge key={topic} variant="secondary" className="text-xs">
-              {topic}
-            </Badge>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   );
 } 
