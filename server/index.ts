@@ -155,11 +155,45 @@ app.use((req, res, next) => {
   }
 
   // Start the server after all middleware is configured  
-  const port = parseInt(process.env.PORT || "5000", 10);
+  const port = parseInt(process.env.PORT || "8080", 10);
+  
+  console.log(`🚀 Starting server on port ${port}...`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📁 Working directory: ${process.cwd()}`);
+  
   server.listen(port, "0.0.0.0", () => {
-    console.log(`Server running on https://0.0.0.0:${port}`);
+    console.log(`✅ Server running on http://0.0.0.0:${port}`);
+    console.log(`🌐 Access your application at: http://localhost:${port}`);
+    
+    // Log important startup information
+    console.log(`📊 Database: ${process.env.DATABASE_URL ? 'Configured' : 'Not configured'}`);
+    console.log(`📧 Email: ${process.env.MAILGUN_API_KEY ? 'Configured' : 'Not configured'}`);
+    console.log(`🗺️ Maps: ${process.env.GOOGLE_MAPS_API_KEY ? 'Configured' : 'Not configured'}`);
   });
 
-  // Server is already started by registerRoutes function
-  // No need to call listen again
+  // Handle server errors
+  server.on('error', (error: any) => {
+    console.error('❌ Server error:', error);
+    if (error.code === 'EADDRINUSE') {
+      console.error(`Port ${port} is already in use. Please use a different port.`);
+    }
+    process.exit(1);
+  });
+
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('🛑 Received SIGTERM, shutting down gracefully...');
+    server.close(() => {
+      console.log('✅ Server closed');
+      process.exit(0);
+    });
+  });
+
+  process.on('SIGINT', () => {
+    console.log('🛑 Received SIGINT, shutting down gracefully...');
+    server.close(() => {
+      console.log('✅ Server closed');
+      process.exit(0);
+    });
+  });
 })();
