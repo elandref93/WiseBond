@@ -110,8 +110,8 @@ app.use((req, res, next) => {
     // Setup database using three-tier strategy (Tier 1 → Tier 2 → Tier 3)
     await getPostgresClient();
     console.log('✅ Database connected successfully, running migrations...');
-    const { runMigrations } = await import('./migrate');
-    await runMigrations();
+    const { migrate } = await import('./migrate');
+    await migrate();
     
   } catch (error: any) {
     console.error('❌ CRITICAL: Database setup failed:', error.message);

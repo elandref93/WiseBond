@@ -88,7 +88,10 @@ export default function EditPropertyDialog({ property, open, onOpenChange }: Edi
 
   const updatePropertyMutation = useMutation({
     mutationFn: async (data: UpdateProperty) => {
-      const response = await apiRequest('PUT', `/api/properties/${property.id}`, data);
+      const response = await apiRequest(`/api/properties/${property.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
       return response.json();
     },
     onSuccess: () => {

@@ -28,7 +28,7 @@ export function FinancialTermsHighlighter({
   const sortedTerms = terms.sort((a, b) => b.length - a.length);
   
   // Start with the text in an array with a single element
-  let parts: (string | JSX.Element)[] = [text];
+  let parts: (string | React.ReactElement)[] = [text];
   
   // For each financial term, split the text and add tooltips where the term is found
   sortedTerms.forEach(term => {
@@ -44,7 +44,7 @@ export function FinancialTermsHighlighter({
       if (!lowerPart.includes(lowerTerm)) return part;
       
       // Split the text by the term
-      const splitParts: (string | JSX.Element)[] = [];
+      const splitParts: (string | React.ReactElement)[] = [];
       let lastIndex = 0;
       let index;
       

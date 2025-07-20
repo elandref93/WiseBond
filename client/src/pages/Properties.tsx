@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 import { Redirect } from "wouter";
-import { PlusIcon, HomeIcon, BanknotesIcon, CalendarIcon, MapPinIcon, EditIcon, TrashIcon, LineChartIcon } from "lucide-react";
+import { PlusIcon, HomeIcon, BanknoteIcon, CalendarIcon, MapPinIcon, EditIcon, TrashIcon, LineChartIcon } from "lucide-react";
 import AddPropertyDialog from "@/components/properties/AddPropertyDialog";
 import EditPropertyDialog from "@/components/properties/EditPropertyDialog";
 import PropertyScenarios from "@/components/properties/PropertyScenarios";
@@ -32,7 +32,9 @@ export default function Properties() {
   // Delete property mutation
   const deletePropertyMutation = useMutation({
     mutationFn: async (propertyId: number) => {
-      const response = await apiRequest('DELETE', `/api/properties/${propertyId}`);
+      const response = await apiRequest(`/api/properties/${propertyId}`, {
+        method: 'DELETE'
+      });
       return response.json();
     },
     onSuccess: () => {

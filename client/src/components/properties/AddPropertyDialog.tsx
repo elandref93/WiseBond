@@ -90,7 +90,10 @@ export default function AddPropertyDialog({ open, onOpenChange }: AddPropertyDia
 
   const createPropertyMutation = useMutation({
     mutationFn: async (data: InsertProperty) => {
-      const response = await apiRequest('POST', '/api/properties', data);
+      const response = await apiRequest('/api/properties', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
       return response.json();
     },
     onSuccess: () => {

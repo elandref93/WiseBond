@@ -44,12 +44,9 @@ export default function SignInForm() {
     try {
       setIsSubmitting(true);
       
-      const result = await login({
-        email: values.email,
-        password: values.password,
-      });
-
-      if (result.success) {
+      const result = await login(values.email, values.password);
+      
+      if (result) {
         toast({
           title: "Welcome back!",
           description: "You have been successfully logged in.",
@@ -57,18 +54,12 @@ export default function SignInForm() {
         
         // Redirect to home page
         setLocation("/");
-      } else {
-        toast({
-          title: "Login failed",
-          description: result.error || "Invalid email or password.",
-          variant: "destructive",
-        });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
       toast({
         title: "Login failed",
-        description: "An unexpected error occurred. Please try again.",
+        description: error?.response?.data?.message || "Invalid email or password.",
         variant: "destructive",
       });
     } finally {

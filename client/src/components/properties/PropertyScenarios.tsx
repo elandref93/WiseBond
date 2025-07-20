@@ -35,7 +35,10 @@ export default function PropertyScenarios({ property, onBack }: PropertyScenario
   // Toggle scenario active state
   const toggleScenarioMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: number; isActive: boolean }) => {
-      const response = await apiRequest('PUT', `/api/scenarios/${id}`, { isActive });
+      const response = await apiRequest(`/api/scenarios/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ isActive })
+      });
       return response.json();
     },
     onSuccess: () => {
@@ -57,7 +60,9 @@ export default function PropertyScenarios({ property, onBack }: PropertyScenario
   // Delete scenario mutation
   const deleteScenarioMutation = useMutation({
     mutationFn: async (scenarioId: number) => {
-      const response = await apiRequest('DELETE', `/api/scenarios/${scenarioId}`);
+      const response = await apiRequest(`/api/scenarios/${scenarioId}`, {
+        method: 'DELETE'
+      });
       return response.json();
     },
     onSuccess: () => {

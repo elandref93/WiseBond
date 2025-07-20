@@ -55,7 +55,10 @@ export default function AddScenarioDialog({ property, open, onOpenChange }: AddS
 
   const createScenarioMutation = useMutation({
     mutationFn: async (data: InsertLoanScenario) => {
-      const response = await apiRequest('POST', `/api/properties/${property.id}/scenarios`, data);
+      const response = await apiRequest(`/api/properties/${property.id}/scenarios`, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
       return response.json();
     },
     onSuccess: () => {

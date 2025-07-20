@@ -66,7 +66,10 @@ export default function EditScenarioDialog({ scenario, open, onOpenChange }: Edi
 
   const updateScenarioMutation = useMutation({
     mutationFn: async (data: UpdateLoanScenario) => {
-      const response = await apiRequest('PUT', `/api/scenarios/${scenario.id}`, data);
+      const response = await apiRequest(`/api/scenarios/${scenario.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
       return response.json();
     },
     onSuccess: () => {

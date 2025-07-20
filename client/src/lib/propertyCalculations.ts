@@ -123,7 +123,7 @@ export function applyScenarioToSchedule(
       const shouldApplyLumpSum = checkIfDateMatches(
         payment,
         scenario.lumpSumDate!,
-        scenario.lumpSumDateType!
+        scenario.lumpSumDateType as "date" | "payment_number"
       );
       
       if (shouldApplyLumpSum) {
@@ -136,11 +136,11 @@ export function applyScenarioToSchedule(
       const shouldStartExtra = checkIfDateMatches(
         payment,
         scenario.extraMonthlyStartDate!,
-        scenario.extraMonthlyStartType!
+        scenario.extraMonthlyStartType as "date" | "payment_number"
       );
       
       const shouldEndExtra = scenario.extraMonthlyEndDate ? 
-        checkIfDateMatches(payment, scenario.extraMonthlyEndDate, scenario.extraMonthlyEndType!) :
+        checkIfDateMatches(payment, scenario.extraMonthlyEndDate, scenario.extraMonthlyEndType as "date" | "payment_number") :
         false;
       
       const durationCheck = scenario.extraMonthlyDuration ? 
@@ -156,7 +156,7 @@ export function applyScenarioToSchedule(
       const shouldApplyIncrease = checkIfDateMatches(
         payment,
         scenario.monthlyIncreaseStartDate!,
-        scenario.monthlyIncreaseStartType!
+        scenario.monthlyIncreaseStartType as "date" | "payment_number"
       );
       
       if (shouldApplyIncrease) {
