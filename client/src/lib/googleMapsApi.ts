@@ -36,7 +36,7 @@ export function loadGoogleMapsApi(): Promise<void> {
 
     // Start loading
     isLoading = true;
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || import.meta.env.GOOGLE_MAPS_API_KEY;
     
     if (!apiKey) {
       const error = 'Google Maps API key is missing. Please check your environment variables.';

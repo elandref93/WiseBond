@@ -65,7 +65,7 @@ export function loadGoogleMapsApi(): Promise<void> {
       // Create script element
       const script = document.createElement('script');
       // Get API key from environment variable (set by server)
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || import.meta.env.GOOGLE_MAPS_API_KEY;
       
       if (!apiKey) {
         const error = new Error('Google Maps API key not found. Please check environment configuration.');

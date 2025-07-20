@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { Search, BookOpen, Clock, Users, Tag, ArrowRight } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { BookOpen, Clock, Users, Tag, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import SearchDropdown from "@/components/SearchDropdown";
 import { 
   knowledgeBaseData, 
   searchKnowledgeBase, 
@@ -24,18 +24,27 @@ export default function Guidance() {
   const [searchResults, setSearchResults] = useState<Article[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
 
-  // Handle search
-  useEffect(() => {
-    if (searchQuery.trim()) {
+  // Handle search from dropdown
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim()) {
       setIsSearching(true);
-      const results = searchKnowledgeBase(searchQuery);
+      const results = searchKnowledgeBase(query);
       setSearchResults(results);
       setIsSearching(false);
     } else {
       setSearchResults([]);
     }
-  }, [searchQuery]);
+  };
+
+  // Handle article selection from dropdown
+  const handleArticleSelect = (article: Article) => {
+    setSelectedArticle(article);
+    // You can navigate to the article page or show it in a modal
+    console.log("Selected article:", article);
+  };
 
   // Get filtered categories
   const filteredCategories = selectedCategory 
@@ -55,7 +64,7 @@ export default function Guidance() {
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
+        <div className="w-full mx-auto text-center">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl mb-6">
             Property Advice Hub
           </h1>
@@ -64,18 +73,13 @@ export default function Guidance() {
             step-by-step guides, and market analysis to help you make informed decisions.
           </p>
           
-          {/* Search Bar */}
+          {/* Enhanced Search Bar */}
           <div className="max-w-2xl mx-auto">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                type="text"
-                placeholder="Search for property advice, home loans, investment tips..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-3 text-lg border-0 rounded-lg shadow-lg"
-              />
-            </div>
+            <SearchDropdown
+              placeholder="Search for property advice, home loans, investment tips..."
+              onArticleSelect={handleArticleSelect}
+              className="w-full"
+            />
             {isSearching && (
               <p className="text-blue-200 mt-2">Searching...</p>
             )}
@@ -85,7 +89,7 @@ export default function Guidance() {
 
       {/* Main Content */}
       <div className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full mx-auto">
           
           {/* Search Results */}
           {searchResults.length > 0 && (
@@ -93,7 +97,7 @@ export default function Guidance() {
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Search Results ({searchResults.length})
               </h2>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                 {searchResults.map((article) => (
                   <SearchResultCard key={article.id} article={article} />
                 ))}
@@ -107,7 +111,7 @@ export default function Guidance() {
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Browse by Category
               </h2>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {knowledgeBaseData.map((category) => (
                   <CategoryCard
                     key={category.categoryId}
@@ -134,10 +138,10 @@ export default function Guidance() {
                       {category.articles.length} articles
                     </Badge>
                   </div>
-                  <p className="text-gray-600 mb-6 max-w-3xl">
+                  <p className="text-gray-600 mb-6 max-w-4xl">
                     {category.description}
                   </p>
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                     {category.articles.map((article) => (
                       <ArticleCard key={article.id} article={article} />
                     ))}
@@ -175,8 +179,14 @@ export default function Guidance() {
 function SearchResultCard({ article }: { article: Article }) {
   const category = knowledgeBaseData.find(cat => cat.categoryId === article.categoryId);
   
+  const handleArticleClick = () => {
+    // Navigate to the article page or show article content
+    console.log("Opening article:", article.id);
+    // You can implement navigation here, e.g., window.location.href = `/article/${article.id}`;
+  };
+  
   return (
-    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
+    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer" onClick={handleArticleClick}>
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -213,12 +223,6 @@ function SearchResultCard({ article }: { article: Article }) {
             </Badge>
           ))}
         </div>
-        <Link href={`/guidance/article/${article.id}`}>
-          <Button variant="outline" size="sm" className="w-full">
-            Read Article
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </Link>
       </CardContent>
     </Card>
   );
@@ -277,8 +281,14 @@ function CategoryCard({
 
 // Article Card Component
 function ArticleCard({ article }: { article: Article }) {
+  const handleArticleClick = () => {
+    // Navigate to the article page or show article content
+    console.log("Opening article:", article.id);
+    // You can implement navigation here, e.g., window.location.href = `/article/${article.id}`;
+  };
+
   return (
-    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
+    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer" onClick={handleArticleClick}>
       <CardHeader>
         <CardTitle className="text-lg leading-tight">
           {article.title}
@@ -298,30 +308,13 @@ function ArticleCard({ article }: { article: Article }) {
             {formatTargetAudience(article.targetAudience)}
           </div>
         </div>
-        <div className="mb-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-2">Key Points:</h4>
-          <ul className="text-sm text-gray-600 space-y-1">
-            {article.keyPoints.slice(0, 3).map((point, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <span className="text-blue-500 mt-1">•</span>
-                {point}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {article.relatedTopics.slice(0, 2).map((topic) => (
+        <div className="flex flex-wrap gap-2">
+          {article.relatedTopics.slice(0, 3).map((topic) => (
             <Badge key={topic} variant="secondary" className="text-xs">
               {topic}
             </Badge>
           ))}
         </div>
-        <Link href={`/guidance/article/${article.id}`}>
-          <Button variant="outline" size="sm" className="w-full">
-            Read Full Article
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </Link>
       </CardContent>
     </Card>
   );

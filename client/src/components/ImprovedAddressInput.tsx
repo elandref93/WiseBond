@@ -70,10 +70,20 @@ export default function ImprovedAddressInput({
         })
         .catch(error => {
           console.error('Error loading Google Maps API:', error);
+          
+          // Provide more specific error messages based on the error
+          let errorMessage = 'Address suggestions are temporarily unavailable.';
+          
+          if (error.message.includes('API key not found')) {
+            errorMessage = 'Address search is not configured. Please contact support.';
+          } else if (error.message.includes('Failed to load')) {
+            errorMessage = 'Unable to load address search. Please check your internet connection.';
+          }
+          
           setApiStatus({
             isLoaded: false,
             isLoading: false,
-            error: error instanceof Error ? error : new Error('Unknown error'),
+            error: new Error(errorMessage),
             loadAttempts: apiStatus.loadAttempts + 1
           });
         });
@@ -288,18 +298,24 @@ export default function ImprovedAddressInput({
       
       {/* Error message */}
       {apiStatus.error && (
-        <Alert variant="destructive" className="mt-2">
-          <AlertTitle>Error loading address suggestions</AlertTitle>
-          <AlertDescription className="flex flex-col gap-2">
-            <p>You can still enter your address manually.</p>
+        <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-md">
+          <div className="flex items-start gap-2">
+            <div className="flex-1">
+              <p className="text-sm text-amber-800">
+                {apiStatus.error.message}
+              </p>
+              <p className="text-xs text-amber-600 mt-1">
+                You can still enter your address manually below.
+              </p>
+            </div>
             <button 
               onClick={handleRetry}
-              className="self-start px-2 py-1 text-sm bg-primary text-primary-foreground rounded"
+              className="text-xs px-2 py-1 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 transition-colors"
             >
               Retry
             </button>
-          </AlertDescription>
-        </Alert>
+          </div>
+        </div>
       )}
       
       {/* Predictions dropdown */}

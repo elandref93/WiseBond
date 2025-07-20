@@ -137,7 +137,7 @@ export const knowledgeBaseData: Category[] = [
     categoryId: "home-loans",
     title: "Home Loans & Finance",
     description: "Master the home loan process and secure the best rates",
-    icon: "credit-card-icon",
+    icon: "💳",
     color: "#059669",
     articles: [
       {
@@ -214,7 +214,7 @@ export const knowledgeBaseData: Category[] = [
     categoryId: "property-investment",
     title: "Property Investment",
     description: "Build wealth through strategic property investment",
-    icon: "trending-up-icon",
+    icon: "📈",
     color: "#dc2626",
     articles: [
       {

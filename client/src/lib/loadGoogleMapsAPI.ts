@@ -23,7 +23,7 @@ export function loadGoogleMapsAPI(): Promise<void> {
     return Promise.resolve();
   }
   
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || import.meta.env.GOOGLE_MAPS_API_KEY;
   
   // Check for API key - more helpful error handling
   if (!apiKey) {
@@ -33,7 +33,7 @@ export function loadGoogleMapsAPI(): Promise<void> {
     if (isLocalhost) {
       console.error(`
 Google Maps API key not found. Please check:
-1. .env file has VITE_GOOGLE_MAPS_API_KEY set
+1. .env file has VITE_GOOGLE_MAPS_API_KEY or GOOGLE_MAPS_API_KEY set
 2. Server has copied GOOGLE_MAPS_API_KEY to VITE_GOOGLE_MAPS_API_KEY
 3. Vite has restarted after environment changes`);
     } else {
