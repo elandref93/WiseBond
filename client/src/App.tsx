@@ -32,6 +32,8 @@ const Properties = lazy(() => import("@/pages/Properties"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
 const CookiePolicy = lazy(() => import("@/pages/CookiePolicy"));
+const Guidance = lazy(() => import("@/pages/Guidance"));
+const GuidanceArticle = lazy(() => import("@/pages/GuidanceArticle"));
 const AuthError = lazy(() => import("@/pages/auth-error"));
 
 function Router() {
@@ -49,6 +51,8 @@ function Router() {
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/cookies" component={CookiePolicy} />
+      <Route path="/guidance" component={Guidance} />
+      <Route path="/guidance/article/:id" component={GuidanceArticle} />
       <Route path="/signup" component={SignUp} />
       <Route path="/login" component={Login} />
       <Route path="/auth/error" component={AuthError} />

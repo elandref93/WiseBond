@@ -19,6 +19,15 @@ if (result.error) {
 }
 
 const app = express();
+
+// Redirect wisebond.co.za to www.wisebond.co.za
+app.use((req, res, next) => {
+  if (req.hostname === 'wisebond.co.za') {
+    return res.redirect(301, 'https://www.wisebond.co.za' + req.originalUrl);
+  }
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

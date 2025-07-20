@@ -1,0 +1,332 @@
+export interface Article {
+  id: string;
+  title: string;
+  summary: string;
+  keyPoints: string[];
+  relatedTopics: string[];
+  targetAudience: string;
+  readingTime: string;
+  lastUpdated?: string;
+  categoryId: string;
+}
+
+export interface Category {
+  categoryId: string;
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+  articles: Article[];
+}
+
+export const knowledgeBaseData: Category[] = [
+  {
+    categoryId: "home-buying",
+    title: "Home Buying Guide",
+    description: "Everything you need to know about buying your first or next home",
+    icon: "🏠",
+    color: "#2563eb",
+    articles: [
+      {
+        id: "buying-house-guide",
+        title: "The Complete 6-Step Guide to Buying a House",
+        summary: "A comprehensive step-by-step process from pre-approval to final transfer",
+        keyPoints: [
+          "Get pre-approved to understand your budget",
+          "Research neighborhoods and property values",
+          "Make a strategic offer to purchase",
+          "Secure your home loan approval",
+          "Complete legal requirements and transfers"
+        ],
+        relatedTopics: ["pre-approval", "offer-to-purchase", "home-loan-application"],
+        targetAudience: "first-time-buyers",
+        readingTime: "8 minutes",
+        lastUpdated: "2025-04-03",
+        categoryId: "home-buying"
+      },
+      {
+        id: "first-time-buyer-guide",
+        title: "First-Time Home Buyers: Everything You Need to Know",
+        summary: "Essential guidance for making your first property purchase with confidence",
+        keyPoints: [
+          "Understanding credit score requirements (610+ minimum)",
+          "Deposit requirements and 100% home loan options",
+          "The importance of pre-qualification",
+          "Navigating the Offer to Purchase",
+          "Legal procedures and transfer costs"
+        ],
+        relatedTopics: ["credit-score", "deposits", "home-loan-approval"],
+        targetAudience: "first-time-buyers",
+        readingTime: "10 minutes",
+        categoryId: "home-buying"
+      },
+      {
+        id: "what-to-look-for",
+        title: "15 Expert Tips: What to Look for When Buying a House",
+        summary: "Professional real estate insights to avoid costly mistakes",
+        keyPoints: [
+          "Structural assessment techniques",
+          "Location evaluation criteria",
+          "Smart home technology considerations",
+          "Professional inspection importance",
+          "Financial preparation strategies"
+        ],
+        relatedTopics: ["property-inspection", "location-analysis", "home-financing"],
+        targetAudience: "all-buyers",
+        readingTime: "12 minutes",
+        categoryId: "home-buying"
+      }
+    ]
+  },
+  {
+    categoryId: "home-loans",
+    title: "Home Loans & Finance",
+    description: "Master the home loan process and secure the best rates",
+    icon: "🏦",
+    color: "#059669",
+    articles: [
+      {
+        id: "how-home-loans-work",
+        title: "How Do Home Loans Work? Complete Guide",
+        summary: "Understanding home loan mechanics, from application to repayment",
+        keyPoints: [
+          "Monthly repayment structure over 20-30 years",
+          "Interest rate factors and calculations",
+          "Credit score impact on approval and rates",
+          "Deposit requirements and benefits",
+          "Application process timeline"
+        ],
+        relatedTopics: ["interest-rates", "credit-scores", "loan-terms"],
+        targetAudience: "all-buyers",
+        readingTime: "7 minutes",
+        categoryId: "home-loans"
+      },
+      {
+        id: "interest-rates-2025",
+        title: "Home Loan Interest Rates: What to Expect in 2025",
+        summary: "Current rates at 10.75% with predictions for further cuts",
+        keyPoints: [
+          "Prime rate reduced to 10.75% after 4 consecutive cuts",
+          "Potential for rates to reach 10.50% by year-end",
+          "Credit score impact on rate offerings",
+          "Deposit size affecting interest rates",
+          "Using comparison services for best rates"
+        ],
+        relatedTopics: ["market-trends", "rate-predictions", "loan-comparison"],
+        targetAudience: "all-buyers",
+        readingTime: "6 minutes",
+        categoryId: "home-loans"
+      },
+      {
+        id: "credit-score-requirements",
+        title: "Credit Score Requirements for Home Loans",
+        summary: "Understanding and improving your credit score for loan approval",
+        keyPoints: [
+          "Minimum score of 610+ for consideration",
+          "Scores above 670 considered excellent",
+          "Quick improvement strategies",
+          "Impact on loan approval and rates",
+          "Free credit score checking tools"
+        ],
+        relatedTopics: ["loan-approval", "financial-preparation", "credit-improvement"],
+        targetAudience: "prospective-buyers",
+        readingTime: "8 minutes",
+        categoryId: "home-loans"
+      }
+    ]
+  },
+  {
+    categoryId: "property-investment",
+    title: "Property Investment",
+    description: "Build wealth through strategic property investment",
+    icon: "📈",
+    color: "#dc2626",
+    articles: [
+      {
+        id: "investment-opportunities-2025",
+        title: "Property Investment in 2025: Exceptional Opportunities",
+        summary: "Why 2025 presents ideal conditions for property investment",
+        keyPoints: [
+          "Prime rates at multi-year lows (10.75%)",
+          "Buy-to-let market fundamentals",
+          "Commercial vs residential returns",
+          "Location selection strategies",
+          "Financing options for investors"
+        ],
+        relatedTopics: ["buy-to-let", "commercial-property", "investment-locations"],
+        targetAudience: "investors",
+        readingTime: "10 minutes",
+        categoryId: "property-investment"
+      },
+      {
+        id: "property-finance-options",
+        title: "5 Powerful Ways to Fund Investment Properties",
+        summary: "Comprehensive financing strategies for property investors",
+        keyPoints: [
+          "Traditional home loan options",
+          "Partnership and joint venture structures",
+          "Private lending alternatives",
+          "Green building loan advantages",
+          "Technology-driven financing solutions"
+        ],
+        relatedTopics: ["investment-financing", "partnership-investing", "green-loans"],
+        targetAudience: "investors",
+        readingTime: "12 minutes",
+        categoryId: "property-investment"
+      },
+      {
+        id: "building-property-portfolio",
+        title: "5 Steps to Building a Property Portfolio",
+        summary: "Strategic approach to growing your property investment portfolio",
+        keyPoints: [
+          "Market research fundamentals",
+          "Starting small with growth strategy",
+          "Co-buying and partnership options",
+          "Commercial vs residential decisions",
+          "Financing multiple properties"
+        ],
+        relatedTopics: ["portfolio-growth", "co-investing", "market-research"],
+        targetAudience: "investors",
+        readingTime: "9 minutes",
+        categoryId: "property-investment"
+      }
+    ]
+  },
+  {
+    categoryId: "market-insights",
+    title: "Market Insights",
+    description: "Stay informed with latest property market trends and data",
+    icon: "📊",
+    color: "#7c3aed",
+    articles: [
+      {
+        id: "market-expectations-2025",
+        title: "Property Market Outlook for 2025",
+        summary: "Expert analysis of market conditions and future trends",
+        keyPoints: [
+          "15.2% increase in sales activity Q4 2024",
+          "First-time buyer trends and demographics",
+          "Regional market performance variations",
+          "Investment property demand surge",
+          "Interest rate impact predictions"
+        ],
+        relatedTopics: ["market-trends", "buyer-demographics", "regional-analysis"],
+        targetAudience: "all-users",
+        readingTime: "8 minutes",
+        categoryId: "market-insights"
+      },
+      {
+        id: "buyers-vs-sellers-market",
+        title: "Understanding Buyers' vs Sellers' Markets",
+        summary: "How to identify market conditions and adapt your strategy",
+        keyPoints: [
+          "Current buyer's market advantages",
+          "Supply and demand indicators",
+          "Negotiation strategies by market type",
+          "Timing your property decisions",
+          "Market research techniques"
+        ],
+        relatedTopics: ["market-timing", "negotiation-strategies", "market-research"],
+        targetAudience: "all-users",
+        readingTime: "6 minutes",
+        categoryId: "market-insights"
+      }
+    ]
+  },
+  {
+    categoryId: "legal-technical",
+    title: "Legal & Technical",
+    description: "Navigate the legal and technical aspects of property ownership",
+    icon: "📋",
+    color: "#ea580c",
+    articles: [
+      {
+        id: "co-ownership-guide",
+        title: "Property Co-Ownership: Complete Guide",
+        summary: "Everything you need to know about shared property ownership",
+        keyPoints: [
+          "Co-ownership contract essentials",
+          "Shared responsibilities and expenses",
+          "Risk mitigation strategies",
+          "Exit clause considerations",
+          "Legal requirements and advice"
+        ],
+        relatedTopics: ["shared-ownership", "legal-contracts", "risk-management"],
+        targetAudience: "co-buyers",
+        readingTime: "7 minutes",
+        categoryId: "legal-technical"
+      },
+      {
+        id: "offer-to-purchase",
+        title: "Offer to Purchase: Read Before You Sign",
+        summary: "Critical guidance on this binding legal agreement",
+        keyPoints: [
+          "Understanding binding obligations",
+          "Protective clauses to include",
+          "72-hour clause implications",
+          "Exit conditions and penalties",
+          "Professional legal advice importance"
+        ],
+        relatedTopics: ["legal-obligations", "contract-protection", "professional-advice"],
+        targetAudience: "active-buyers",
+        readingTime: "5 minutes",
+        categoryId: "legal-technical"
+      }
+    ]
+  }
+];
+
+// Search function
+export function searchKnowledgeBase(query: string): Article[] {
+  const searchTerm = query.toLowerCase().trim();
+  if (!searchTerm) return [];
+
+  const results: Article[] = [];
+  
+  knowledgeBaseData.forEach(category => {
+    category.articles.forEach(article => {
+      const searchableText = [
+        article.title.toLowerCase(),
+        article.summary.toLowerCase(),
+        ...article.keyPoints.map(point => point.toLowerCase()),
+        ...article.relatedTopics.map(topic => topic.toLowerCase()),
+        article.targetAudience.toLowerCase()
+      ].join(' ');
+
+      if (searchableText.includes(searchTerm)) {
+        results.push(article);
+      }
+    });
+  });
+
+  return results;
+}
+
+// Get all articles
+export function getAllArticles(): Article[] {
+  return knowledgeBaseData.flatMap(category => category.articles);
+}
+
+// Get article by ID
+export function getArticleById(id: string): Article | undefined {
+  return getAllArticles().find(article => article.id === id);
+}
+
+// Get related articles
+export function getRelatedArticles(article: Article): Article[] {
+  const related: Article[] = [];
+  
+  article.relatedTopics.forEach(topic => {
+    const matchingArticles = getAllArticles().filter(a => 
+      a.id !== article.id && 
+      (a.relatedTopics.includes(topic) || 
+       a.title.toLowerCase().includes(topic) ||
+       a.summary.toLowerCase().includes(topic))
+    );
+    related.push(...matchingArticles);
+  });
+
+  // Remove duplicates and limit to 3
+  const uniqueRelated = Array.from(new Map(related.map(item => [item.id, item])).values());
+  return uniqueRelated.slice(0, 3);
+} 
