@@ -18,6 +18,8 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { HomeIcon, CreditCardIcon, CalendarIcon, BadgeIcon, BarChart4Icon, CalculatorIcon, InfoIcon, TrendingUpIcon, ClockIcon, LineChartIcon } from "lucide-react";
+import SEO from "@/components/SEO";
+import { pageSEO } from "@/lib/seo";
 
 export default function Calculators() {
   // Check if tab is specified in URL
@@ -44,6 +46,21 @@ export default function Calculators() {
 
   return (
     <div className="bg-white">
+      <SEO
+        title={pageSEO.calculators.title}
+        description={pageSEO.calculators.description}
+        openGraph={{
+          title: pageSEO.calculators.title,
+          description: pageSEO.calculators.description,
+          url: "https://wisebond.co.za/calculators",
+        }}
+        additionalMetaTags={[
+          {
+            name: "keywords",
+            content: pageSEO.calculators.keywords,
+          },
+        ]}
+      />
       {/* Hero Section */}
       <div className="bg-gray-50 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">

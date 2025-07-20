@@ -11,6 +11,8 @@ import {
   type Article, 
   type Category 
 } from "@/data/knowledgeBase";
+import SEO from "@/components/SEO";
+import { pageSEO } from "@/lib/seo";
 
 // Helper function to format target audience
 const formatTargetAudience = (audience: string) => {
@@ -62,6 +64,21 @@ export default function Guidance() {
 
   return (
     <div className="bg-white min-h-screen">
+      <SEO
+        title={pageSEO.guidance.title}
+        description={pageSEO.guidance.description}
+        openGraph={{
+          title: pageSEO.guidance.title,
+          description: pageSEO.guidance.description,
+          url: "https://wisebond.co.za/guidance",
+        }}
+        additionalMetaTags={[
+          {
+            name: "keywords",
+            content: pageSEO.guidance.keywords,
+          },
+        ]}
+      />
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-orange-600 to-orange-800 text-white py-20 px-4 sm:px-6 lg:px-8">
         <div className="w-full mx-auto text-center">

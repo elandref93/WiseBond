@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Phone, Mail, Clock } from "lucide-react";
+import SEO from "@/components/SEO";
+import { pageSEO } from "@/lib/seo";
 
 // Form validation schema
 const formSchema = z.object({
@@ -80,6 +82,21 @@ export default function Contact() {
 
   return (
     <div className="bg-white">
+      <SEO
+        title={pageSEO.contact.title}
+        description={pageSEO.contact.description}
+        openGraph={{
+          title: pageSEO.contact.title,
+          description: pageSEO.contact.description,
+          url: "https://wisebond.co.za/contact",
+        }}
+        additionalMetaTags={[
+          {
+            name: "keywords",
+            content: pageSEO.contact.keywords,
+          },
+        ]}
+      />
       {/* Hero Section */}
       <div className="bg-gray-50 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">

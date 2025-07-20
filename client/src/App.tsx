@@ -10,6 +10,9 @@ import NotFound from "@/pages/not-found";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { HelmetProvider } from "react-helmet-async";
+import { DefaultSeo } from "next-seo";
+import { defaultSEO } from "@/lib/seo";
 
 // Lazy load pages for better performance
 const Home = lazy(() => import("@/pages/Home"));
@@ -85,20 +88,23 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <div className="flex flex-col min-h-screen">
-            <Navbar />
-            <main className="flex-grow">
-              <Suspense fallback={<Loading />}>
-                <Router />
-              </Suspense>
-            </main>
-            <Footer />
-          </div>
-          <Toaster />
-        </AuthProvider>
-      </QueryClientProvider>
+      <HelmetProvider>
+        <DefaultSeo {...defaultSEO} />
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-grow">
+                <Suspense fallback={<Loading />}>
+                  <Router />
+                </Suspense>
+              </main>
+              <Footer />
+            </div>
+            <Toaster />
+          </AuthProvider>
+        </QueryClientProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }

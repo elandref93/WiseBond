@@ -18,6 +18,7 @@ import {
   getRelatedArticles, 
   type Article 
 } from "@/data/knowledgeBase";
+import SEO from "@/components/SEO";
 
 // Helper function to format target audience
 const formatTargetAudience = (audience: string) => {
@@ -140,6 +141,38 @@ export default function GuidanceArticle() {
 
   return (
     <div className="bg-white min-h-screen">
+      <SEO
+        title={article.title}
+        description={article.summary}
+        canonical={`https://wisebond.co.za/guidance/article/${article.id}`}
+        openGraph={{
+          title: article.title,
+          description: article.summary,
+          url: `https://wisebond.co.za/guidance/article/${article.id}`,
+          images: [
+            {
+              url: `https://wisebond.co.za/og-image-${article.id}.jpg`,
+              width: 1200,
+              height: 630,
+              alt: article.title,
+            },
+          ],
+        }}
+        additionalMetaTags={[
+          {
+            name: "keywords",
+            content: `${article.relatedTopics.join(', ')}, home loan, mortgage, South Africa, property finance`,
+          },
+          {
+            name: "author",
+            content: "WiseBond",
+          },
+          {
+            name: "article:section",
+            content: article.categoryId,
+          },
+        ]}
+      />
       {/* Header */}
       <div className="bg-gradient-to-r from-orange-600 to-orange-800 text-white py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
