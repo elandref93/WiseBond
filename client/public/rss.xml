@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>WiseBond Blog - Home Loan Advice & Mortgage Tips</title>
+    <link>https://wisebond.co.za</link>
+    <description>Expert home loan advice, mortgage tips, and property investment guidance for South African homebuyers.</description>
+    <language>en-ZA</language>
+    <lastBuildDate>Mon, 27 Jan 2025 12:00:00 +0200</lastBuildDate>
+    <atom:link href="https://wisebond.co.za/rss.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Complete Guide to Home Loan Application in South Africa</title>
+      <link>https://wisebond.co.za/guidance/article/home-loan-application-guide</link>
+      <description>Learn everything you need to know about applying for a home loan in South Africa, from documentation requirements to approval process.</description>
+      <pubDate>Mon, 27 Jan 2025 10:00:00 +0200</pubDate>
+      <guid>https://wisebond.co.za/guidance/article/home-loan-application-guide</guid>
+    </item>
+    
+    <item>
+      <title>First-Time Home Buyer: Step-by-Step Guide</title>
+      <link>https://wisebond.co.za/guidance/article/first-time-buyer-guide</link>
+      <description>Essential tips and advice for first-time home buyers in South Africa, including saving strategies and loan preparation.</description>
+      <pubDate>Sun, 26 Jan 2025 14:30:00 +0200</pubDate>
+      <guid>https://wisebond.co.za/guidance/article/first-time-buyer-guide</guid>
+    </item>
+    
+    <item>
+      <title>How to Calculate Your Home Loan Affordability</title>
+      <link>https://wisebond.co.za/guidance/article/affordability-calculation</link>
+      <description>Use our comprehensive guide to calculate how much home loan you can afford based on your income, expenses, and financial situation.</description>
+      <pubDate>Sat, 25 Jan 2025 09:15:00 +0200</pubDate>
+      <guid>https://wisebond.co.za/guidance/article/affordability-calculation</guid>
+    </item>
+    
+    <item>
+      <title>Understanding Home Loan Interest Rates in South Africa</title>
+      <link>https://wisebond.co.za/guidance/article/interest-rates-explained</link>
+      <description>Everything you need to know about home loan interest rates, including prime rate, fixed vs variable rates, and how to get the best deal.</description>
+      <pubDate>Fri, 24 Jan 2025 16:45:00 +0200</pubDate>
+      <guid>https://wisebond.co.za/guidance/article/interest-rates-explained</guid>
+    </item>
+    
+    <item>
+      <title>Property Investment Tips for South African Investors</title>
+      <link>https://wisebond.co.za/guidance/article/property-investment-tips</link>
+      <description>Expert advice on property investment in South Africa, including market analysis, financing options, and investment strategies.</description>
+      <pubDate>Thu, 23 Jan 2025 11:20:00 +0200</pubDate>
+      <guid>https://wisebond.co.za/guidance/article/property-investment-tips</guid>
+    </item>
+  </channel>
+</rss> 

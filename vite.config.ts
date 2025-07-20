@@ -24,7 +24,9 @@ export default defineConfig({
           'ads.txt',
           'app-ads.txt',
           'humans.txt',
-          'google-verification.html'
+          'google-verification.html',
+          'rss.xml',
+          'site.webmanifest'
         ];
         
         seoFiles.forEach(file => {
