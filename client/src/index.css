@@ -17,7 +17,7 @@
   .animate-accordion-down {
     animation: accordion-down 0.2s ease-out;
   }
-  
+
   .animate-accordion-up {
     animation: accordion-up 0.2s ease-out;
   }
@@ -39,4 +39,57 @@
   to {
     height: 0;
   }
+}
+
+/* Custom prose styles for markdown content */
+.prose {
+  @apply text-gray-900;
+}
+
+.prose h1 {
+  @apply text-3xl font-bold mb-6 text-gray-900;
+}
+
+.prose h2 {
+  @apply text-2xl font-bold mb-4 text-gray-900 mt-8;
+}
+
+.prose h3 {
+  @apply text-xl font-semibold mb-3 text-gray-900 mt-6;
+}
+
+.prose p {
+  @apply mb-4 leading-relaxed text-gray-700;
+}
+
+.prose ul {
+  @apply mb-4 pl-6;
+}
+
+.prose li {
+  @apply mb-2 text-gray-700;
+}
+
+.prose strong {
+  @apply font-semibold text-gray-900;
+}
+
+.prose em {
+  @apply italic text-gray-700;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-blue-500 pl-4 italic text-gray-600 mb-4;
+}
+
+.prose code {
+  @apply bg-gray-100 px-2 py-1 rounded text-sm font-mono;
+}
+
+.prose pre {
+  @apply bg-gray-100 p-4 rounded-lg overflow-x-auto mb-4;
+}
+
+.prose pre code {
+  @apply bg-transparent p-0;
 }

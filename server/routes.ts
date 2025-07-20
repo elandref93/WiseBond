@@ -458,7 +458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.storeResetToken(user.id, resetToken, expiresAt);
 
       // Send password reset email
-      const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/reset-password?token=${resetToken}`;
+      const resetUrl = `${process.env.FRONTEND_URL || 'https://localhost:5000'}/reset-password?token=${resetToken}`;
       const emailResult = await sendPasswordResetEmail({
         firstName: user.firstName,
         email: user.email,
@@ -613,7 +613,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           firstName: 'Debug Test',
           email,
           resetToken: 'debug-token-123',
-          resetUrl: `http://localhost:5000/reset-password?token=debug-token-123`
+          resetUrl: `https://localhost:5000/reset-password?token=debug-token-123`
         });
       } else {
         return res.status(400).json({ message: 'Invalid email type' });

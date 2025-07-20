@@ -156,7 +156,7 @@ app.use((req, res, next) => {
   // Start the server after all middleware is configured  
   const port = parseInt(process.env.PORT || "5000", 10);
   server.listen(port, "0.0.0.0", () => {
-    console.log(`Server running on http://0.0.0.0:${port}`);
+    console.log(`Server running on https://0.0.0.0:${port}`);
   });
 
   // Server is already started by registerRoutes function

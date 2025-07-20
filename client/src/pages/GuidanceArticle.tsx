@@ -4,6 +4,7 @@ import { ArrowLeft, Clock, Users, Tag, Share2, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ReactMarkdown from "react-markdown";
 import { 
   getArticleById, 
   getRelatedArticles, 
@@ -105,7 +106,16 @@ export default function GuidanceArticle() {
             {/* Article Content */}
             <div className="lg:col-span-2">
               <div className="bg-white rounded-lg shadow-sm border p-8">
-                {/* Key Points */}
+                {/* Full Article Content */}
+                {article.content && (
+                  <div className="mb-8">
+                    <div className="prose prose-lg max-w-none">
+                      <ReactMarkdown>{article.content}</ReactMarkdown>
+                    </div>
+                  </div>
+                )}
+
+                {/* Key Points (shown if no full content or as summary) */}
                 <div className="mb-8">
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">Key Points</h2>
                   <ul className="space-y-3">
