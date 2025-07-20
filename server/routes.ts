@@ -5,7 +5,7 @@ import session from "express-session";
 import MemoryStore from "memorystore";
 import connectPgSimple from "connect-pg-simple";
 import {
-  insertUserSchema, loginSchema, insertCalculationResultSchema
+  insertUserSchema, loginSchema, insertCalculationResultSchema, updateProfileSchema
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from 'zod-validation-error';
@@ -328,14 +328,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ message: "Failed to save session" });
         }
       });
+      
+      // Return complete user data without password
+      const { password, ...userWithoutPassword } = user;
       res.json({
         message: "Login successful",
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName
-        }
+        user: userWithoutPassword
       });
     } catch (error) {
       console.error("Login error:", error);
@@ -360,14 +358,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not found" });
       }
 
-      res.json({
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        otpVerified: user.otpVerified,
-        profileComplete: user.profileComplete
-      });
+      // Return complete user data without password
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
     } catch (error) {
       console.error("Get user error:", error);
       res.status(500).json({ message: "Failed to get user information" });
@@ -522,6 +515,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Token validation error:", error);
       res.status(500).json({ message: "Failed to validate token" });
+    }
+  });
+
+  // Phone verification routes
+  app.post("/api/auth/send-phone-otp", async (req, res) => {
+    try {
+      const { userId, phone } = req.body;
+      //const storage = await getStorage();
+
+      if (!userId || !phone) {
+        return res.status(400).json({ message: "User ID and phone number are required" });
+      }
+
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Generate phone OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date();
+      expiresAt.setMinutes(expiresAt.getMinutes() + 10); // Phone OTP expires in 10 minutes
+
+      await storage.storePhoneOTP(user.id, otp, expiresAt);
+
+      // In a real implementation, you would send SMS here
+      // For now, we'll just log it for development
+      console.log(`Phone OTP for ${phone}: ${otp}`);
+
+      if (process.env.NODE_ENV === 'development') {
+        return res.json({
+          message: "Phone OTP sent (development mode)",
+          developmentOtp: otp
+        });
+      }
+
+      res.json({
+        message: "Verification code sent to your phone number.",
+        phoneSent: true
+      });
+    } catch (error) {
+      console.error("Send phone OTP error:", error);
+      res.status(500).json({ message: "Failed to send phone verification code" });
+    }
+  });
+
+  app.post("/api/auth/verify-phone-otp", async (req, res) => {
+    try {
+      const { userId, otp } = req.body;
+      //const storage = await getStorage();
+
+      if (!userId || !otp) {
+        return res.status(400).json({ message: "User ID and OTP are required" });
+      }
+
+      const isValid = await storage.verifyPhoneOTP(userId, otp);
+      if (!isValid) {
+        return res.status(400).json({ message: "Invalid or expired phone OTP" });
+      }
+
+      // Update user as phone verified
+      await storage.updateUser(userId, { phoneVerified: true });
+
+      res.json({ message: "Phone number verified successfully" });
+    } catch (error) {
+      console.error("Phone OTP verification error:", error);
+      res.status(500).json({ message: "Failed to verify phone OTP" });
+    }
+  });
+
+  // User profile routes
+  app.get("/api/user/profile", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      //const storage = await getStorage();
+      const user = await storage.getUserById(req.session.userId!);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Return complete user data without password
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Get profile error:", error);
+      res.status(500).json({ message: "Failed to get profile" });
+    }
+  });
+
+  app.patch("/api/user/profile", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const updateData = updateProfileSchema.parse(req.body);
+      //const storage = await getStorage();
+
+      const updatedUser = await storage.updateUser(req.session.userId!, updateData);
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Return complete user data without password
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Update profile error:", error);
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.toString() });
+      }
+      res.status(500).json({ message: "Failed to update profile" });
     }
   });
 

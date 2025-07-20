@@ -50,9 +50,12 @@ export const users = pgTable("users", {
   coApplicantPostalCode: text("co_applicant_postal_code"), // Co-applicant's postal code if different
   coApplicantProvince: text("co_applicant_province"), // Co-applicant's province if different
   // Authentication fields
-  otpVerified: boolean("otp_verified").default(false),
+  otpVerified: boolean("otp_verified").default(false), // Email verification
+  phoneVerified: boolean("phone_verified").default(false), // Phone verification
   otpCode: text("otp_code"), // Current OTP code
   otpExpiresAt: timestamp("otp_expires_at"), // OTP expiration time
+  phoneOtpCode: text("phone_otp_code"), // Phone OTP code
+  phoneOtpExpiresAt: timestamp("phone_otp_expires_at"), // Phone OTP expiration time
   resetToken: text("reset_token"), // Password reset token
   resetTokenExpiresAt: timestamp("reset_token_expires_at"), // Reset token expiration
   profileComplete: boolean("profile_complete").default(false),
@@ -219,6 +222,9 @@ export const updateProfileSchema = createInsertSchema(users)
     coApplicantCity: z.string().optional(),
     coApplicantPostalCode: z.string().optional(),
     coApplicantProvince: z.string().optional(),
+    otpVerified: z.boolean().optional(),
+    phoneVerified: z.boolean().optional(),
+    profileComplete: z.boolean().optional(),
   });
 
 export const loginSchema = z.object({

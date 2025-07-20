@@ -77,7 +77,7 @@ export default function Profile() {
   
   // Fetch user profile data
   const { data: profileData, isLoading: isProfileLoading } = useQuery<UserType>({
-    queryKey: ['/api/user/profile', user?.id],
+    queryKey: ['/api/auth/me'],
     enabled: !!user,
   });
 
@@ -117,6 +117,9 @@ export default function Profile() {
       coApplicantCity: '',
       coApplicantPostalCode: '',
       coApplicantProvince: '',
+      otpVerified: false,
+      phoneVerified: false,
+      profileComplete: false
     },
   });
   
@@ -169,6 +172,7 @@ export default function Profile() {
         coApplicantPostalCode: profileData.coApplicantPostalCode || '',
         coApplicantProvince: profileData.coApplicantProvince || '',
         otpVerified: profileData.otpVerified || false,
+        phoneVerified: profileData.phoneVerified || false,
         profileComplete: profileData.profileComplete || false
       };
       
@@ -194,13 +198,13 @@ export default function Profile() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       toast({
         title: 'Profile Updated',
         description: 'Your profile has been successfully updated.',
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: 'Update Failed',
         description: error.message || 'Failed to update profile. Please try again.',
@@ -479,7 +483,7 @@ export default function Profile() {
                             <FormItem>
                               <div className="flex justify-between items-center mb-1">
                                 <FormLabel>Email Address</FormLabel>
-                                {profileData?.otpVerified ? (
+                                {form.watch('otpVerified') ? (
                                   <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
                                     Verified
                                   </Badge>
@@ -504,7 +508,7 @@ export default function Profile() {
                             <FormItem>
                               <div className="flex justify-between items-center mb-1">
                                 <FormLabel>Phone Number</FormLabel>
-                                {profileData?.otpVerified ? (
+                                {form.watch('phoneVerified') ? (
                                   <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
                                     Verified
                                   </Badge>
@@ -536,19 +540,45 @@ export default function Profile() {
                                       }
                                     }}
                                   />
-                                  {field.value && field.value.length >= 10 && !profileData?.otpVerified && (
+                                  {!form.watch('phoneVerified') && (
                                     <Button 
                                       type="button" 
                                       variant="outline" 
                                       size="sm"
                                       className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 text-xs"
-                                      onClick={() => {
-                                        // In a real implementation, this would trigger an API call to send an OTP
-                                        toast({
-                                          title: "OTP Sent",
-                                          description: `Verification code sent to ${field.value}`,
-                                        });
-                                        setShowOtpDialog(true);
+                                      onClick={async () => {
+                                        try {
+                                          // Send phone OTP
+                                          const response = await apiRequest('/api/auth/send-phone-otp', {
+                                            method: 'POST',
+                                            body: JSON.stringify({
+                                              userId: user?.id,
+                                              phone: field.value
+                                            }),
+                                          });
+                                          
+                                          const data = await response.json();
+                                          
+                                          if (data.developmentOtp) {
+                                            toast({
+                                              title: "Development Mode - Phone OTP",
+                                              description: `Use this OTP code: ${data.developmentOtp}`,
+                                            });
+                                          } else {
+                                            toast({
+                                              title: "Phone OTP Sent",
+                                              description: "Verification code sent to your phone number.",
+                                            });
+                                          }
+                                          
+                                          setShowOtpDialog(true);
+                                        } catch (error) {
+                                          toast({
+                                            title: "Failed to send OTP",
+                                            description: "Please try again later.",
+                                            variant: "destructive",
+                                          });
+                                        }
                                       }}
                                     >
                                       Verify
@@ -1427,28 +1457,47 @@ export default function Profile() {
               Cancel
             </Button>
             <Button 
-              onClick={() => {
+              onClick={async () => {
                 setVerifyingMobile(true);
-                // Simulate verification process
-                setTimeout(() => {
-                  setVerifyingMobile(false);
-                  setShowOtpDialog(false);
-                  // In a real implementation, we would make an API call to update phone verification status
-                  // For now, we'll update it locally in the form
-                  form.setValue('otpVerified', true);
-                  
-                  // Also submit the form to save the changes
-                  const currentFormData = form.getValues();
-                  updateProfileMutation.mutate({
-                    ...currentFormData,
-                    otpVerified: true
+                try {
+                  // Verify phone OTP with actual API
+                  const response = await apiRequest('/api/auth/verify-phone-otp', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                      userId: user?.id,
+                      otp: mobileOtp
+                    }),
                   });
                   
+                  if (response.ok) {
+                    setShowOtpDialog(false);
+                    setMobileOtp('');
+                    
+                    // Update the form and refresh user data
+                    form.setValue('phoneVerified', true);
+                    queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+                    
+                    toast({
+                      title: "Mobile Verified",
+                      description: "Your mobile number has been successfully verified.",
+                    });
+                  } else {
+                    const errorData = await response.json();
+                    toast({
+                      title: "Verification Failed",
+                      description: errorData.message || "Invalid OTP code. Please try again.",
+                      variant: "destructive",
+                    });
+                  }
+                } catch (error) {
                   toast({
-                    title: "Mobile Verified",
-                    description: "Your mobile number has been successfully verified.",
+                    title: "Verification Failed",
+                    description: "An error occurred. Please try again.",
+                    variant: "destructive",
                   });
-                }, 1500);
+                } finally {
+                  setVerifyingMobile(false);
+                }
               }}
               disabled={mobileOtp.length !== 6 || verifyingMobile}
               className="w-full sm:w-auto"

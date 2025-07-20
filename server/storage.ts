@@ -17,6 +17,10 @@ export interface IStorage {
   // OTP methods
   storeOTP(userId: number, otp: string, expiresAt: Date): Promise<void>;
   verifyOTP(userId: number, otp: string): Promise<boolean>;
+  
+  // Phone OTP methods
+  storePhoneOTP(userId: number, otp: string, expiresAt: Date): Promise<void>;
+  verifyPhoneOTP(userId: number, otp: string): Promise<boolean>;
 
   // Password reset token methods
   storeResetToken(userId: number, token: string, expiresAt: Date): Promise<void>;
@@ -174,6 +178,33 @@ export class DatabaseStorage implements IStorage {
         otpCode: null,
         otpExpiresAt: null,
         otpVerified: true
+      }).where(eq(users.id, userId));
+    }
+    return isValid;
+  }
+
+  // Phone OTP methods (using user table fields)
+  async storePhoneOTP(userId: number, otp: string, expiresAt: Date): Promise<void> {
+    const db = await getPostgresClient();
+
+    await db.update(users).set({
+      phoneOtpCode: otp,
+      phoneOtpExpiresAt: expiresAt
+    }).where(eq(users.id, userId));
+  }
+
+  async verifyPhoneOTP(userId: number, otp: string): Promise<boolean> {
+    const db = await getPostgresClient();
+
+    const user = await db.select().from(users).where(eq(users.id, userId));
+    if (!user[0] || !user[0].phoneOtpCode || !user[0].phoneOtpExpiresAt) return false;
+
+    const isValid = user[0].phoneOtpCode === otp && new Date() < user[0].phoneOtpExpiresAt;
+    if (isValid) {
+      // Clear OTP after successful verification
+      await db.update(users).set({
+        phoneOtpCode: null,
+        phoneOtpExpiresAt: null
       }).where(eq(users.id, userId));
     }
     return isValid;
