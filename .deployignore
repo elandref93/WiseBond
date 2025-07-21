@@ -1,5 +1,5 @@
 # Development files
-node_modules/
+# node_modules/ - REMOVED: Let Azure build fresh dependencies
 *.log
 .git/
 .github/
@@ -75,7 +75,7 @@ attached_assets/
 .npmrc
 .yarnrc
 # We now include package-lock.json for dependency tracking
-# package-lock.json
+# package-lock.json - INCLUDED: Required for Azure to build fresh dependencies
 yarn.lock
 
 # Docker files (not needed for native deployment)
