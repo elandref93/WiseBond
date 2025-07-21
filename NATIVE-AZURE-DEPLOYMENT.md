@@ -144,7 +144,7 @@ Set these in Azure App Service Configuration:
 
 #### Application
 - `NODE_ENV=production`
-- `WEBSITE_NODE_DEFAULT_VERSION=20.x`
+- `WEBSITE_NODE_DEFAULT_VERSION=22.x`
 
 ### Azure CLI Configuration Example
 
@@ -154,7 +154,7 @@ az webapp config appsettings set \
   --name WiseBond \
   --settings \
     NODE_ENV="production" \
-    WEBSITE_NODE_DEFAULT_VERSION="20.x" \
+    WEBSITE_NODE_DEFAULT_VERSION="22.x" \
     DATABASE_URL="your-connection-string" \
     MAILGUN_API_KEY="your-mailgun-key" \
     MAILGUN_DOMAIN="your-domain" \
