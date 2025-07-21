@@ -70,6 +70,7 @@ app.use((req, res, next) => {
     'MAILGUN_DOMAIN', 
     'MAILGUN_FROM_EMAIL',
     'GOOGLE_MAPS_API_KEY',
+    'OPENROUTER_API_KEY',
     'DATABASE_URL'
   ];
   
@@ -160,6 +161,13 @@ app.use((req, res, next) => {
   console.log(`🚀 Starting server on port ${port}...`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📁 Working directory: ${process.cwd()}`);
+  console.log(`🔧 PORT environment variable: ${process.env.PORT || 'Not set (using default 8080)'}`);
+  
+  // Azure Web App specific logging
+  if (process.env.WEBSITE_SITE_NAME) {
+    console.log(`☁️ Running on Azure Web App: ${process.env.WEBSITE_SITE_NAME}`);
+    console.log(`🔗 Instance ID: ${process.env.WEBSITE_INSTANCE_ID || 'Unknown'}`);
+  }
   
   server.listen(port, "0.0.0.0", () => {
     console.log(`✅ Server running on http://0.0.0.0:${port}`);
@@ -169,6 +177,12 @@ app.use((req, res, next) => {
     console.log(`📊 Database: ${process.env.DATABASE_URL ? 'Configured' : 'Not configured'}`);
     console.log(`📧 Email: ${process.env.MAILGUN_API_KEY ? 'Configured' : 'Not configured'}`);
     console.log(`🗺️ Maps: ${process.env.GOOGLE_MAPS_API_KEY ? 'Configured' : 'Not configured'}`);
+    console.log(`🤖 OpenRouter: ${process.env.OPENROUTER_API_KEY ? 'Configured' : 'Not configured'}`);
+    
+    // Azure Web App health check endpoint
+    if (process.env.WEBSITE_SITE_NAME) {
+      console.log(`🏥 Health check available at: http://localhost:${port}/health`);
+    }
   });
 
   // Handle server errors

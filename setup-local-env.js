@@ -54,6 +54,11 @@ async function setupLocalEnv() {
   
   const googleMapsApiKey = await question('Google Maps API Key: ');
 
+  console.log('\n🤖 OpenRouter AI Configuration (for AI services):');
+  console.log('   Get your API key from: https://openrouter.ai/keys\n');
+  
+  const openRouterApiKey = await question('OpenRouter API Key: ');
+
   console.log('\n🔐 Session Secret (for user sessions):');
   const sessionSecret = await question('Session Secret (default: dev-secret-key): ') || 'dev-secret-key';
 
@@ -69,6 +74,9 @@ MAILGUN_FROM_EMAIL=${mailgunFromEmail}
 # Google Maps API
 GOOGLE_MAPS_API_KEY=${googleMapsApiKey}
 VITE_GOOGLE_MAPS_API_KEY=${googleMapsApiKey}
+
+# OpenRouter AI API
+OPENROUTER_API_KEY=${openRouterApiKey}
 
 # Session Management
 SESSION_SECRET=${sessionSecret}

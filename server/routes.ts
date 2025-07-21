@@ -27,7 +27,8 @@ declare module "express-session" {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  const port = parseInt(process.env.PORT || "5000", 10);
+  // Note: Port is handled in the main server file (server/index.ts)
+  // This function only registers routes and returns the HTTP server
 
   // CORS middleware for development
   app.use((req, res, next) => {
@@ -751,7 +752,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const emailResult = await sendContactFormEmail({
         name: contactData.name,
         email: contactData.email,
-        phone: contactData.phone,
+        phone: contactData.phone || undefined,
         message: contactData.message
       });
       
@@ -780,16 +781,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Health check endpoint for debugging
+  // OpenRouter AI API Routes
+  app.get('/api/openrouter/test', async (req, res) => {
+    const { OpenRouterController } = await import('./services/openRouter/openRouterController.js');
+    await OpenRouterController.testConnection(req, res);
+  });
+
+  app.get('/api/openrouter/models', async (req, res) => {
+    const { OpenRouterController } = await import('./services/openRouter/openRouterController.js');
+    await OpenRouterController.getModels(req, res);
+  });
+
+  app.post('/api/openrouter/generate-text', async (req, res) => {
+    const { OpenRouterController } = await import('./services/openRouter/openRouterController.js');
+    await OpenRouterController.generateText(req, res);
+  });
+
+  app.post('/api/openrouter/financial-advice', async (req, res) => {
+    const { OpenRouterController } = await import('./services/openRouter/openRouterController.js');
+    await OpenRouterController.generateFinancialAdvice(req, res);
+  });
+
+  app.post('/api/openrouter/chat', async (req, res) => {
+    const { OpenRouterController } = await import('./services/openRouter/openRouterController.js');
+    await OpenRouterController.chatCompletion(req, res);
+  });
+
+  // Health check endpoint for debugging and Azure Web App monitoring
   app.get('/health', (req, res) => {
-    res.json({
+    const healthData: any = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV,
-      port: process.env.PORT || 5000,
-      database: 'in-memory-storage',
-      vite: 'enabled'
-    });
+      environment: process.env.NODE_ENV || 'development',
+      port: process.env.PORT || 8080,
+      database: process.env.DATABASE_URL ? 'configured' : 'in-memory-storage',
+      vite: process.env.NODE_ENV === 'production' ? 'disabled' : 'enabled',
+      services: {
+        email: !!process.env.MAILGUN_API_KEY,
+        maps: !!process.env.GOOGLE_MAPS_API_KEY,
+        openRouter: !!process.env.OPENROUTER_API_KEY,
+        database: !!process.env.DATABASE_URL
+      }
+    };
+
+    // Add Azure-specific information if running on Azure
+    if (process.env.WEBSITE_SITE_NAME) {
+      healthData.azure = {
+        siteName: process.env.WEBSITE_SITE_NAME,
+        instanceId: process.env.WEBSITE_INSTANCE_ID,
+        slotName: process.env.WEBSITE_SLOT_NAME,
+        ownerName: process.env.WEBSITE_OWNER_NAME
+      };
+    }
+
+    res.json(healthData);
   });
 
   // Email debug endpoint for development
