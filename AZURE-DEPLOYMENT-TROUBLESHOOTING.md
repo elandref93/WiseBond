@@ -21,32 +21,40 @@ server.listen(port, "0.0.0.0", () => {
 - Ensured consistent port handling across the application
 - Added Azure-specific logging and health checks
 
-### 2. Cross-Env Dependency Issue ✅ FIXED
+### 2. Cross-Env Dependency Issue ✅ FIXED (Best Practice Solution)
 
-**Problem**: Azure Web App deployment fails with `sh: 1: cross-env: not found` because `cross-env` was installed as a devDependency, but Azure doesn't install devDependencies in production.
+**Problem**: Azure Web App deployment fails with `sh: 1: cross-env: not found` because `cross-env` is not needed in production and can cause module resolution issues.
 
-**Solution**: Moved `cross-env` from `devDependencies` to `dependencies` in `package.json`:
+**Solution**: Removed `cross-env` from production entirely and use Azure Portal for environment variables:
 
 ```json
 // ✅ CORRECT - package.json
-"dependencies": {
-  "cross-env": "^7.0.3",
-  // ... other production dependencies
+"start": "node dist/index.js",  // No cross-env needed
+"devDependencies": {
+  "cross-env": "^7.0.3"  // Only for local development
 }
 ```
 
 **What was fixed**:
-- Moved `cross-env` to `dependencies` so it's available in production
-- Removed duplicate entry from `devDependencies`
-- Ensured the `start` script works on Azure Web App
+- Removed `cross-env` from production `start` script
+- Moved `cross-env` back to `devDependencies` (best practice)
+- Added `postinstall` script for safety
+- Environment variables now set via Azure Portal Configuration
+
+**Azure Portal Configuration Required**:
+- Go to Azure Portal → Your Web App → Configuration → Application settings
+- Add: `NODE_ENV` = `production`
+- Add any other environment variables needed
 
 ### 3. Environment Variable Configuration
 
 **Required Environment Variables for Azure**:
 
+**⚠️ CRITICAL: Set these in Azure Portal → Your Web App → Configuration → Application settings**
+
 ```bash
 # Core Configuration
-NODE_ENV=production
+NODE_ENV=production  ⚠️ REQUIRED
 PORT=8080  # Azure will set this automatically
 
 # Database (if using PostgreSQL)
@@ -66,6 +74,14 @@ OPENROUTER_API_KEY=your_openrouter_api_key
 # Session Management
 SESSION_SECRET=your_session_secret
 ```
+
+**How to Set Environment Variables in Azure Portal**:
+1. Go to Azure Portal → Your Web App
+2. Click "Configuration" in the left sidebar
+3. Click "Application settings" tab
+4. Add each variable as a new "Application setting"
+5. Click "Save" at the top
+6. Your app will restart automatically
 
 ### 4. Build and Deployment Process
 
