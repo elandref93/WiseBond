@@ -21,7 +21,26 @@ server.listen(port, "0.0.0.0", () => {
 - Ensured consistent port handling across the application
 - Added Azure-specific logging and health checks
 
-### 2. Environment Variable Configuration
+### 2. Cross-Env Dependency Issue ✅ FIXED
+
+**Problem**: Azure Web App deployment fails with `sh: 1: cross-env: not found` because `cross-env` was installed as a devDependency, but Azure doesn't install devDependencies in production.
+
+**Solution**: Moved `cross-env` from `devDependencies` to `dependencies` in `package.json`:
+
+```json
+// ✅ CORRECT - package.json
+"dependencies": {
+  "cross-env": "^7.0.3",
+  // ... other production dependencies
+}
+```
+
+**What was fixed**:
+- Moved `cross-env` to `dependencies` so it's available in production
+- Removed duplicate entry from `devDependencies`
+- Ensured the `start` script works on Azure Web App
+
+### 3. Environment Variable Configuration
 
 **Required Environment Variables for Azure**:
 
@@ -48,7 +67,7 @@ OPENROUTER_API_KEY=your_openrouter_api_key
 SESSION_SECRET=your_session_secret
 ```
 
-### 3. Build and Deployment Process
+### 4. Build and Deployment Process
 
 **Local Testing**:
 ```bash
@@ -65,7 +84,7 @@ npm run build:prod
 # Deploy the dist/ folder to Azure
 ```
 
-### 4. Health Check Endpoint
+### 5. Health Check Endpoint
 
 The application now includes a comprehensive health check endpoint at `/health` that provides:
 
@@ -79,7 +98,7 @@ The application now includes a comprehensive health check endpoint at `/health` 
 curl https://your-app-name.azurewebsites.net/health
 ```
 
-### 5. Common Error Messages and Solutions
+### 6. Common Error Messages and Solutions
 
 #### "Application Error" or "500 Internal Server Error"
 
@@ -122,7 +141,7 @@ node --version  # Should be 22.x.x
 npm run build:prod
 ```
 
-### 6. Azure Web App Configuration
+### 7. Azure Web App Configuration
 
 **Required Settings in Azure Portal**:
 
@@ -138,7 +157,7 @@ npm run build:prod
 3. **Configuration > General Settings**:
    - Startup Command: `node dist/index.js`
 
-### 7. Monitoring and Debugging
+### 8. Monitoring and Debugging
 
 **Azure Portal Monitoring**:
 1. **Logs > Log stream** - Real-time application logs
@@ -151,7 +170,7 @@ npm run build:prod
 curl -f https://your-app-name.azurewebsites.net/health
 ```
 
-### 8. Performance Optimization
+### 9. Performance Optimization
 
 **For Production**:
 1. Enable compression in `web.config`
@@ -159,7 +178,7 @@ curl -f https://your-app-name.azurewebsites.net/health
 3. Configure proper caching headers
 4. Monitor memory usage and scale if needed
 
-### 9. Security Considerations
+### 10. Security Considerations
 
 **Required Security Headers** (already configured in `web.config`):
 - X-Content-Type-Options
@@ -172,7 +191,7 @@ curl -f https://your-app-name.azurewebsites.net/health
 - Use Azure Key Vault for sensitive configuration
 - Rotate API keys regularly
 
-### 10. Troubleshooting Checklist
+### 11. Troubleshooting Checklist
 
 Before deploying to Azure:
 
@@ -186,7 +205,7 @@ Before deploying to Azure:
 - [ ] Node.js version is 22.x
 - [ ] Build process completes without errors
 
-### 11. Emergency Rollback
+### 12. Emergency Rollback
 
 If deployment fails:
 
