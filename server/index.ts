@@ -8,15 +8,20 @@ import path from "path";
 import fs from "fs";
 import { createServer } from "http";
 
-const envPath = path.resolve('.env.local');
-console.log('🔧 Loading environment from:', envPath);
-console.log('📁 File exists:', fs.existsSync(envPath));
+// Only try to load .env.local in development
+if (process.env.NODE_ENV !== 'production') {
+  const envPath = path.resolve('.env.local');
+  console.log('🔧 Loading environment from:', envPath);
+  console.log('📁 File exists:', fs.existsSync(envPath));
 
-const result = dotenv.config({ path: envPath });
-if (result.error) {
-  console.error('❌ Error loading .env.local:', result.error);
+  const result = dotenv.config({ path: envPath });
+  if (result.error) {
+    console.error('❌ Error loading .env.local:', result.error);
+  } else {
+    console.log('✅ Environment variables loaded successfully');
+  }
 } else {
-  console.log('✅ Environment variables loaded successfully');
+  console.log('🌍 Production environment - using Azure environment variables');
 }
 
 const app = express();
@@ -112,8 +117,13 @@ app.use((req, res, next) => {
     // Setup database using three-tier strategy (Tier 1 → Tier 2 → Tier 3)
     await getPostgresClient();
     console.log('✅ Database connected successfully, running migrations...');
-    const { migrate } = await import('./migrate');
-    await migrate();
+    // Only run migrations in development or if explicitly requested
+    if (process.env.NODE_ENV !== 'production' || process.env.RUN_MIGRATIONS === 'true') {
+      const { migrate } = await import('./migrate');
+      await migrate();
+    } else {
+      console.log('🚀 Production mode - skipping database migrations');
+    }
     
   } catch (error: any) {
     console.error('❌ CRITICAL: Database setup failed:', error.message);

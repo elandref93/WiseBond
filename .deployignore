@@ -23,17 +23,18 @@ jest.config.*
 **/.output/
 
 # Config files not needed in production
-.nvmrc
+# .nvmrc - INCLUDED: Required for Node.js version specification
 .eslintrc*
 .prettierrc*
 .editorconfig
 .gitignore
-tsconfig.json
-postcss.config.js
-tailwind.config.*
-vite.config.*
-*.config.ts
-*.config.js
+# Include these config files as they're needed for build
+# tsconfig.json
+# postcss.config.js
+# tailwind.config.*
+# vite.config.*
+# *.config.ts
+# *.config.js
 !next.config.js
 !svelte.config.js
 

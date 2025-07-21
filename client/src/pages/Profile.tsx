@@ -75,6 +75,8 @@ export default function Profile() {
   const [showOtpDialog, setShowOtpDialog] = useState<boolean>(false);
   const [mobileOtp, setMobileOtp] = useState<string>('');
   const [verifyingMobile, setVerifyingMobile] = useState<boolean>(false);
+  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
   const [idInfo, setIdInfo] = useState<{
     isValid: boolean;
     dateOfBirth?: string;
@@ -185,6 +187,7 @@ export default function Profile() {
       };
       
       form.reset(formData);
+      setHasUnsavedChanges(false); // Reset unsaved changes when data is loaded
       
       // Process ID number if it exists
       if (profileData.idNumber) {
@@ -196,6 +199,16 @@ export default function Profile() {
       }
     }
   }, [profileData, form]);
+
+  // Track form changes to show unsaved changes indicator
+  useEffect(() => {
+    const subscription = form.watch((value, { name, type }) => {
+      if (type === 'change' && name) {
+        setHasUnsavedChanges(true);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
   
   // Update profile mutation
   const updateProfileMutation = useMutation({
@@ -207,16 +220,20 @@ export default function Profile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      setLastSavedTime(new Date());
+      setHasUnsavedChanges(false);
       toast({
-        title: 'Profile Updated',
-        description: 'Your profile has been successfully updated.',
+        title: '✅ Profile Saved Successfully!',
+        description: 'Your profile information has been updated and saved.',
+        duration: 5000, // Show for 5 seconds
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Update Failed',
-        description: error.message || 'Failed to update profile. Please try again.',
+        title: '❌ Save Failed',
+        description: error.message || 'Failed to save profile. Please try again.',
         variant: 'destructive',
+        duration: 6000, // Show error longer
       });
     },
   });
@@ -1425,13 +1442,44 @@ export default function Profile() {
                     </div>
                   )}
                   
-                  <div className="flex justify-end pt-6">
+                  <div className="flex items-center justify-between pt-6">
+                    <div className="flex items-center gap-4">
+                      {lastSavedTime && !hasUnsavedChanges && (
+                        <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg border border-green-200">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span>✅ Last saved: {lastSavedTime.toLocaleTimeString()}</span>
+                        </div>
+                      )}
+                      
+                      {hasUnsavedChanges && (
+                        <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200 animate-pulse">
+                          <div className="w-2 h-2 bg-amber-500 rounded-full animate-ping"></div>
+                          <span>⚠️ You have unsaved changes</span>
+                        </div>
+                      )}
+                    </div>
+                    
                     <Button 
                       type="submit" 
                       disabled={updateProfileMutation.isPending}
-                      className="min-w-[150px] bg-amber-500 hover:bg-amber-600"
+                      className={`min-w-[150px] transition-all duration-300 ${
+                        updateProfileMutation.isPending 
+                          ? 'bg-gray-400 cursor-not-allowed' 
+                          : hasUnsavedChanges
+                            ? 'bg-red-500 hover:bg-red-600 hover:scale-105 shadow-lg hover:shadow-xl'
+                            : 'bg-amber-500 hover:bg-amber-600 hover:scale-105 shadow-lg hover:shadow-xl'
+                      }`}
                     >
-                      {updateProfileMutation.isPending ? 'Saving...' : 'Save Profile'}
+                      {updateProfileMutation.isPending ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Saving...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span>{hasUnsavedChanges ? '💾 Save Changes' : '💾 Save Profile'}</span>
+                        </div>
+                      )}
                     </Button>
                   </div>
                 </form>
