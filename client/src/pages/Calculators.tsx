@@ -23,8 +23,13 @@ import { pageSEO } from "@/lib/seo";
 
 export default function Calculators() {
   // Check if tab is specified in URL
-  const queryParams = new URLSearchParams(window.location.search);
-  const tabParam = queryParams.get('tab');
+  let tabParam = null;
+  try {
+    const queryParams = new URLSearchParams(window.location.search);
+    tabParam = queryParams.get('tab');
+  } catch (error) {
+    console.error('Error parsing URL parameters:', error);
+  }
   
   const [activeTab, setActiveTab] = useState(tabParam || "bond");
   const [calculationResults, setCalculationResults] = useState<CalculationResult | null>(null);

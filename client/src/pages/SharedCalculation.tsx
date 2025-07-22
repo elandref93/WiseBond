@@ -22,8 +22,13 @@ export default function SharedCalculation() {
   
   useEffect(() => {
     // Get the encoded data from the URL query parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const encodedData = urlParams.get('data');
+    let encodedData = null;
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      encodedData = urlParams.get('data');
+    } catch (error) {
+      console.error('Error parsing URL parameters:', error);
+    }
     
     if (encodedData) {
       try {

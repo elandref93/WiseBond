@@ -10,11 +10,18 @@ export default function AuthError() {
   const [errorMessage, setErrorMessage] = useState<string>("");
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const error = urlParams.get('error') || 'unknown_error';
-    setErrorType(error);
+    let errorType = 'unknown_error';
+    
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      errorType = urlParams.get('error') || 'unknown_error';
+      setErrorType(errorType);
+    } catch (error) {
+      console.error('Error parsing URL parameters:', error);
+      setErrorType('unknown_error');
+    }
 
-    switch (error) {
+    switch (errorType) {
       case 'oauth_error':
         setErrorMessage('Authentication was cancelled or failed. Please try again.');
         break;

@@ -12,8 +12,8 @@ export default function ResetPasswordPage() {
   const [_, setLocation] = useLocation();
   const searchParams = useSearch();
   
-  // Extract token from URL
-  const token = new URLSearchParams(searchParams).get("token");
+  // Extract token from URL with proper null check
+  const token = searchParams ? new URLSearchParams(searchParams).get("token") : null;
   
   useEffect(() => {
     const verifyToken = async () => {
