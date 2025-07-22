@@ -162,3 +162,55 @@ export async function listAvailableKeys(): Promise<string[]> {
     return [];
   }
 }
+
+/**
+ * Check if Azure authentication is available
+ */
+export async function checkAzureAuthentication(): Promise<boolean> {
+  try {
+    const credential = new DefaultAzureCredential();
+    // Try to get a token to test authentication
+    const token = await credential.getToken('https://vault.azure.net/.default');
+    return !!token;
+  } catch (error) {
+    console.log('Azure authentication not available:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Get database secrets from Key Vault
+ */
+export async function getDatabaseSecretsFromKeyVault(): Promise<{
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  password: string;
+} | null> {
+  try {
+    console.log(KEY_VAULT_URL);
+    
+    const host = await getSecret('postgres-host');
+    const port = await getSecret('postgres-port');
+    const database = await getSecret('postgres-database');
+    const username = await getSecret('postgres-username');
+    const password = await getSecret('postgres-password');
+    
+    if (host && port && database && username && password) {
+      return {
+        host,
+        port: parseInt(port, 10),
+        database,
+        username,
+        password
+      };
+    }
+    
+    console.log('Some database secrets missing from Key Vault');
+    return null;
+  } catch (error: any) {
+    console.log('Failed to get database secrets from Key Vault:', error.message);
+    return null;
+  }
+}

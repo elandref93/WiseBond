@@ -1,29 +1,171 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from '@shared/schema';
+import { getDatabaseSecretsFromKeyVault, checkAzureAuthentication } from './keyVault';
 
-// Database connection configuration
-const connectionString = process.env.DATABASE_URL || 
-  `postgresql://${process.env.POSTGRES_USERNAME || 'elandre'}:${encodeURIComponent(process.env.POSTGRES_PASSWORD || '*6CsqD325CX#9&HA9q#a5r9^9!8W%F')}@${process.env.POSTGRES_HOST || 'wisebond-server.postgres.database.azure.com'}:${process.env.POSTGRES_PORT || '5432'}/${process.env.POSTGRES_DATABASE || 'postgres'}?sslmode=require`;
+// Global database instance
+let db: any = null;
+let client: any = null;
+let initPromise: Promise<any> | null = null;
 
-// Create postgres client with Node.js 22 optimizations
-const client = postgres(connectionString, {
-  max: 20, // Increased for better performance
-  idle_timeout: 30,
-  connect_timeout: 10,
-  ssl: { rejectUnauthorized: false },
-  prepare: true, // Enable prepared statements for better performance
-  max_lifetime: 60 * 30, // 30 minutes
-  onnotice: () => {}, // Suppress notices for cleaner logs
-});
+// Database connection configuration with three-tier strategy
+async function initializeDatabase() {
+  console.log('🔄 Attempting Tier 1: Azure Key Vault');
+  
+  try {
+    // TIER 1: Key Vault + Azure Auth
+    const azureAuth = await checkAzureAuthentication();
+    if (azureAuth) {
+      const keyVaultConfig = await getDatabaseSecretsFromKeyVault();
+      if (keyVaultConfig) {
+        const connectionString = `postgresql://${keyVaultConfig.username}:${encodeURIComponent(keyVaultConfig.password)}@${keyVaultConfig.host}:${keyVaultConfig.port}/${keyVaultConfig.database}?sslmode=require`;
+        
+        client = postgres(connectionString, {
+          max: 20,
+          idle_timeout: 30,
+          connect_timeout: 10,
+          ssl: { rejectUnauthorized: false },
+          prepare: true,
+          max_lifetime: 60 * 30,
+          onnotice: () => {},
+        });
+        
+        db = drizzle(client, { schema });
+        console.log('✅ Tier 1 successful: Key Vault + Azure Auth');
+        return;
+      }
+    }
+  } catch (error: any) {
+    console.log('⚠️ Tier 1 failed:', error.message);
+  }
 
-// Create drizzle instance
-const db = drizzle(client, { schema });
+  console.log('🔄 Attempting Tier 2: Managed Identity Credential');
+  
+  try {
+    // TIER 2: Hardcoded + Azure Auth
+    const azureAuth = await checkAzureAuthentication();
+    if (azureAuth) {
+      const hardcodedConfig = {
+        host: 'wisebond-server.postgres.database.azure.com',
+        port: 5432,
+        database: 'postgres',
+        username: 'elandre',
+        password: '*6CsqD325CX#9&HA9q#a5r9^9!8W%F'
+      };
+      
+      const connectionString = `postgresql://${hardcodedConfig.username}:${encodeURIComponent(hardcodedConfig.password)}@${hardcodedConfig.host}:${hardcodedConfig.port}/${hardcodedConfig.database}?sslmode=require`;
+      
+      client = postgres(connectionString, {
+        max: 20,
+        idle_timeout: 30,
+        connect_timeout: 10,
+        ssl: { rejectUnauthorized: false },
+        prepare: true,
+        max_lifetime: 60 * 30,
+        onnotice: () => {},
+      });
+      
+      db = drizzle(client, { schema });
+      console.log('✅ Tier 2 successful: Hardcoded + Azure Auth');
+      return;
+    }
+  } catch (error: any) {
+    console.log('⚠️ Tier 2 failed:', error.message);
+  }
 
-export { db, client };
-export * from '@shared/schema';
+  console.log('🔄 Attempting Tier 3: Fallback to hardcoded/environment credentials');
+  
+  try {
+    // TIER 3: Direct connection with multiple SSL configurations
+    const host = 'wisebond-server.postgres.database.azure.com';
+    const port = 5432;
+    const database = 'postgres';
+    const username = 'elandre';
+    const password = '*6CsqD325CX#9&HA9q#a5r9^9!8W%F';
+    
+    console.log(host);
+    console.log(port);
+    console.log(database);
+    console.log(username);
+    
+    // Try different SSL configurations
+    const sslConfigs = [
+      { rejectUnauthorized: false, sslmode: 'require' },
+      { rejectUnauthorized: true, sslmode: 'require' },
+      { rejectUnauthorized: false },
+      false
+    ];
+    
+    for (let i = 0; i < sslConfigs.length; i++) {
+      const sslConfig = sslConfigs[i];
+      console.log(`Trying SSL configuration ${i + 1}:`, sslConfig);
+      
+      try {
+        const connectionOptions = {
+          host,
+          port,
+          database,
+          username,
+          password,
+          ssl: sslConfig,
+          max: 20,
+          idle_timeout: 30,
+          connect_timeout: 10,
+          prepare: true,
+          max_lifetime: 60 * 30,
+          onnotice: () => {},
+        };
+        
+        client = postgres(connectionOptions);
+        
+        // Test connection
+        await client`SELECT 1`;
+        
+        db = drizzle(client, { schema });
+        console.log(`✅ Tier 3 successful with SSL config ${i + 1}`);
+        return;
+      } catch (error: any) {
+        console.log(`SSL config ${i + 1} failed:`, error.message);
+        if (client) {
+          try {
+            await client.end();
+          } catch {}
+          client = null;
+        }
+      }
+    }
+    
+    throw new Error('All SSL configurations failed');
+  } catch (error: any) {
+    console.log('❌ Tier 3 failed:', error.message);
+    console.log('Full error details:', error);
+    
+    console.log('🔥 NETWORK ISSUE: Cannot reach Azure PostgreSQL server');
+    console.log('This could be due to:');
+    console.log('1. Azure firewall blocking Replit\'s IP ranges');
+    console.log('2. Server requires specific SSL certificates');
+    console.log('3. Server is in a private network');
+    console.log('4. Incorrect server hostname or port');
+    
+    throw new Error('All connection strategies failed. Application cannot proceed.');
+  }
+}
+
+async function getDatabase() {
+  if (db) return db;
+  
+  if (!initPromise) {
+    initPromise = initializeDatabase();
+  }
+  
+  await initPromise;
+  return db;
+}
 
 // Legacy function for backward compatibility
 export async function getPostgresClient() {
-  return db;
+  return await getDatabase();
 }
+
+export { db, client };
+export * from '@shared/schema';
