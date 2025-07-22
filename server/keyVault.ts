@@ -106,17 +106,25 @@ export async function getAllSecrets(): Promise<{ name: string, value: string | u
  */
 export async function initializeSecretsFromKeyVault(): Promise<void> {
   try {
-    console.log('Initializing secrets from Azure Key Vault...');
+    console.log('🔐 ========================================');
+    console.log('🔐 AZURE KEY VAULT SECRETS INITIALIZATION');
+    console.log('🔐 ========================================');
     
     // List of secrets to retrieve from Key Vault (lowercase per Azure Key Vault naming)
     const secretsToRetrieve = [
       'google-maps-api-key',
       'mailgun-api-key',
       'mailgun-domain',
-      'mailgun-from-email'
+      'mailgun-from-email',
+      'openrouter-api-key',
+      'session-secret'
     ];
     
+    const loadedSecrets: string[] = [];
+    const missingSecrets: string[] = [];
+    
     for (const secretName of secretsToRetrieve) {
+      console.log(`🔍 Attempting to retrieve secret: ${secretName}`);
       const secretValue = await getSecret(secretName);
       
       if (secretValue) {
@@ -127,17 +135,29 @@ export async function initializeSecretsFromKeyVault(): Promise<void> {
         // Special case for Google Maps API Key - also set the VITE_ version for frontend
         if (secretName === 'google-maps-api-key') {
           process.env.VITE_GOOGLE_MAPS_API_KEY = secretValue;
+          console.log(`✅ Loaded secret: ${secretName} as ${envVarName} and VITE_GOOGLE_MAPS_API_KEY`);
+        } else {
+          console.log(`✅ Loaded secret: ${secretName} as ${envVarName}`);
         }
         
-        console.log(`Loaded secret: ${secretName} as ${envVarName}`);
+        loadedSecrets.push(secretName);
       } else {
-        console.warn(`Secret not found in Key Vault: ${secretName}`);
+        console.warn(`❌ Secret not found in Key Vault: ${secretName}`);
+        missingSecrets.push(secretName);
       }
     }
     
-    console.log('Finished loading secrets from Azure Key Vault');
-  } catch (error) {
-    console.error('Error initializing secrets from Key Vault:', error);
+    console.log('🔐 ========================================');
+    console.log('🔐 KEY VAULT INITIALIZATION SUMMARY');
+    console.log('🔐 ========================================');
+    console.log(`✅ Successfully loaded ${loadedSecrets.length} secrets:`, loadedSecrets);
+    if (missingSecrets.length > 0) {
+      console.log(`❌ Missing ${missingSecrets.length} secrets:`, missingSecrets);
+    }
+    console.log('🔐 ========================================');
+    
+  } catch (error: any) {
+    console.error('❌ Error initializing secrets from Key Vault:', error);
   }
 }
 
@@ -157,7 +177,7 @@ export async function listAvailableKeys(): Promise<string[]> {
     }
     
     return keyNames;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error listing key names:', error);
     return [];
   }
@@ -172,7 +192,7 @@ export async function checkAzureAuthentication(): Promise<boolean> {
     // Try to get a token to test authentication
     const token = await credential.getToken('https://vault.azure.net/.default');
     return !!token;
-  } catch (error) {
+  } catch (error: any) {
     console.log('Azure authentication not available:', error.message);
     return false;
   }
@@ -189,7 +209,10 @@ export async function getDatabaseSecretsFromKeyVault(): Promise<{
   password: string;
 } | null> {
   try {
-    console.log(KEY_VAULT_URL);
+    console.log('🗄️ ========================================');
+    console.log('🗄️ DATABASE SECRETS FROM KEY VAULT');
+    console.log('🗄️ ========================================');
+    console.log(`🔗 Key Vault URL: ${KEY_VAULT_URL}`);
     
     const host = await getSecret('database-host') || await getSecret('postgres-host');
     const port = await getSecret('database-port') || await getSecret('postgres-port');
@@ -197,7 +220,17 @@ export async function getDatabaseSecretsFromKeyVault(): Promise<{
     const username = await getSecret('database-username') || await getSecret('postgres-username');
     const password = await getSecret('database-password') || await getSecret('postgres-password');
     
+    console.log(`🔍 Database Host: ${host ? '✅ Found' : '❌ Missing'}`);
+    console.log(`🔍 Database Port: ${port ? '✅ Found' : '❌ Missing'}`);
+    console.log(`🔍 Database Name: ${database ? '✅ Found' : '❌ Missing'}`);
+    console.log(`🔍 Database Username: ${username ? '✅ Found' : '❌ Missing'}`);
+    console.log(`🔍 Database Password: ${password ? '✅ Found' : '❌ Missing'}`);
+    
     if (host && port && database && username && password) {
+      console.log('✅ All database secrets retrieved successfully');
+      console.log(`🔗 Connection: ${username}@${host}:${port}/${database}`);
+      console.log('🗄️ ========================================');
+      
       return {
         host,
         port: parseInt(port, 10),
@@ -207,10 +240,12 @@ export async function getDatabaseSecretsFromKeyVault(): Promise<{
       };
     }
     
-    console.log('Some database secrets missing from Key Vault');
+    console.log('❌ Some database secrets missing from Key Vault');
+    console.log('🗄️ ========================================');
     return null;
   } catch (error: any) {
-    console.log('Failed to get database secrets from Key Vault:', error.message);
+    console.log('❌ Failed to get database secrets from Key Vault:', error.message);
+    console.log('🗄️ ========================================');
     return null;
   }
 }

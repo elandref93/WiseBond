@@ -89,26 +89,26 @@ app.use((req, res, next) => {
     console.log('Copied GOOGLE_MAPS_API_KEY to VITE_GOOGLE_MAPS_API_KEY for frontend access');
   }
   
-  // Only try Azure Key Vault if environment variables are not available
-  const missingEnvVars = envVars.filter(varName => !process.env[varName]);
-  if (missingEnvVars.length > 0) {
-    console.log(`Missing environment variables: ${missingEnvVars.join(', ')}. Trying Azure Key Vault...`);
+  // Always try to load secrets from Azure Key Vault for comprehensive logging
+  try {
+    console.log('Attempting to load secrets from Azure Key Vault...');
+    const { initializeSecretsFromKeyVault, listAvailableKeys } = await import('./keyVault');
+    await initializeSecretsFromKeyVault();
     
-    try {
-      // Try to load secrets from Azure Key Vault
-      console.log('Attempting to load secrets from Azure Key Vault...');
-      const { initializeSecretsFromKeyVault, listAvailableKeys } = await import('./keyVault');
-      await initializeSecretsFromKeyVault();
-      
-      // List available keys for debugging
-      const availableKeys = await listAvailableKeys();
-      console.log('Available keys in Azure Key Vault:', availableKeys);
-    } catch (error) {
-      console.error('Error initializing Azure Key Vault:', error);
-      console.log('Failed to load Azure Key Vault secrets. Some functionality may be limited.');
-    }
-  } else {
-    console.log('All required environment variables are set. Skipping Azure Key Vault.');
+    // List available keys for debugging
+    const availableKeys = await listAvailableKeys();
+    console.log('Available keys in Azure Key Vault:', availableKeys);
+  } catch (error) {
+    console.error('Error initializing Azure Key Vault:', error);
+    console.log('Failed to load Azure Key Vault secrets. Some functionality may be limited.');
+  }
+
+  // Validate all service configurations
+  try {
+    const { validateAllServices } = await import('./serviceValidator');
+    await validateAllServices();
+  } catch (error) {
+    console.error('Error validating services:', error);
   }
 
   // Initialize Azure database with three-tier authentication strategy

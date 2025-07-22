@@ -10,10 +10,46 @@ export default function ResetPasswordPage() {
   const [isValid, setIsValid] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [_, setLocation] = useLocation();
-  const searchParams = useSearch();
+  const [token, setToken] = useState<string | null>(null);
   
-  // Extract token from URL with proper null check
-  const token = searchParams ? new URLSearchParams(searchParams).get("token") : null;
+  // Extract token from URL with multiple fallbacks
+  useEffect(() => {
+    let extractedToken = null;
+    
+    try {
+      // Method 1: Try wouter's useSearch
+      const searchParams = useSearch();
+      if (searchParams) {
+        extractedToken = new URLSearchParams(searchParams).get("token");
+      }
+    } catch (error) {
+      console.error('Error with wouter useSearch:', error);
+    }
+    
+    // Method 2: Fallback to window.location.search
+    if (!extractedToken && typeof window !== 'undefined') {
+      try {
+        extractedToken = new URLSearchParams(window.location.search).get("token");
+      } catch (error) {
+        console.error('Error parsing window.location.search:', error);
+      }
+    }
+    
+    // Method 3: Manual parsing as last resort
+    if (!extractedToken && typeof window !== 'undefined') {
+      try {
+        const url = window.location.href;
+        const tokenMatch = url.match(/[?&]token=([^&]+)/);
+        if (tokenMatch) {
+          extractedToken = decodeURIComponent(tokenMatch[1]);
+        }
+      } catch (error) {
+        console.error('Error with manual URL parsing:', error);
+      }
+    }
+    
+    setToken(extractedToken);
+  }, []);
   
   useEffect(() => {
     const verifyToken = async () => {
@@ -40,7 +76,9 @@ export default function ResetPasswordPage() {
       }
     };
     
-    verifyToken();
+    if (token !== null) {
+      verifyToken();
+    }
   }, [token]);
   
   if (isVerifying) {

@@ -226,6 +226,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   
    app.get("/api/prime-rate", getPrimeRateHandler);
+  
+  // Debug endpoint for service validation
+  app.get("/api/debug/services", async (req, res) => {
+    try {
+      const { validateAllServices } = await import('./serviceValidator');
+      const summary = await validateAllServices();
+      res.json(summary);
+    } catch (error: any) {
+      res.status(500).json({ 
+        message: "Service validation failed", 
+        error: error.message 
+      });
+    }
+  });
    app.post("/api/auth/logout", (req, res) => {
        req.session.destroy((err) => {
          if (err) {
