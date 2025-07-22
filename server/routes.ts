@@ -2,7 +2,6 @@ import express, { type Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import session from "express-session";
-import MemoryStore from "memorystore";
 import connectPgSimple from "connect-pg-simple";
 import {
   insertUserSchema, loginSchema, insertCalculationResultSchema, updateProfileSchema, insertContactSubmissionSchema
@@ -12,7 +11,7 @@ import { fromZodError } from 'zod-validation-error';
 import { randomBytes } from "crypto";
 import { sendVerificationEmail, sendPasswordResetEmail, sendCalculationEmail, sendContactFormEmail } from "./email.js";
 import { getPrimeRateHandler } from "./services/primeRate/primeRateController.js";
-const MemStore = MemoryStore(session);
+
 
 interface SessionData {
   userId?: number;
@@ -43,20 +42,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // PostgreSQL session store - no memory storage
+  // ALWAYS use PostgreSQL session store - no memory storage fallback
   const pgSession = connectPgSimple(session);
 
   console.log("🔧 Session configuration:");
   console.log("- DATABASE_URL available:", !!process.env.DATABASE_URL);
   console.log("- SESSION_SECRET available:", !!process.env.SESSION_SECRET);
 
-  let sessionStore;
-  let useMemoryStore = false;
+  let sessionStore: any;
   
-  try {
-    // Try to construct DATABASE_URL if not available
-    let databaseUrl = process.env.DATABASE_URL;
-    if (!databaseUrl) {
+  // Try to get database URL from environment or construct from Key Vault
+  let databaseUrl = process.env.DATABASE_URL;
+  
+  if (!databaseUrl) {
+    // Try to get database credentials from Key Vault first
+    try {
+      const { getDatabaseSecretsFromKeyVault } = await import('./keyVault');
+      const keyVaultConfig = await getDatabaseSecretsFromKeyVault();
+      
+      if (keyVaultConfig) {
+        const encodedPassword = encodeURIComponent(keyVaultConfig.password);
+        databaseUrl = `postgresql://${keyVaultConfig.username}:${encodedPassword}@${keyVaultConfig.host}:${keyVaultConfig.port}/${keyVaultConfig.database}?sslmode=require`;
+        console.log("🔧 Constructed DATABASE_URL from Key Vault credentials");
+      } else {
+        // Fallback to environment variables
+        const host = process.env.POSTGRES_HOST || "wisebond-server.postgres.database.azure.com";
+        const port = process.env.POSTGRES_PORT || "5432";
+        const database = process.env.POSTGRES_DATABASE || "postgres";
+        const user = process.env.POSTGRES_USERNAME || "elandre";
+        const password = process.env.POSTGRES_PASSWORD || "*6CsqD325CX#9&HA9q#a5r9^9!8W%F";
+        const encodedPassword = encodeURIComponent(password);
+        
+        databaseUrl = `postgresql://${user}:${encodedPassword}@${host}:${port}/${database}?sslmode=require`;
+        console.log("🔧 Constructed DATABASE_URL from environment variables");
+      }
+    } catch (error: any) {
+      console.log("⚠️ Key Vault not available, using environment variables");
       const host = process.env.POSTGRES_HOST || "wisebond-server.postgres.database.azure.com";
       const port = process.env.POSTGRES_PORT || "5432";
       const database = process.env.POSTGRES_DATABASE || "postgres";
@@ -65,36 +86,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const encodedPassword = encodeURIComponent(password);
       
       databaseUrl = `postgresql://${user}:${encodedPassword}@${host}:${port}/${database}?sslmode=require`;
-      console.log("🔧 Constructed DATABASE_URL from individual environment variables");
+      console.log("🔧 Constructed DATABASE_URL from fallback environment variables");
     }
-
-    if (databaseUrl) {
-      try {
-        sessionStore = new pgSession({
-          conString: databaseUrl,
-          tableName: 'user_sessions',
-          createTableIfMissing: true
-        });
-        console.log("✅ PostgreSQL session store initialized");
-      } catch (pgError: any) {
-        console.error("❌ PostgreSQL session store failed:", pgError.message);
-        useMemoryStore = true;
-      }
-    } else {
-      console.log("⚠️ No database connection available, using memory store as fallback");
-      useMemoryStore = true;
-    }
-  } catch (error) {
-    console.error("❌ Session store initialization failed:", error);
-    useMemoryStore = true;
   }
 
-  // Fallback to memory store if PostgreSQL fails
-  if (useMemoryStore) {
-    console.log("🔄 Falling back to memory store");
-    sessionStore = new MemStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
+  if (!databaseUrl) {
+    throw new Error("❌ CRITICAL: No database connection available for session storage. Application cannot start without database.");
+  }
+
+  try {
+    sessionStore = new pgSession({
+      conString: databaseUrl,
+      tableName: 'user_sessions',
+      createTableIfMissing: true,
+      pruneSessionInterval: 60, // Clean up expired sessions every 60 seconds
+      errorLog: (err) => console.error('Session store error:', err)
     });
+    console.log("✅ PostgreSQL session store initialized successfully");
+  } catch (pgError: any) {
+    console.error("❌ CRITICAL: PostgreSQL session store failed:", pgError.message);
+    throw new Error(`Session store initialization failed: ${pgError.message}. Application cannot start without database session storage.`);
   }
 
   app.use(session({
@@ -388,10 +399,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.save((err) => {
         if (err) {
           console.error("❌ Session save error:", err);
-          return res.status(500).json({ message: "Failed to save session" });
+          console.error("❌ Session store type:", sessionStore?.constructor?.name);
+          console.error("❌ Session data:", req.session);
+          return res.status(500).json({ 
+            message: "Failed to save session",
+            details: process.env.NODE_ENV === 'development' ? err.message : 'Session storage error'
+          });
         }
         
         console.log("✅ Session saved successfully for user:", user.id);
+        console.log("✅ Session store used:", sessionStore?.constructor?.name);
         
         // Return complete user data without password
         const { password, ...userWithoutPassword } = user;

@@ -191,11 +191,11 @@ export async function getDatabaseSecretsFromKeyVault(): Promise<{
   try {
     console.log(KEY_VAULT_URL);
     
-    const host = await getSecret('postgres-host');
-    const port = await getSecret('postgres-port');
-    const database = await getSecret('postgres-database');
-    const username = await getSecret('postgres-username');
-    const password = await getSecret('postgres-password');
+    const host = await getSecret('database-host') || await getSecret('postgres-host');
+    const port = await getSecret('database-port') || await getSecret('postgres-port');
+    const database = await getSecret('database-name') || await getSecret('postgres-database');
+    const username = await getSecret('database-username') || await getSecret('postgres-username');
+    const password = await getSecret('database-password') || await getSecret('postgres-password');
     
     if (host && port && database && username && password) {
       return {

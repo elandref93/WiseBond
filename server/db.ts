@@ -45,7 +45,9 @@ async function initializeDatabase() {
     // TIER 2: Hardcoded + Azure Auth
     const azureAuth = await checkAzureAuthentication();
     if (azureAuth) {
-      const hardcodedConfig = {
+      // Try to get from Key Vault first, then fallback to hardcoded
+      const keyVaultConfig = await getDatabaseSecretsFromKeyVault();
+      const hardcodedConfig = keyVaultConfig || {
         host: 'wisebond-server.postgres.database.azure.com',
         port: 5432,
         database: 'postgres',
