@@ -213,10 +213,9 @@ jobs:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
         slot-name: 'production'
         package: deployment.zip
-        clean: true
-        restart: true
-        enable-oryx-build: false
-        startup-command: 'npm start'
+        clean: true              # Clean existing files before deployment
+        restart: true            # Restart app after deployment
+        startup-command: 'npm start'  # Explicit startup command
         
     - name: Handle deployment conflict (409 error recovery)
       if: steps.primary_deploy.outcome == 'failure'
@@ -240,9 +239,8 @@ jobs:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
         slot-name: 'production'
         package: deployment.zip
-        clean: true
-        restart: true
-        enable-oryx-build: false
+        clean: true              # Clean existing files before deployment
+        restart: true            # Restart app after deployment
         
     - name: Deploy using Azure CLI (Final fallback)
       if: steps.primary_deploy.outcome == 'failure' && steps.retry_deploy.outcome == 'failure'
