@@ -10,15 +10,59 @@ let initPromise: Promise<any> | null = null;
 
 // Database connection configuration with three-tier strategy
 async function initializeDatabase() {
-  console.log('🔄 Attempting Tier 1: Azure Key Vault');
-  
-  try {
-    // TIER 1: Key Vault + Azure Auth
-    const azureAuth = await checkAzureAuthentication();
-    if (azureAuth) {
-      const keyVaultConfig = await getDatabaseSecretsFromKeyVault();
-      if (keyVaultConfig) {
-        const connectionString = `postgresql://${keyVaultConfig.username}:${encodeURIComponent(keyVaultConfig.password)}@${keyVaultConfig.host}:${keyVaultConfig.port}/${keyVaultConfig.database}?sslmode=require`;
+  // Only attempt Azure Key Vault in cloud environments
+  if (process.env.WEBSITE_SITE_NAME || process.env.AZURE_WEBAPP_NAME) {
+    console.log('🔄 Attempting Tier 1: Azure Key Vault');
+    
+    try {
+      // TIER 1: Key Vault + Azure Auth
+      const azureAuth = await checkAzureAuthentication();
+      if (azureAuth) {
+        const keyVaultConfig = await getDatabaseSecretsFromKeyVault();
+        if (keyVaultConfig) {
+          const connectionString = `postgresql://${keyVaultConfig.username}:${encodeURIComponent(keyVaultConfig.password)}@${keyVaultConfig.host}:${keyVaultConfig.port}/${keyVaultConfig.database}?sslmode=require`;
+          
+          client = postgres(connectionString, {
+            max: 20,
+            idle_timeout: 30,
+            connect_timeout: 10,
+            ssl: { rejectUnauthorized: false },
+            prepare: true,
+            max_lifetime: 60 * 30,
+            onnotice: () => {},
+          });
+          
+          db = drizzle(client, { schema });
+          console.log('✅ Tier 1 successful: Key Vault + Azure Auth');
+          return;
+        }
+      }
+    } catch (error: any) {
+      console.log('⚠️ Tier 1 failed:', error.message);
+    }
+  } else {
+    console.log('🔄 Skipping Tier 1: Azure Key Vault (local development)');
+  }
+
+  // Only attempt Azure authentication in cloud environments
+  if (process.env.WEBSITE_SITE_NAME || process.env.AZURE_WEBAPP_NAME) {
+    console.log('🔄 Attempting Tier 2: Managed Identity Credential');
+    
+    try {
+      // TIER 2: Hardcoded + Azure Auth
+      const azureAuth = await checkAzureAuthentication();
+      if (azureAuth) {
+        // Try to get from Key Vault first, then fallback to hardcoded
+        const keyVaultConfig = await getDatabaseSecretsFromKeyVault();
+        const hardcodedConfig = keyVaultConfig || {
+          host: 'wisebond-server.postgres.database.azure.com',
+          port: 5432,
+          database: 'postgres',
+          username: 'elandre',
+          password: '*6CsqD325CX#9&HA9q#a5r9^9!8W%F'
+        };
+        
+        const connectionString = `postgresql://${hardcodedConfig.username}:${encodeURIComponent(hardcodedConfig.password)}@${hardcodedConfig.host}:${hardcodedConfig.port}/${hardcodedConfig.database}?sslmode=require`;
         
         client = postgres(connectionString, {
           max: 20,
@@ -31,48 +75,14 @@ async function initializeDatabase() {
         });
         
         db = drizzle(client, { schema });
-        console.log('✅ Tier 1 successful: Key Vault + Azure Auth');
+        console.log('✅ Tier 2 successful: Hardcoded + Azure Auth');
         return;
       }
+    } catch (error: any) {
+      console.log('⚠️ Tier 2 failed:', error.message);
     }
-  } catch (error: any) {
-    console.log('⚠️ Tier 1 failed:', error.message);
-  }
-
-  console.log('🔄 Attempting Tier 2: Managed Identity Credential');
-  
-  try {
-    // TIER 2: Hardcoded + Azure Auth
-    const azureAuth = await checkAzureAuthentication();
-    if (azureAuth) {
-      // Try to get from Key Vault first, then fallback to hardcoded
-      const keyVaultConfig = await getDatabaseSecretsFromKeyVault();
-      const hardcodedConfig = keyVaultConfig || {
-        host: 'wisebond-server.postgres.database.azure.com',
-        port: 5432,
-        database: 'postgres',
-        username: 'elandre',
-        password: '*6CsqD325CX#9&HA9q#a5r9^9!8W%F'
-      };
-      
-      const connectionString = `postgresql://${hardcodedConfig.username}:${encodeURIComponent(hardcodedConfig.password)}@${hardcodedConfig.host}:${hardcodedConfig.port}/${hardcodedConfig.database}?sslmode=require`;
-      
-      client = postgres(connectionString, {
-        max: 20,
-        idle_timeout: 30,
-        connect_timeout: 10,
-        ssl: { rejectUnauthorized: false },
-        prepare: true,
-        max_lifetime: 60 * 30,
-        onnotice: () => {},
-      });
-      
-      db = drizzle(client, { schema });
-      console.log('✅ Tier 2 successful: Hardcoded + Azure Auth');
-      return;
-    }
-  } catch (error: any) {
-    console.log('⚠️ Tier 2 failed:', error.message);
+  } else {
+    console.log('🔄 Skipping Tier 2: Managed Identity (local development)');
   }
 
   console.log('🔄 Attempting Tier 3: Fallback to hardcoded/environment credentials');

@@ -89,15 +89,16 @@ app.use((req, res, next) => {
     console.log('Copied GOOGLE_MAPS_API_KEY to VITE_GOOGLE_MAPS_API_KEY for frontend access');
   }
   
-  // Always try to load secrets from Azure Key Vault for comprehensive logging
+  // Try to load secrets from Azure Key Vault (only in cloud environments)
   try {
-    console.log('Attempting to load secrets from Azure Key Vault...');
     const { initializeSecretsFromKeyVault, listAvailableKeys } = await import('./keyVault');
     await initializeSecretsFromKeyVault();
     
-    // List available keys for debugging
+    // List available keys for debugging (only in cloud environments)
     const availableKeys = await listAvailableKeys();
-    console.log('Available keys in Azure Key Vault:', availableKeys);
+    if (availableKeys.length > 0) {
+      console.log('Available keys in Azure Key Vault:', availableKeys);
+    }
   } catch (error) {
     console.error('Error initializing Azure Key Vault:', error);
     console.log('Failed to load Azure Key Vault secrets. Some functionality may be limited.');

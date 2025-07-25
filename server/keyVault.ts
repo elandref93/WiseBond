@@ -6,11 +6,33 @@ const KEY_VAULT_URL = "https://wisebondvault.vault.azure.net/";
 let secretClient: SecretClient | null = null;
 let keyVaultAvailable = false;
 
+/**
+ * Check if we should attempt Azure Key Vault operations
+ * Skip in local development unless explicitly enabled
+ */
+function shouldUseKeyVault(): boolean {
+  // Skip Key Vault in local development unless explicitly enabled
+  if (process.env.NODE_ENV === 'development' && !process.env.USE_AZURE_KEY_VAULT) {
+    return false;
+  }
+  
+  // Skip if we're not in a cloud environment
+  if (!process.env.WEBSITE_SITE_NAME && !process.env.AZURE_WEBAPP_NAME) {
+    return false;
+  }
+  
+  return true;
+}
 
 /**
  * Initialize the Azure Key Vault client with error handling
  */
 async function initializeKeyVaultClient(): Promise<SecretClient | null> {
+  // Early return if we shouldn't use Key Vault
+  if (!shouldUseKeyVault()) {
+    return null;
+  }
+
   if (secretClient && keyVaultAvailable) {
     return secretClient;
   }
@@ -24,11 +46,14 @@ async function initializeKeyVaultClient(): Promise<SecretClient | null> {
     await secretsIterator.next();
     
     keyVaultAvailable = true;
-    console.log('Azure Key Vault client initialized successfully');
+    console.log('✅ Azure Key Vault client initialized successfully');
     return secretClient;
     
   } catch (error: any) {
-    console.warn('Azure Key Vault unavailable:', error.message);
+    // Only log warning if we're in a cloud environment
+    if (process.env.WEBSITE_SITE_NAME || process.env.AZURE_WEBAPP_NAME) {
+      console.warn('⚠️ Azure Key Vault unavailable:', error.message);
+    }
     keyVaultAvailable = false;
     return null;
   }
@@ -41,10 +66,14 @@ async function initializeKeyVaultClient(): Promise<SecretClient | null> {
  * @returns The secret value or undefined if not found
  */
 export async function getSecret(secretName: string, retries: number = 2): Promise<string | undefined> {
+  // Early return if we shouldn't use Key Vault
+  if (!shouldUseKeyVault()) {
+    return undefined;
+  }
+
   const client = await initializeKeyVaultClient();
   
   if (!client) {
-    console.log(`Key Vault unavailable, skipping secret '${secretName}'`);
     return undefined;
   }
 
@@ -53,7 +82,6 @@ export async function getSecret(secretName: string, retries: number = 2): Promis
       const secret = await client.getSecret(secretName);
       
       if (secret.value) {
-        console.log(`Retrieved secret '${secretName}' from Key Vault`);
         return secret.value;
       } else {
         console.warn(`Secret '${secretName}' exists but has no value`);
@@ -61,10 +89,12 @@ export async function getSecret(secretName: string, retries: number = 2): Promis
       }
       
     } catch (error: any) {
-      console.error(`Attempt ${attempt}/${retries} - Failed to get secret '${secretName}':`, error.message);
+      // Only log errors if we're in a cloud environment
+      if (process.env.WEBSITE_SITE_NAME || process.env.AZURE_WEBAPP_NAME) {
+        console.error(`Attempt ${attempt}/${retries} - Failed to get secret '${secretName}':`, error.message);
+      }
       
       if (attempt === retries) {
-        console.error(`All ${retries} attempts failed for secret '${secretName}'`);
         return undefined;
       }
       
@@ -105,6 +135,12 @@ export async function getAllSecrets(): Promise<{ name: string, value: string | u
  * This function loads secrets from Azure Key Vault and sets them as environment variables
  */
 export async function initializeSecretsFromKeyVault(): Promise<void> {
+  // Early return if we shouldn't use Key Vault
+  if (!shouldUseKeyVault()) {
+    console.log('🔐 Azure Key Vault skipped (local development mode)');
+    return;
+  }
+
   try {
     console.log('🔐 ========================================');
     console.log('🔐 AZURE KEY VAULT SECRETS INITIALIZATION');
@@ -124,7 +160,6 @@ export async function initializeSecretsFromKeyVault(): Promise<void> {
     const missingSecrets: string[] = [];
     
     for (const secretName of secretsToRetrieve) {
-      console.log(`🔍 Attempting to retrieve secret: ${secretName}`);
       const secretValue = await getSecret(secretName);
       
       if (secretValue) {
@@ -166,9 +201,20 @@ export async function initializeSecretsFromKeyVault(): Promise<void> {
  * This is useful for debugging and setup
  */
 export async function listAvailableKeys(): Promise<string[]> {
+  // Early return if we shouldn't use Key Vault
+  if (!shouldUseKeyVault()) {
+    return [];
+  }
+
   try {
     const keyNames: string[] = [];
-    const secretProperties:any = secretClient?.listPropertiesOfSecrets();
+    const client = await initializeKeyVaultClient();
+    
+    if (!client) {
+      return [];
+    }
+    
+    const secretProperties = client.listPropertiesOfSecrets();
     
     for await (const secretProperty of secretProperties) {
       if (secretProperty.name) {
@@ -187,13 +233,21 @@ export async function listAvailableKeys(): Promise<string[]> {
  * Check if Azure authentication is available
  */
 export async function checkAzureAuthentication(): Promise<boolean> {
+  // Early return if we shouldn't use Key Vault
+  if (!shouldUseKeyVault()) {
+    return false;
+  }
+
   try {
     const credential = new DefaultAzureCredential();
     // Try to get a token to test authentication
     const token = await credential.getToken('https://vault.azure.net/.default');
     return !!token;
   } catch (error: any) {
-    console.log('Azure authentication not available:', error.message);
+    // Only log if we're in a cloud environment
+    if (process.env.WEBSITE_SITE_NAME || process.env.AZURE_WEBAPP_NAME) {
+      console.log('Azure authentication not available:', error.message);
+    }
     return false;
   }
 }
@@ -208,6 +262,11 @@ export async function getDatabaseSecretsFromKeyVault(): Promise<{
   username: string;
   password: string;
 } | null> {
+  // Early return if we shouldn't use Key Vault
+  if (!shouldUseKeyVault()) {
+    return null;
+  }
+
   try {
     console.log('🗄️ ========================================');
     console.log('🗄️ DATABASE SECRETS FROM KEY VAULT');
