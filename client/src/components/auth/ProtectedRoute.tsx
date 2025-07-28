@@ -25,7 +25,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         
         // Redirect to login if not authenticated
         if (!user) {
-          console.log("User not authenticated, redirecting to login");
           return <Redirect to="/login" />;
         }
         

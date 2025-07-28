@@ -112,8 +112,6 @@ export default function SignUpForm() {
       
       setRegistrationStep('otp');
     } catch (error) {
-      console.error('Registration error:', error);
-      
       // Check if the error is about duplicate email
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       

@@ -45,7 +45,6 @@ export default function Guidance() {
   const handleArticleSelect = (article: Article) => {
     setSelectedArticle(article);
     // You can navigate to the article page or show it in a modal
-    console.log("Selected article:", article);
   };
 
   // Get filtered categories
@@ -327,4 +326,4 @@ function ArticleCard({ article }: { article: Article }) {
       </Card>
     </Link>
   );
-} 
+}  

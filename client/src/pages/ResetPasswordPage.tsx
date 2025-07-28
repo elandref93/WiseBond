@@ -23,7 +23,6 @@ export default function ResetPasswordPage() {
         extractedToken = new URLSearchParams(searchParams).get("token");
       }
     } catch (error) {
-      console.error('Error with wouter useSearch:', error);
     }
     
     // Method 2: Fallback to window.location.search
@@ -31,7 +30,6 @@ export default function ResetPasswordPage() {
       try {
         extractedToken = new URLSearchParams(window.location.search).get("token");
       } catch (error) {
-        console.error('Error parsing window.location.search:', error);
       }
     }
     
@@ -44,7 +42,6 @@ export default function ResetPasswordPage() {
           extractedToken = decodeURIComponent(tokenMatch[1]);
         }
       } catch (error) {
-        console.error('Error with manual URL parsing:', error);
       }
     }
     

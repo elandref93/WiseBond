@@ -34,8 +34,7 @@ export default function ShareCalculation({ result, size = "default" }: ShareCalc
         title: 'Link copied',
         description: 'Shareable link copied to clipboard',
       });
-    }).catch(err => {
-      console.error('Failed to copy:', err);
+    }).catch(() => {
       toast({ 
         title: 'Copy failed',
         description: 'Could not copy link to clipboard',

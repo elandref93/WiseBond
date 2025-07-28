@@ -121,7 +121,6 @@ export default function BondsTransferCostsCalculator({ onCalculate }: BondsTrans
 
       onCalculate(result);
     } catch (error) {
-      console.error("Calculation error:", error);
     } finally {
       setIsSubmitting(false);
     }

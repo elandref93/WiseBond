@@ -38,34 +38,6 @@ export default function AmortizationChart({
     const generateChartData = () => {
       const amortizationData = generateAmortizationData(loanAmount, interestRate, loanTerm);
       
-      // Debug: CRITICAL MISMATCH DETECTION
-      console.log('=== CHART VS TABLE MISMATCH DEBUG ===');
-      console.log(`Chart receives: Loan=R${loanAmount.toLocaleString()}, Rate=${interestRate}%, Term=${loanTerm} years`);
-      console.log('EXPECTED for R1M at 11.25% for 20 years:');
-      
-      // Calculate what the values SHOULD be for R1M at 11.25% for 20 years
-      const expectedLoan = 1000000;
-      const expectedRate = 11.25;
-      const expectedTerm = 20;
-      
-      const expectedMonthlyRate = expectedRate / 100 / 12;
-      const expectedMonthlyPayment = (expectedLoan * expectedMonthlyRate * Math.pow(1 + expectedMonthlyRate, expectedTerm * 12)) / (Math.pow(1 + expectedMonthlyRate, expectedTerm * 12) - 1);
-      console.log(`Expected Monthly Payment: R${expectedMonthlyPayment.toFixed(2)}`);
-      
-      let expectedBalance = expectedLoan;
-      for (let year = 1; year <= 5; year++) {
-        for (let month = 1; month <= 12; month++) {
-          const monthlyInterest = expectedBalance * expectedMonthlyRate;
-          const monthlyPrincipal = expectedMonthlyPayment - monthlyInterest;
-          expectedBalance -= monthlyPrincipal;
-        }
-        console.log(`Expected Year ${year}: Balance = R${expectedBalance.toFixed(2)}`);
-      }
-      
-      console.log('\\nChart is calculating with WRONG VALUES!');
-      console.log(`Chart Loan: R${loanAmount} vs Expected: R${expectedLoan}`);
-      console.log(`Chart Term: ${loanTerm} years vs Expected: ${expectedTerm} years`);
-      
       // Format data for the chart
       const chartData = amortizationData.map(yearData => ({
         name: yearData.year === 0 ? "Start" : `Year ${yearData.year}`,

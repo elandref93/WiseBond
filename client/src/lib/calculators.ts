@@ -12,39 +12,30 @@ export interface CalculationResult {
 }
 
 // Format currency with thousands separator and Rand symbol
+const formatOptions: Intl.NumberFormatOptions = {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+  style: 'decimal' as const,
+  useGrouping: true
+};
+
 export function formatCurrency(value: string | number): string {
   if (value === "" || value === null || value === undefined) return "";
   
-  // Parse the input value to a number
   let num: number;
   if (typeof value === 'string') {
-    // Remove any non-numeric characters except decimal point
     const cleanValue = value.replace(/[^0-9.]/g, "");
     num = parseFloat(cleanValue);
   } else {
     num = value;
   }
   
-  // Check if the parsing resulted in a valid number
   if (isNaN(num)) return "";
   
-  // For displaying: Format with thousands separator and Rand symbol
-  // We'll use full numbers without decimal for Rand currency (common in SA)
-  const options: Intl.NumberFormatOptions = {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-    style: 'decimal' as const, // Use decimal to avoid automatic currency symbol
-    useGrouping: true // Ensure thousand separators are used
-  };
-  
   try {
-    // Round to nearest integer for Rand
     const roundedNum = Math.round(num);
-    // Format with thousands separator
-    return `R${roundedNum.toLocaleString('en-ZA', options)}`;
+    return `R${roundedNum.toLocaleString('en-ZA', formatOptions)}`;
   } catch (error) {
-    // Fallback formatting if toLocaleString fails
-    // Format manually with commas as thousands separators
     const parts = Math.round(num).toString().split('.');
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     return `R${parts.join('.')}`;
@@ -91,11 +82,7 @@ export function displayCurrencyValue(value: string | number): string {
   if (!value) return "";
   
   const numValue = typeof value === 'string' ? parseCurrency(value) : value;
-  const options: Intl.NumberFormatOptions = {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  };
-  return `R${numValue.toLocaleString('en-ZA', options)}`;
+  return `R${numValue.toLocaleString('en-ZA', formatOptions)}`;
 }
 
 // Calculate the monthly repayment amount for a bond

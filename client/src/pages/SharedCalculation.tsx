@@ -27,7 +27,6 @@ export default function SharedCalculation() {
       const urlParams = new URLSearchParams(window.location.search);
       encodedData = urlParams.get('data');
     } catch (error) {
-      console.error('Error parsing URL parameters:', error);
     }
     
     if (encodedData) {
@@ -37,15 +36,13 @@ export default function SharedCalculation() {
         if (result) {
           setCalculationResult(result);
         } else {
-          // Handle invalid data
-          console.error('Invalid calculation data');
+          // Handle invalid data - will show error UI
         }
       } catch (error) {
-        console.error('Error parsing calculation data:', error);
+        // Handle parsing errors - will show error UI
       }
     } else {
-      // No data parameter in URL
-      console.error('No calculation data found in URL');
+      // No data parameter in URL - will show error UI
     }
   }, []);
   

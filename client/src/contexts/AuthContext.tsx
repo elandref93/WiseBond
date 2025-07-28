@@ -49,7 +49,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         
         return await response.json();
       } catch (error) {
-        console.error("Auth query error:", error);
         return null;
       }
     },

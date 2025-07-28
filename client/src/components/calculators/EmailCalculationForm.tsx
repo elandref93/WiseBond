@@ -96,7 +96,6 @@ export default function EmailCalculationForm({
         }
       } else if (data.errorType === 'sandboxAuth') {
         // Sandbox authorization error - special handling
-        console.warn('Sandbox authorization error:', data.message);
         toast({
           title: 'Email authorization required',
           description: data.message || `Your email address (${values.email}) needs to be authorized in our test environment. Your information was saved and our team will contact you.`,
@@ -109,7 +108,6 @@ export default function EmailCalculationForm({
         }
       } else {
         // Other API error
-        console.error('Failed to send calculation (API error):', data.message);
         toast({
           title: 'Email delivery issue',
           description: data.message || 'Your information was saved, but there was a problem sending the email. Our team will contact you soon.',
@@ -123,7 +121,6 @@ export default function EmailCalculationForm({
       }
     } catch (error) {
       // Connection/network error
-      console.error('Failed to send calculation (connection error):', error);
       toast({
         title: 'Connection problem',
         description: 'There was a problem connecting to our servers. Please try again later.',

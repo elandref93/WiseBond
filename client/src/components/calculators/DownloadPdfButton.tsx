@@ -37,8 +37,6 @@ export default function DownloadPdfButton({
         return;
       }
       
-      console.log("Download requested for calculation type:", result.type);
-      console.log("Form values:", formValues);
       
       // For bond calculator
       if (result.type === 'bond') {
@@ -57,7 +55,6 @@ export default function DownloadPdfButton({
         });
       }
     } catch (error) {
-      console.error("Error downloading PDF:", error);
       
       // Handle 401 Unauthorized errors specifically
       if (error instanceof Error && error.message.includes("401")) {
@@ -73,7 +70,6 @@ export default function DownloadPdfButton({
       // More detailed error feedback for debugging
       if (error instanceof Error) {
         const errorDetails = error.message || 'Unknown error';
-        console.error("Error details:", errorDetails);
         toast({
           title: "Download Failed",
           description: `Error: ${errorDetails}`,
@@ -97,8 +93,6 @@ export default function DownloadPdfButton({
     const baseUrl = window.location.origin;
     const requestUrl = `${baseUrl}/api/reports/bond-repayment`;
     
-    console.log("Using base URL:", baseUrl);
-    console.log("Full request URL:", requestUrl);
     
     const requestData = {
       propertyValue: formValues?.propertyValue,
@@ -109,8 +103,6 @@ export default function DownloadPdfButton({
       calculationResult: result
     };
     
-    console.log("Sending request to URL:", requestUrl);
-    console.log("With request data:", requestData);
     
     const response = await fetch(requestUrl, {
       method: 'POST',
@@ -120,14 +112,11 @@ export default function DownloadPdfButton({
       body: JSON.stringify(requestData),
     });
     
-    console.log("Response status:", response.status);
-    console.log("Response status text:", response.statusText);
     
     if (!response.ok) {
       // Try to get more detailed error information
       try {
         const errorText = await response.text();
-        console.error("Error response text:", errorText);
         throw new Error(`Failed to generate PDF: ${response.status} ${response.statusText}`);
       } catch (textError) {
         throw new Error(`Failed to generate PDF: ${response.status} ${response.statusText}`);
@@ -164,16 +153,6 @@ export default function DownloadPdfButton({
     const baseUrl = window.location.origin;
     const requestUrl = `${baseUrl}/api/reports/additional-payment`;
     
-    console.log("Using base URL:", baseUrl);
-    console.log("Full request URL:", requestUrl);
-    
-    console.log("Sending additional payment PDF request with data:", {
-      loanAmount: formValues?.loanAmount,
-      interestRate: formValues?.interestRate,
-      loanTerm: formValues?.loanTerm,
-      additionalPayment: formValues?.additionalPayment,
-      calculationResult: result
-    });
     
     const response = await fetch(requestUrl, {
       method: 'POST',
@@ -193,7 +172,6 @@ export default function DownloadPdfButton({
       // Try to get more detailed error information
       try {
         const errorData = await response.json();
-        console.error("Server error response:", errorData);
         throw new Error(`Failed to generate PDF: ${errorData.message || 'Unknown error'}`);
       } catch (jsonError) {
         throw new Error(`Failed to generate PDF: ${response.status} ${response.statusText}`);

@@ -28,7 +28,6 @@ export default function Calculators() {
     const queryParams = new URLSearchParams(window.location.search);
     tabParam = queryParams.get('tab');
   } catch (error) {
-    console.error('Error parsing URL parameters:', error);
   }
   
   const [activeTab, setActiveTab] = useState(tabParam || "bond");

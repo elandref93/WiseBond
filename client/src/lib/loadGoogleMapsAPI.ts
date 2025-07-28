@@ -31,13 +31,12 @@ export function loadGoogleMapsAPI(): Promise<void> {
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
     
     if (isLocalhost) {
-      console.error(`
-Google Maps API key not found. Please check:
+      throw new Error(`Google Maps API key not found. Please check:
 1. .env file has VITE_GOOGLE_MAPS_API_KEY or GOOGLE_MAPS_API_KEY set
 2. Server has copied GOOGLE_MAPS_API_KEY to VITE_GOOGLE_MAPS_API_KEY
 3. Vite has restarted after environment changes`);
     } else {
-      console.error('Maps functionality unavailable. Please contact support if this issue persists.');
+      throw new Error('Maps functionality unavailable. Please contact support if this issue persists.');
     }
     
     return Promise.reject(new Error('Google Maps API key not found'));
@@ -45,10 +44,11 @@ Google Maps API key not found. Please check:
   
   // Validate API key format
   if (!apiKey.startsWith('AIza')) {
-    console.warn('The Google Maps API key may be invalid. Google Maps API keys typically start with "AIza"');
+    // In development, warn about potentially invalid API key format
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      throw new Error('The Google Maps API key may be invalid. Google Maps API keys typically start with "AIza"');
+    }
   }
-  
-  console.log('Loading Google Maps API...');
   isLoading = true;
   
   loadPromise = new Promise<void>((resolve, reject) => {
@@ -59,7 +59,6 @@ Google Maps API key not found. Please check:
     if (apiKey) {
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
     } else {
-      console.warn('Google Maps API key not found. Maps functionality will be limited.');
       script.src = 'https://maps.googleapis.com/maps/api/js?libraries=places';
     }
     
@@ -68,7 +67,6 @@ Google Maps API key not found. Please check:
     
     // Success handler
     script.onload = () => {
-      console.log('Google Maps API loaded successfully');
       isLoaded = true;
       isLoading = false;
       loadError = null;
@@ -84,20 +82,20 @@ Google Maps API key not found. Please check:
                               hostname.endsWith('replit.app') ||
                               hostname.endsWith('azurewebsites.net');
       
-      // Only report detailed errors in development environments
+      // Create appropriate error message based on environment
+      let errorMessage = 'Failed to load Google Maps API';
       if (isLocalhost) {
-        console.error('Failed to load Google Maps API', e);
-        
+        errorMessage += '. Check console for details.';
         // Check if API key exists but is malformed (wrong format)
         if (apiKey && !apiKey.startsWith('AIza')) {
-          console.error('API key appears to be malformed. Google Maps API keys start with "AIza"');
+          errorMessage += ' API key appears to be malformed. Google Maps API keys start with "AIza".';
         }
       } else {
-        console.error('Failed to load Google Maps API. Please contact support if this issue persists.');
+        errorMessage += '. Please contact support if this issue persists.';
       }
       
       isLoading = false;
-      loadError = new Error('Failed to load Google Maps API');
+      loadError = new Error(errorMessage);
       reject(loadError);
       
       // Clean up failed script

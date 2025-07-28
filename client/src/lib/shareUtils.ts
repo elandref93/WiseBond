@@ -17,7 +17,6 @@ export function generateShareableUrl(result: CalculationResult): string {
     const baseUrl = window.location.origin;
     return `${baseUrl}/shared-calculation?data=${encodedData}`;
   } catch (error) {
-    console.error('Error generating shareable URL:', error);
     return window.location.origin;
   }
 }
@@ -42,7 +41,6 @@ export function parseSharedCalculation(encodedData: string): CalculationResult |
     
     return calculationData;
   } catch (error) {
-    console.error('Error parsing shared calculation:', error);
     return null;
   }
 }
@@ -70,7 +68,6 @@ export function generateShareableText(result: CalculationResult): string {
     
     return message;
   } catch (error) {
-    console.error('Error generating shareable text:', error);
     return 'Check out my home loan calculation results!';
   }
 }
