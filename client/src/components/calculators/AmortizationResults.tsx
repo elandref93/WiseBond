@@ -70,10 +70,6 @@ export default function AmortizationResults({ results }: AmortizationResultsProp
     balance: Math.round(data.remainingPrincipal),
   }));
   
-  console.log('AmortizationResults Chart Data Debug:');
-  chartData.slice(0, 5).forEach(item => {
-    console.log(`Year ${item.year}: Balance=${item.balance}, Principal=${item.principal}, Interest=${item.interest}`);
-  });
 
   return (
     <div className="mt-8 space-y-8">

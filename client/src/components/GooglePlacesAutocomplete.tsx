@@ -45,7 +45,6 @@ export default function GooglePlacesAutocomplete({
           setError(null);
         })
         .catch((err) => {
-          console.error('Failed to load Google Maps API:', err);
           setStatus('error');
           setError('Address search is temporarily unavailable. You can still enter your address manually below.');
         });
@@ -126,7 +125,6 @@ export default function GooglePlacesAutocomplete({
         
         hasBeenInitialized.current = true;
       } catch (err) {
-        console.error('Error initializing Google Places Autocomplete:', err);
         setStatus('error');
         setError('Error initializing address search. Please enter your address manually.');
       }

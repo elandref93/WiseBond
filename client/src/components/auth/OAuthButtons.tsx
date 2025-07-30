@@ -40,7 +40,6 @@ export function OAuthButtons({ isLoading = false, onAuthStart, onAuthComplete }:
       }
 
     } catch (error) {
-      console.error(`${provider} OAuth error:`, error);
       toast({
         title: "Authentication Error",
         description: `Failed to connect with ${provider}. Please try again.`,

@@ -56,7 +56,6 @@ export default function SignInForm() {
         setLocation("/");
       }
     } catch (error: any) {
-      console.error('Login error:', error);
       toast({
         title: "Login failed",
         description: error?.response?.data?.message || "Invalid email or password.",

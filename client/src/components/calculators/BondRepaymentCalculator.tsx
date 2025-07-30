@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -48,7 +48,7 @@ interface BondRepaymentCalculatorProps {
   onCalculate: (results: CalculationResult, formValues?: any) => void;
 }
 
-export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCalculatorProps) {
+const BondRepaymentCalculator = memo(function BondRepaymentCalculator({ onCalculate }: BondRepaymentCalculatorProps) {
   const [loanDetails, setLoanDetails] = useState<{
     loanAmount: number;
     interestRate: number;
@@ -133,7 +133,6 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
         }
       }
     } catch (error) {
-      console.error("Calculation error:", error);
     }
   };
   useEffect(() => {
@@ -162,19 +161,19 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   }, []);
 
   // For property value slider
-  const handlePropertyValueSliderChange = (value: number[]) => {
+  const handlePropertyValueSliderChange = useCallback((value: number[]) => {
     form.setValue("propertyValue", value[0].toString(), { shouldValidate: true });
-  };
+  }, [form]);
 
   // For deposit slider
-  const handleDepositSliderChange = (value: number[]) => {
+  const handleDepositSliderChange = useCallback((value: number[]) => {
     form.setValue("deposit", value[0].toString(), { shouldValidate: true });
-  };
+  }, [form]);
 
   // For interest rate slider
-  const handleInterestRateSliderChange = (value: number[]) => {
+  const handleInterestRateSliderChange = useCallback((value: number[]) => {
     form.setValue("interestRate", value[0].toFixed(2), { shouldValidate: true });
-  };
+  }, [form]);
 
   // Get current property value and deposit for sliders
   const currentPropertyValue = parseCurrency(form.watch("propertyValue")) || 1000000;
@@ -186,48 +185,47 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
   const displayDeposit = displayCurrencyValue(currentDeposit);
   const displayMaxDeposit = displayCurrencyValue(Math.min(5000000, currentPropertyValue * 0.5));
 
-  // Calculate monthly payment - no monthly admin fee
-  const calculateMonthlyPayment = () => {
-    if (!loanDetails) return "R0";
+  // Memoized calculations to prevent unnecessary recalculations
+  const calculatedValues = useMemo(() => {
+    if (!loanDetails) {
+      return {
+        monthlyPayment: "R0",
+        totalRepayment: "R0", 
+        totalInterest: "R0"
+      };
+    }
     
     const monthlyRate = loanDetails.interestRate / 100 / 12;
     const numberOfPayments = loanDetails.loanTerm * 12;
     const x = Math.pow(1 + monthlyRate, numberOfPayments);
     const monthlyPayment = (loanDetails.loanAmount * x * monthlyRate) / (x - 1);
+    const totalRepayment = monthlyPayment * numberOfPayments;
+    const totalInterest = totalRepayment - loanDetails.loanAmount;
     
-    return formatCurrency(monthlyPayment);
-  };
+    return {
+      monthlyPayment: formatCurrency(monthlyPayment),
+      totalRepayment: formatCurrency(totalRepayment),
+      totalInterest: formatCurrency(totalInterest)
+    };
+  }, [loanDetails]);
+
+  // Calculate monthly payment - no monthly admin fee
+  const calculateMonthlyPayment = useCallback(() => {
+    return calculatedValues.monthlyPayment;
+  }, [calculatedValues.monthlyPayment]);
   
   // Calculate total repayment
-  const calculateTotalRepayment = () => {
-    if (!loanDetails) return "R0";
-    
-    const monthlyRate = loanDetails.interestRate / 100 / 12;
-    const numberOfPayments = loanDetails.loanTerm * 12;
-    const x = Math.pow(1 + monthlyRate, numberOfPayments);
-    const monthlyPayment = (loanDetails.loanAmount * x * monthlyRate) / (x - 1);
-    
-    // The transfer and registration costs are already included in the loan amount
-    // when the checkbox is checked, so no need to add them again
-    const totalRepayment = monthlyPayment * numberOfPayments;
-    
-    return formatCurrency(totalRepayment);
-  };
+  const calculateTotalRepayment = useCallback(() => {
+    return calculatedValues.totalRepayment;
+  }, [calculatedValues.totalRepayment]);
   
   // Calculate total interest
-  const calculateTotalInterest = () => {
-    if (!loanDetails) return "R0";
-    
-    const monthlyRate = loanDetails.interestRate / 100 / 12;
-    const numberOfPayments = loanDetails.loanTerm * 12;
-    const x = Math.pow(1 + monthlyRate, numberOfPayments);
-    const monthlyPayment = (loanDetails.loanAmount * x * monthlyRate) / (x - 1);
-    
-    return formatCurrency(monthlyPayment * numberOfPayments - loanDetails.loanAmount);
-  };
+  const calculateTotalInterest = useCallback(() => {
+    return calculatedValues.totalInterest;
+  }, [calculatedValues.totalInterest]);
   
   // Calculate total transfer and bond registration costs - to be included in financing
-  const calculateTotalTransferCosts = () => {
+  const calculateTotalTransferCosts = useMemo(() => {
     const includeBondFees = form.watch("includeBondFees");
     if (!loanDetails || !includeBondFees) return null;
     
@@ -242,10 +240,10 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     
     const totalCosts = transferDuty + transferAttorneyFees + bondRegistrationFee + deedsOfficeFee;
     return formatCurrency(totalCosts);
-  };
+  }, [loanDetails, form.watch("includeBondFees")]);
   
   // Return the actual additional amount for calculations
-  const getAdditionalFinancingAmount = () => {
+  const getAdditionalFinancingAmount = useMemo(() => {
     const includeBondFees = form.watch("includeBondFees");
     if (!loanDetails || !includeBondFees) return 0;
     
@@ -258,10 +256,10 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     const deedsOfficeFee = 1500;
     
     return transferDuty + transferAttorneyFees + bondRegistrationFee + deedsOfficeFee;
-  };
+  }, [loanDetails, form.watch("includeBondFees")]);
 
   // Generate yearly amortization data for table using shared utility
-  const generateYearlyData = () => {
+  const generateYearlyData = useMemo(() => {
     if (!loanDetails) return [];
     
     // Use the shared amortization utility for consistency
@@ -294,7 +292,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
     }
     
     return yearlyData;
-  };
+  }, [loanDetails]);
 
   return (
     <div className="max-w-full">
@@ -554,7 +552,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                           { label: "Monthly Repayment", value: calculateMonthlyPayment() },
                           { label: "Total Repayment", value: calculateTotalRepayment() },
                           { label: "Total Interest", value: calculateTotalInterest() },
-                          { label: "Transfer & Registration Costs", value: calculateTotalTransferCosts() || "R0" },
+                          { label: "Transfer & Registration Costs", value: calculateTotalTransferCosts || "R0" },
                         ],
                         input: {
                           propertyValue: formatCurrency(loanDetails.propertyValue),
@@ -613,7 +611,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                               monthlyPayment: calculateMonthlyPayment(),
                               totalRepayment: calculateTotalRepayment(),
                               totalInterest: calculateTotalInterest(),
-                              transferCosts: calculateTotalTransferCosts() || "R0"
+                              transferCosts: calculateTotalTransferCosts || "R0"
                             }
                           })
                         })
@@ -683,12 +681,12 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                 </div>
                 
                 {/* Transfer and Registration Costs Tile - Only show when includeBondFees is checked */}
-                {form.watch("includeBondFees") && calculateTotalTransferCosts() && (
+                {form.watch("includeBondFees") && calculateTotalTransferCosts && (
                   <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm text-gray-500 mb-1">Transfer & Registration Costs</div>
-                        <div className="text-2xl font-bold">{calculateTotalTransferCosts()}</div>
+                        <div className="text-2xl font-bold">{calculateTotalTransferCosts}</div>
                       </div>
                       <div className="bg-purple-100 p-3 rounded-full">
                         <BanknoteIcon className="h-6 w-6 text-purple-600" />
@@ -770,7 +768,7 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {generateYearlyData().map((data) => (
+                    {generateYearlyData.map((data) => (
                       <tr key={data.year} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{data.year}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">{formatCurrency(data.totalPrincipalPaid)}</td>
@@ -782,10 +780,12 @@ export default function BondRepaymentCalculator({ onCalculate }: BondRepaymentCa
                 </table>
               </div>
             </div>
-            <p className="text-xs text-gray-400 mt-2">Scroll to view all {generateYearlyData().length} years</p>
+            <p className="text-xs text-gray-400 mt-2">Scroll to view all {generateYearlyData.length} years</p>
           </div>
         </div>
       )}
     </div>
   );
-}
+});
+
+export default BondRepaymentCalculator;

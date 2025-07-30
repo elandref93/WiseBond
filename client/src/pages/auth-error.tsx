@@ -17,7 +17,6 @@ export default function AuthError() {
       errorType = urlParams.get('error') || 'unknown_error';
       setErrorType(errorType);
     } catch (error) {
-      console.error('Error parsing URL parameters:', error);
       setErrorType('unknown_error');
     }
 

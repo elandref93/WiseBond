@@ -69,8 +69,6 @@ export default function ImprovedAddressInput({
           initializeServices();
         })
         .catch(error => {
-          console.error('Error loading Google Maps API:', error);
-          
           // Provide more specific error messages based on the error
           let errorMessage = 'Address suggestions are temporarily unavailable.';
           
@@ -186,9 +184,6 @@ export default function ImprovedAddressInput({
       },
       (place: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && place) {
-          // Store raw data for reference
-          console.log('Google Place details:', place);
-          
           // Extract address components with original data preserved
           const components = extractAddressComponents(place.address_components);
           

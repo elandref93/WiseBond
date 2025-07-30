@@ -24,9 +24,10 @@ export function calculateMonthlyPayment(
 ): number {
   const monthlyRate = interestRate / 100 / 12;
   const totalPayments = termYears * 12;
+  const compoundFactor = Math.pow(1 + monthlyRate, totalPayments);
   return (
-    (principal * monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) /
-    (Math.pow(1 + monthlyRate, totalPayments) - 1)
+    (principal * monthlyRate * compoundFactor) /
+    (compoundFactor - 1)
   );
 }
 
@@ -41,7 +42,9 @@ export function generateAmortizationData(
 ): YearlyData[] {
   const data: YearlyData[] = [];
   const monthlyRate = interestRate / 100 / 12;
-  const monthlyPayment = calculateMonthlyPayment(loanAmount, interestRate, loanTerm);
+  const totalPayments = loanTerm * 12;
+  const compoundFactor = Math.pow(1 + monthlyRate, totalPayments);
+  const monthlyPayment = (loanAmount * monthlyRate * compoundFactor) / (compoundFactor - 1);
   
   // Start with the original loan amount
   let currentBalance = loanAmount;

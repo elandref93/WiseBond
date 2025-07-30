@@ -184,18 +184,12 @@ export default function OTPVerification({ userId, email, onVerified, development
           throw new Error("Failed to log in automatically");
         }
         
-        console.log("Auto-login successful after OTP verification");
-        console.log("User data received:", loginData.user);
-        
         // Set the user data immediately in the query cache
         queryClient.setQueryData(['/api/auth/me'], loginData.user);
-        console.log("Query cache updated with user data");
         
         // Also invalidate the auth context to ensure it refreshes
         queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-        console.log("Auth queries invalidated");
       } catch (loginError) {
-        console.error('Auto-login after verification failed:', loginError);
         // Show a warning but still continue with verification success
         toast({
           title: "Verification successful but login failed",
@@ -219,7 +213,6 @@ export default function OTPVerification({ userId, email, onVerified, development
         onVerified();
       }, 500);
     } catch (error) {
-      console.error('OTP verification failed:', error);
       toast({
         title: "Verification failed",
         description: "Invalid OTP code. Please try again.",
@@ -268,7 +261,6 @@ export default function OTPVerification({ userId, email, onVerified, development
         inputRefs.current[0].focus();
       }
     } catch (error) {
-      console.error('Failed to resend OTP:', error);
       toast({
         title: "Failed to resend",
         description: "We couldn't send a new verification code. Please try again later.",

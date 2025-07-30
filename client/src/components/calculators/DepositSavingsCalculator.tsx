@@ -97,7 +97,6 @@ export default function DepositSavingsCalculator({ onCalculate }: DepositSavings
         queryClient.invalidateQueries({ queryKey: ['/api/calculations'] });
       }
     } catch (error) {
-      console.error("Calculation error:", error);
     } finally {
       setIsCalculating(false);
     }

@@ -36,7 +36,6 @@ export default function GooglePlacesAutocomplete({
       }
 
       try {
-        console.log('🔍 INITIALIZING GOOGLE PLACES AUTOCOMPLETE 🔍');
         
         // Initialize autocomplete with South Africa as the default country
         const options = {
@@ -103,7 +102,6 @@ export default function GooglePlacesAutocomplete({
         initialized.current = true;
         return true;
       } catch (err) {
-        console.error('Error initializing Google Places Autocomplete:', err);
         setError('Error initializing address search');
         return false;
       }

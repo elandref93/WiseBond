@@ -172,7 +172,6 @@ export default function AdditionalPaymentCalculator({ onCalculate }: AdditionalP
 
         onCalculate(result);
       } catch (error) {
-        console.error("Calculation error:", error);
       }
     };
     

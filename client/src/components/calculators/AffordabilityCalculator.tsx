@@ -132,14 +132,12 @@ export default function AffordabilityCalculator({ onCalculate }: AffordabilityCa
               // Invalidate the calculations query to refresh the data
               queryClient.invalidateQueries({ queryKey: ['/api/calculations'] });
             } catch (error) {
-              console.error("Error saving calculation:", error);
             }
           }, 5000);  // Save at most every 5 seconds
           
           return () => clearTimeout(saveDebounceTimeout);
         }
       } catch (error) {
-        console.error("Calculation error:", error);
       } finally {
         setIsCalculating(false);
       }

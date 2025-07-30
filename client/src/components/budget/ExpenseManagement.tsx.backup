@@ -111,7 +111,6 @@ export default function ExpenseManagement() {
         description: "There was an error adding your expense. Please try again.",
         variant: "destructive",
       });
-      console.error("Error adding expense:", error);
     }
   });
 
@@ -146,7 +145,6 @@ export default function ExpenseManagement() {
         description: "There was an error updating your expense. Please try again.",
         variant: "destructive",
       });
-      console.error("Error updating expense:", error);
     }
   });
 
@@ -169,7 +167,6 @@ export default function ExpenseManagement() {
         description: "There was an error deleting your expense. Please try again.",
         variant: "destructive",
       });
-      console.error("Error deleting expense:", error);
     }
   });
 

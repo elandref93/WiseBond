@@ -50,16 +50,11 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
       const loanTermYears = parseFloat(values.loanTerm);
       const loanTermMonths = loanTermYears * 12;
       
-      console.log('=== AMORTIZATION CALCULATOR DEBUG ===');
-      console.log(`Input Values: Loan=${values.loanAmount}, Rate=${values.interestRate}%, Term=${values.loanTerm} years`);
-      console.log(`Parsed Values: Loan=${loanAmount}, Rate=${interestRate * 100}%, Term=${loanTermYears} years`);
       
       // Calculate monthly payment
       const monthlyRate = interestRate / 12;
       const monthlyPayment = (loanAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -loanTermMonths));
       
-      console.log(`Monthly Rate: ${(monthlyRate * 100).toFixed(4)}%`);
-      console.log(`Monthly Payment: R${monthlyPayment.toFixed(2)}`);
       
       // Create amortization schedule
       let remainingPrincipal = loanAmount;
@@ -94,9 +89,6 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
         // Save remaining loan amount at the end of each year and debug
         if (month % 12 === 0) {
           remainingByYear[month / 12] = remainingPrincipal;
-          if (month / 12 <= 5) { // Log first 5 years
-            console.log(`Year ${month/12}: Remaining Balance = R${remainingPrincipal.toFixed(2)}, Interest Paid = R${interestPaidByYear[currentYear].toFixed(2)}, Principal Paid = R${principalPaidByYear[currentYear].toFixed(2)}`);
-          }
         }
       }
       
@@ -116,13 +108,6 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
             .reduce((sum, y) => sum + principalPaidByYear[parseInt(y)], 0),
         };
         
-        if (year <= 5) {
-          console.log(`Chart Data Year ${year}:`, {
-            remainingPrincipal: yearData.remainingPrincipal.toFixed(2),
-            principalPaid: yearData.principalPaid.toFixed(2),
-            interestPaid: yearData.interestPaid.toFixed(2)
-          });
-        }
         
         yearlyData.push(yearData);
       }
@@ -180,7 +165,6 @@ export default function AmortizationCalculator({ onCalculate }: AmortizationCalc
 
       onCalculate(result);
     } catch (error) {
-      console.error("Calculation error:", error);
     } finally {
       setIsSubmitting(false);
     }

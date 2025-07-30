@@ -48,7 +48,6 @@ export function useOAuth() {
       }
 
     } catch (error) {
-      console.error(`${provider} OAuth error:`, error);
       toast({
         title: "Authentication Error",
         description: `Failed to connect with ${provider.charAt(0).toUpperCase() + provider.slice(1)}. Please try again.`,
@@ -85,7 +84,6 @@ export function useOAuth() {
       window.location.href = data.url;
 
     } catch (error) {
-      console.error('Sign out error:', error);
       toast({
         title: "Sign Out Error",
         description: "Failed to sign out. Please try again.",
@@ -106,7 +104,6 @@ export function useOAuth() {
 
       return await response.json();
     } catch (error) {
-      console.error('Get providers error:', error);
       return null;
     }
   };
