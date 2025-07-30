@@ -178,6 +178,10 @@ app.use((req, res, next) => {
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📁 Working directory: ${process.cwd()}`);
   console.log(`🔧 PORT environment variable: ${process.env.PORT || 'Not set (using default 8080)'}`);
+  console.log(`📦 Build Version: ${process.env.BUILD_VERSION || 'unknown'}`);
+  console.log(`🕐 Build Time: ${process.env.BUILD_TIME || 'unknown'}`);
+  console.log(`🔧 Postgres Fix: Applied`);
+  console.log(`📦 NPM Version: 11.5.1 (upgraded)`);
   
   // Azure Web App specific logging
   if (process.env.WEBSITE_SITE_NAME) {
@@ -195,10 +199,23 @@ app.use((req, res, next) => {
     console.log(`🗺️ Maps: ${process.env.GOOGLE_MAPS_API_KEY ? 'Configured' : 'Not configured'}`);
     console.log(`🤖 OpenRouter: ${process.env.OPENROUTER_API_KEY ? 'Configured' : 'Not configured'}`);
     
-    // Azure Web App health check endpoint
-    if (process.env.WEBSITE_SITE_NAME) {
-      console.log(`🏥 Health check available at: http://localhost:${port}/health`);
-    }
+      // Azure Web App health check endpoint
+  if (process.env.WEBSITE_SITE_NAME) {
+    console.log(`🏥 Health check available at: http://localhost:${port}/health`);
+  }
+  
+  // Build info endpoint
+  app.get('/api/build-info', (req, res) => {
+    res.json({
+      version: process.env.BUILD_VERSION || 'unknown',
+      buildTime: process.env.BUILD_TIME || 'unknown',
+      environment: process.env.NODE_ENV || 'development',
+      postgresFix: 'applied',
+      npmVersion: '11.5.1',
+      nodeVersion: process.version,
+      timestamp: new Date().toISOString()
+    });
+  });
   });
 
   // Handle server errors

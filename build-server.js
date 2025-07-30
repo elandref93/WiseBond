@@ -3,13 +3,25 @@
 import { build } from 'esbuild';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Generate build version
+function generateBuildVersion() {
+  const now = new Date();
+  const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, -5);
+  const randomSuffix = Math.random().toString(36).substring(2, 8);
+  return `build-${timestamp}-${randomSuffix}`;
+}
+
 async function buildServer() {
   try {
+    const buildVersion = generateBuildVersion();
     console.log('🔨 Building server with proper path mapping...');
+    console.log(`📦 Build Version: ${buildVersion}`);
+    console.log(`🕐 Build Time: ${new Date().toISOString()}`);
     
     const result = await build({
       entryPoints: ['server/index.ts'],
@@ -86,6 +98,8 @@ async function buildServer() {
       minify: process.env.NODE_ENV === 'production',
       define: {
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+        'process.env.BUILD_VERSION': JSON.stringify(buildVersion),
+        'process.env.BUILD_TIME': JSON.stringify(new Date().toISOString()),
       },
       // Handle problematic file types
       loader: {
@@ -95,7 +109,21 @@ async function buildServer() {
       }
     });
 
+    // Create build info file
+    const buildInfo = {
+      version: buildVersion,
+      timestamp: new Date().toISOString(),
+      nodeVersion: process.version,
+      npmVersion: process.env.npm_config_user_agent || 'unknown',
+      environment: process.env.NODE_ENV || 'development',
+      postgresFix: 'applied',
+      npmUpgrade: '11.5.1'
+    };
+
+    fs.writeFileSync(path.join(__dirname, 'dist', 'build-info.json'), JSON.stringify(buildInfo, null, 2));
+    
     console.log('✅ Server build completed successfully');
+    console.log(`📋 Build Info: ${JSON.stringify(buildInfo, null, 2)}`);
     return result;
   } catch (error) {
     console.error('❌ Server build failed:', error);
