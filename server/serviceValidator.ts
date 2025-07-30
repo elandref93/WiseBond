@@ -5,6 +5,8 @@
  * and can be used by the application.
  */
 
+import { getPostgresClient } from './db';
+
 interface ServiceStatus {
   name: string;
   configured: boolean;
@@ -106,7 +108,6 @@ async function validateDatabaseService(): Promise<ServiceStatus> {
     if (service.configured) {
       // Test database connection
       try {
-        const { getPostgresClient } = await import('./db');
         await getPostgresClient();
         service.testResult = true;
       } catch (error: any) {
