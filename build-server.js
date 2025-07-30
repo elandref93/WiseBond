@@ -21,9 +21,15 @@ async function buildServer() {
       external: [
         'vite',
         '../vite.config',
+        './vite.config',
+        'vite.config',
+        'vite.config.ts',
+        './vite.config.ts',
+        '../vite.config.ts',
         // External dependencies that should not be bundled
         'drizzle-orm',
         'postgres',
+        'postgres/*',
         'express',
         'express-session',
         'passport',
@@ -51,7 +57,22 @@ async function buildServer() {
         'mock-aws-s3',
         'aws-sdk',
         'nock',
-        '@mapbox/node-pre-gyp'
+        '@mapbox/node-pre-gyp',
+        // Add more specific externals
+        'pg',
+        'mysql2',
+        'sqlite3',
+        'better-sqlite3',
+        'oracledb',
+        'mssql',
+        'tedious',
+        'pg-native',
+        'mysql',
+        'mysql2/promise',
+        // Development-only files
+        './vite',
+        '../vite',
+        'vite'
       ],
       alias: {
         '@shared': path.resolve(__dirname, 'shared'),

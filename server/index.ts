@@ -162,8 +162,13 @@ app.use((req, res, next) => {
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
   } else {
-    const { setupVite } = await import("./vite");
-    await setupVite(app, server);
+    try {
+      const { setupVite } = await import("./vite");
+      await setupVite(app, server);
+    } catch (error) {
+      console.log('⚠️ Vite development server not available, using static files');
+      serveStatic(app);
+    }
   }
 
   // Start the server after all middleware is configured  
