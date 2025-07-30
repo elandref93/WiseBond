@@ -4,7 +4,7 @@
  * This module validates that all required services are properly configured
  * and can be used by the application.
  */
-
+import { getPostgresClient } from './db';
 import { getDatabaseSecretsFromKeyVault } from './keyVault';
 
 interface ServiceStatus {
@@ -107,7 +107,7 @@ async function validateDatabaseService(): Promise<ServiceStatus> {
     if (service.configured) {
       // Test database connection
       try {
-        const { getPostgresClient } = await import('./db');
+       // const { getPostgresClient } = await import('./db');
         await getPostgresClient();
         service.testResult = true;
       } catch (error: any) {
