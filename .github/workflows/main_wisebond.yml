@@ -38,36 +38,23 @@ jobs:
     # - name: Run type checking
     #   run: npm run check
     
-    - name: Build application with parallel processing
+    - name: Build application with proper path mapping
       run: |
-        echo "Starting optimized build process..."
+        echo "Starting build process with proper path mapping..."
         
-        # Run frontend and backend builds in parallel for faster builds
-        npm run build:frontend &
-        FRONTEND_PID=$!
+        # Build the entire application
+        npm run build
         
-        # Build backend while frontend is building
-        npm run build:backend &
-        BACKEND_PID=$!
+        # Verify the build output
+        echo "Verifying build output..."
+        ls -la dist/
         
-        # Wait for both to complete
-        wait $FRONTEND_PID
-        FRONTEND_EXIT_CODE=$?
-        wait $BACKEND_PID
-        BACKEND_EXIT_CODE=$?
-        
-        # Check if both builds succeeded
-        if [ $FRONTEND_EXIT_CODE -ne 0 ]; then
-          echo "Frontend build failed"
+        if [ ! -f "dist/index.js" ]; then
+          echo "❌ Server build failed - dist/index.js not found"
           exit 1
         fi
         
-        if [ $BACKEND_EXIT_CODE -ne 0 ]; then
-          echo "Backend build failed"
-          exit 1
-        fi
-        
-        echo "Both builds completed successfully"
+        echo "✅ Build completed successfully"
     
     - name: Create ultra-optimized deployment package
       run: |
@@ -82,10 +69,13 @@ jobs:
         # Copy built application
         cp -r dist/ minimal-deploy/
         
+        # Copy shared directory (required for database schema)
+        cp -r shared/ minimal-deploy/
+        
         # Copy config files
         cp web.config minimal-deploy/
         
-        # Create minimal package.json for production (remove dev dependencies completely)
+        # Create minimal package.json for production (include all runtime dependencies)
         cat > minimal-deploy/package.json << 'EOF'
         {
           "name": "wisebond-production",
@@ -98,11 +88,31 @@ jobs:
             "node": "22.x"
           },
           "dependencies": {
-            "express": "^4.18.2",
-            "cors": "^2.8.5",
+            "express": "^4.21.2",
+            "express-session": "^1.18.2",
+            "passport": "^0.7.0",
+            "passport-local": "^1.0.0",
+            "bcrypt": "^5.1.1",
+            "dotenv": "^16.4.7",
+            "drizzle-orm": "^0.36.4",
+            "postgres": "^3.4.7",
+            "connect-pg-simple": "^10.0.0",
             "helmet": "^7.1.0",
+            "cors": "^2.8.5",
             "compression": "^1.7.4",
-            "dotenv": "^16.0.0"
+            "mailgun.js": "^12.0.1",
+            "axios": "^1.11.0",
+            "zod": "^3.23.8",
+            "pdf-lib": "^1.17.1",
+            "puppeteer": "^24.10.1",
+            "ws": "^8.18.2",
+            "@azure/identity": "^4.10.0",
+            "@azure/keyvault-secrets": "^4.9.0",
+            "handlebars": "^4.7.8",
+            "date-fns": "^3.6.0",
+            "form-data": "^4.0.4",
+            "http-errors": "^2.0.0",
+            "path-to-regexp": "^0.1.12"
           }
         }
         EOF
