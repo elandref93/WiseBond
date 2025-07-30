@@ -42,6 +42,7 @@ async function buildServer() {
         'drizzle-orm',
         'drizzle-orm/*',
         'drizzle-orm/postgres-js',
+        'drizzle-orm/postgres-js/*',
         'postgres',
         'postgres/*',
         'postgres/src/*',
