@@ -28,8 +28,8 @@ async function buildServer() {
         '../vite.config.ts',
         // External dependencies that should not be bundled
         'drizzle-orm',
+        'drizzle-orm/postgres-js',
         'postgres',
-        'postgres/*',
         'express',
         'express-session',
         'passport',
