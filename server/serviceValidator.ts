@@ -5,7 +5,7 @@
  * and can be used by the application.
  */
 
-import { getPostgresClient } from './db';
+import { getDatabaseSecretsFromKeyVault } from './keyVault';
 
 interface ServiceStatus {
   name: string;
@@ -100,7 +100,6 @@ async function validateDatabaseService(): Promise<ServiceStatus> {
                          (process.env.POSTGRES_HOST && process.env.POSTGRES_USERNAME && process.env.POSTGRES_PASSWORD));
 
     // Check Key Vault integration
-    const { getDatabaseSecretsFromKeyVault } = await import('./keyVault');
     const keyVaultConfig = await getDatabaseSecretsFromKeyVault();
 
     service.configured = hasEnvVars || !!keyVaultConfig;
@@ -108,6 +107,7 @@ async function validateDatabaseService(): Promise<ServiceStatus> {
     if (service.configured) {
       // Test database connection
       try {
+        const { getPostgresClient } = await import('./db');
         await getPostgresClient();
         service.testResult = true;
       } catch (error: any) {

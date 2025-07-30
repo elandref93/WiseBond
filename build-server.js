@@ -5,6 +5,21 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 
+// Plugin to force externalization of specific problematic modules
+const forceExternalPlugin = {
+  name: 'force-external',
+  setup(build) {
+    build.onResolve({ filter: /^postgres($|\/.*)/ }, args => {
+      // Force external for postgres and all its submodules
+      return { external: true };
+    });
+    build.onResolve({ filter: /^drizzle-orm($|\/.*)/ }, args => {
+      // Force external for drizzle-orm and all its submodules
+      return { external: true };
+    });
+  },
+};
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -30,6 +45,9 @@ async function buildServer() {
       target: 'node22',
       format: 'esm',
       outdir: 'dist',
+      mainFields: ['module', 'main'],
+      metafile: true,
+      // Force all node_modules to be external
       external: [
         'vite',
         '../vite.config',
@@ -47,6 +65,12 @@ async function buildServer() {
         'postgres/*',
         'postgres/src/*',
         'postgres/cjs/*',
+        'postgres/src/index.js',
+        'postgres/cjs/src/index.js',
+        'postgres/src',
+        'postgres/cjs/src',
+        'postgres/src/index',
+        'postgres/cjs/src/index',
         'express',
         'express-session',
         'passport',
@@ -107,7 +131,8 @@ async function buildServer() {
         '.html': 'text',
         '.toml': 'text',
         '.json': 'json'
-      }
+      },
+      plugins: [forceExternalPlugin]
     });
 
     // Create build info file

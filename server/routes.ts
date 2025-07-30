@@ -11,6 +11,9 @@ import { fromZodError } from 'zod-validation-error';
 import { randomBytes } from "crypto";
 import { sendVerificationEmail, sendPasswordResetEmail, sendCalculationEmail, sendContactFormEmail } from "./email.js";
 import { getPrimeRateHandler } from "./services/primeRate/primeRateController.js";
+import { getDatabaseSecretsFromKeyVault } from "./keyVault";
+import { validateAllServices } from "./serviceValidator";
+import { OpenRouterController } from "./services/openRouter/openRouterController.js";
 
 
 interface SessionData {
@@ -57,7 +60,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   if (!databaseUrl) {
     // Try to get database credentials from Key Vault first
     try {
-      const { getDatabaseSecretsFromKeyVault } = await import('./keyVault');
       const keyVaultConfig = await getDatabaseSecretsFromKeyVault();
       
       if (keyVaultConfig) {
@@ -230,7 +232,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Debug endpoint for service validation
   app.get("/api/debug/services", async (req, res) => {
     try {
-      const { validateAllServices } = await import('./serviceValidator');
       const summary = await validateAllServices();
       res.json(summary);
     } catch (error: any) {
@@ -814,27 +815,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // OpenRouter AI API Routes
   app.get('/api/openrouter/test', async (req, res) => {
-    const { OpenRouterController } = await import('./services/openRouter/openRouterController.js');
     await OpenRouterController.testConnection(req, res);
   });
 
   app.get('/api/openrouter/models', async (req, res) => {
-    const { OpenRouterController } = await import('./services/openRouter/openRouterController.js');
     await OpenRouterController.getModels(req, res);
   });
 
   app.post('/api/openrouter/generate-text', async (req, res) => {
-    const { OpenRouterController } = await import('./services/openRouter/openRouterController.js');
     await OpenRouterController.generateText(req, res);
   });
 
   app.post('/api/openrouter/financial-advice', async (req, res) => {
-    const { OpenRouterController } = await import('./services/openRouter/openRouterController.js');
     await OpenRouterController.generateFinancialAdvice(req, res);
   });
 
   app.post('/api/openrouter/chat', async (req, res) => {
-    const { OpenRouterController } = await import('./services/openRouter/openRouterController.js');
     await OpenRouterController.chatCompletion(req, res);
   });
 

@@ -3,6 +3,7 @@ import { db } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
+import { sendWelcomeEmail } from './email';
 
 /**
  * Smart name parsing utility for handling display names from OAuth providers
@@ -228,7 +229,6 @@ export async function createOrUpdateOAuthUser(provider: string, profile: any) {
 
     // Send welcome email for new OAuth users
     try {
-      const { sendWelcomeEmail } = await import('./email');
       await sendWelcomeEmail({
         firstName: firstName || 'User',
         email,

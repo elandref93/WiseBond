@@ -1,6 +1,10 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { serveStatic, log } from "./staticServer";
 import { getPostgresClient } from "./db";
+import { initializeSecretsFromKeyVault, listAvailableKeys } from './keyVault';
+import { validateAllServices } from './serviceValidator';
+import { migrate } from './migrate';
+import { registerRoutes } from "./routes.js";
 
 // Load environment variables from .env.local for local development
 import dotenv from "dotenv";
@@ -91,7 +95,6 @@ app.use((req, res, next) => {
   
   // Try to load secrets from Azure Key Vault (only in cloud environments)
   try {
-    const { initializeSecretsFromKeyVault, listAvailableKeys } = await import('./keyVault');
     await initializeSecretsFromKeyVault();
     
     // List available keys for debugging (only in cloud environments)
@@ -106,7 +109,6 @@ app.use((req, res, next) => {
 
   // Validate all service configurations
   try {
-    const { validateAllServices } = await import('./serviceValidator');
     await validateAllServices();
   } catch (error) {
     console.error('Error validating services:', error);
@@ -120,7 +122,6 @@ app.use((req, res, next) => {
     console.log('✅ Database connected successfully, running migrations...');
     // Only run migrations in development or if explicitly requested
     if (process.env.NODE_ENV !== 'production' || process.env.RUN_MIGRATIONS === 'true') {
-      const { migrate } = await import('./migrate');
       await migrate();
     } else {
       console.log('🚀 Production mode - skipping database migrations');
@@ -139,9 +140,6 @@ app.use((req, res, next) => {
   }
   
   console.log("ENV:", process.env.NODE_ENV);
-  
-  // Import registerRoutes function
-  const { registerRoutes } = await import("./routes.js");
   
   // Register API routes without starting server
   await registerRoutes(app);
@@ -163,7 +161,7 @@ app.use((req, res, next) => {
     serveStatic(app);
   } else {
     try {
-      const { setupVite } = await import("./vite");
+      const { setupVite } = await import('./vite');
       await setupVite(app, server);
     } catch (error) {
       console.log('⚠️ Vite development server not available, using static files');
