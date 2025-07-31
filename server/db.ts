@@ -1,7 +1,4 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
-// Force CommonJS import for postgres in production
-const postgresModule = await import('postgres');
-const postgres = postgresModule.default;
 import * as schema from '@shared/schema';
 import { getDatabaseSecretsFromKeyVault, checkAzureAuthentication } from './keyVault';
 
@@ -9,9 +6,34 @@ import { getDatabaseSecretsFromKeyVault, checkAzureAuthentication } from './keyV
 let db: any = null;
 let client: any = null;
 let initPromise: Promise<any> | null = null;
+let postgres: any = null;
+
+// Import postgres with ES module compatibility fix
+async function importPostgres() {
+  if (postgres) return postgres;
+  
+  try {
+    // Try ES module import first
+    const postgresModule = await import('postgres');
+    postgres = postgresModule.default || postgresModule;
+    return postgres;
+  } catch (error) {
+    // Fallback to CommonJS import for compatibility
+    try {
+      const postgresModule = await import('postgres/cjs/src/index.js');
+      postgres = postgresModule.default || postgresModule;
+      return postgres;
+    } catch (fallbackError) {
+      console.error('Failed to import postgres module:', error, fallbackError);
+      throw new Error('Unable to import postgres module. Please check package installation.');
+    }
+  }
+}
 
 // Database connection configuration with three-tier strategy
 async function initializeDatabase() {
+  // Initialize postgres import
+  const postgresClient = await importPostgres();
   // Only attempt Azure Key Vault in cloud environments
   if (process.env.WEBSITE_SITE_NAME || process.env.AZURE_WEBAPP_NAME) {
     console.log('🔄 Attempting Tier 1: Azure Key Vault');
@@ -24,7 +46,7 @@ async function initializeDatabase() {
         if (keyVaultConfig) {
           const connectionString = `postgresql://${keyVaultConfig.username}:${encodeURIComponent(keyVaultConfig.password)}@${keyVaultConfig.host}:${keyVaultConfig.port}/${keyVaultConfig.database}?sslmode=require`;
           
-          client = postgres(connectionString, {
+          client = postgresClient(connectionString, {
             max: 20,
             idle_timeout: 30,
             connect_timeout: 10,
@@ -66,7 +88,7 @@ async function initializeDatabase() {
         
         const connectionString = `postgresql://${hardcodedConfig.username}:${encodeURIComponent(hardcodedConfig.password)}@${hardcodedConfig.host}:${hardcodedConfig.port}/${hardcodedConfig.database}?sslmode=require`;
         
-        client = postgres(connectionString, {
+        client = postgresClient(connectionString, {
           max: 20,
           idle_timeout: 30,
           connect_timeout: 10,
@@ -130,7 +152,7 @@ async function initializeDatabase() {
           onnotice: () => {},
         };
         
-        client = postgres(connectionOptions);
+        client = postgresClient(connectionOptions);
         
         // Test connection
         await client`SELECT 1`;

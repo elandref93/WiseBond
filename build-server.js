@@ -80,7 +80,13 @@ async function buildServer() {
       minify: process.env.NODE_ENV === 'production',
       define: {
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-      }
+      },
+      // Add alias to help with postgres module resolution
+      alias: {
+        'postgres': 'postgres'
+      },
+      // Ensure proper module resolution
+      mainFields: ['module', 'main'],
     });
 
     console.log('✅ Server build completed successfully');
