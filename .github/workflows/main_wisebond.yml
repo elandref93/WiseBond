@@ -119,7 +119,9 @@ jobs:
             "form-data": "^4.0.4",
             "http-errors": "^2.0.0",
             "path-to-regexp": "^0.1.12",
-            "drizzle-zod": "^0.5.1"
+            "drizzle-zod": "^0.5.1",
+            "nanoid": "^5.1.5",
+            "zod-validation-error": "^3.4.0"
           }
         }
         EOF
