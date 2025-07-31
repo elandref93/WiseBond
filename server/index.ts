@@ -12,20 +12,16 @@ import path from "path";
 import fs from "fs";
 import { createServer } from "http";
 
-// Only try to load .env.local in development
-if (process.env.NODE_ENV !== 'production') {
-  const envPath = path.resolve('.env.local');
-  console.log('🔧 Loading environment from:', envPath);
-  console.log('📁 File exists:', fs.existsSync(envPath));
+// Load environment variables FIRST before any service initialization
+console.log('🔧 Loading environment from:', path.join(process.cwd(), '.env.local'));
+console.log('📁 File exists:', fs.existsSync(path.join(process.cwd(), '.env.local')));
 
-  const result = dotenv.config({ path: envPath });
-  if (result.error) {
-    console.error('❌ Error loading .env.local:', result.error);
-  } else {
-    console.log('✅ Environment variables loaded successfully');
-  }
+// Load .env.local if it exists (for both development and production)
+if (fs.existsSync(path.join(process.cwd(), '.env.local'))) {
+  dotenv.config({ path: path.join(process.cwd(), '.env.local') });
+  console.log('✅ Environment variables loaded successfully');
 } else {
-  console.log('🌍 Production environment - using Azure environment variables');
+  console.log('⚠️ No .env.local file found, using system environment variables');
 }
 
 const app = express();
@@ -72,7 +68,6 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Prioritize environment variables (Replit secrets) over Azure Key Vault
   // Log available environment variables for debugging (without revealing values)
   const envVars = [
     'MAILGUN_API_KEY', 
@@ -107,7 +102,7 @@ app.use((req, res, next) => {
     console.log('Failed to load Azure Key Vault secrets. Some functionality may be limited.');
   }
 
-  // Validate all service configurations
+  // Validate all service configurations AFTER environment variables are loaded
   try {
     await validateAllServices();
   } catch (error) {
@@ -116,7 +111,6 @@ app.use((req, res, next) => {
 
   // Initialize Azure database with three-tier authentication strategy
   try {    
-
     // Setup database using three-tier strategy (Tier 1 → Tier 2 → Tier 3)
     await getPostgresClient();
     console.log('✅ Database connected successfully, running migrations...');

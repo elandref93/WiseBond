@@ -5,7 +5,7 @@
  */
 
 import { Request, Response } from 'express';
-import { openRouterService } from './openRouterService';
+import { getOpenRouterService } from './openRouterService';
 
 export class OpenRouterController {
   /**
@@ -13,6 +13,8 @@ export class OpenRouterController {
    */
   static async testConnection(req: Request, res: Response) {
     try {
+      const openRouterService = getOpenRouterService();
+      
       if (!openRouterService.isConfigured()) {
         return res.status(400).json({
           success: false,
@@ -44,6 +46,8 @@ export class OpenRouterController {
    */
   static async getModels(req: Request, res: Response) {
     try {
+      const openRouterService = getOpenRouterService();
+      
       if (!openRouterService.isConfigured()) {
         return res.status(400).json({
           success: false,
@@ -82,6 +86,8 @@ export class OpenRouterController {
         });
       }
 
+      const openRouterService = getOpenRouterService();
+      
       if (!openRouterService.isConfigured()) {
         return res.status(400).json({
           success: false,
@@ -131,6 +137,8 @@ export class OpenRouterController {
         });
       }
 
+      const openRouterService = getOpenRouterService();
+      
       if (!openRouterService.isConfigured()) {
         return res.status(400).json({
           success: false,
@@ -170,6 +178,8 @@ export class OpenRouterController {
         });
       }
 
+      const openRouterService = getOpenRouterService();
+      
       if (!openRouterService.isConfigured()) {
         return res.status(400).json({
           success: false,

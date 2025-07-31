@@ -1,4 +1,56 @@
 /**
+ * Google Maps API Configuration
+ * Handles API key retrieval with fallback strategies for different environments
+ */
+
+// Try multiple sources for the API key
+const getApiKey = (): string | undefined => {
+  // 1. Try Vite environment variable (build-time)
+  if (import.meta.env.VITE_GOOGLE_MAPS_API_KEY) {
+    return import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  }
+  
+  // 2. Try direct environment variable (runtime)
+  if (import.meta.env.GOOGLE_MAPS_API_KEY) {
+    return import.meta.env.GOOGLE_MAPS_API_KEY;
+  }
+  
+  // 3. Try to get from window object (if set by server)
+  if (typeof window !== 'undefined' && (window as any).GOOGLE_MAPS_API_KEY) {
+    return (window as any).GOOGLE_MAPS_API_KEY;
+  }
+  
+  // 4. Try to fetch from server endpoint (fallback)
+  return undefined;
+};
+
+export const googleMapsConfig = {
+  apiKey: getApiKey(),
+  libraries: ['places'] as const,
+  version: 'weekly' as const,
+};
+
+// Debug logging (only in development)
+if (import.meta.env.DEV) {
+  console.log('Google Maps API Configuration:', {
+    hasApiKey: !!googleMapsConfig.apiKey,
+    apiKeyPrefix: googleMapsConfig.apiKey ? googleMapsConfig.apiKey.substring(0, 10) + '...' : 'none',
+    environment: import.meta.env.MODE,
+    hostname: typeof window !== 'undefined' ? window.location.hostname : 'server'
+  });
+}
+
+// Export for use in components
+export const getGoogleMapsApiKey = (): string | undefined => {
+  return googleMapsConfig.apiKey;
+};
+
+// Check if API is properly configured
+export const isGoogleMapsConfigured = (): boolean => {
+  return !!googleMapsConfig.apiKey && googleMapsConfig.apiKey.startsWith('AIza');
+};
+
+/**
  * Google Maps API script loader and type declarations
  * This provides a more reliable way to load the Google Maps API and work with TypeScript
  */

@@ -864,6 +864,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(healthData);
   });
 
+  // Google Maps API key endpoint for frontend
+  app.get('/api/google-maps-config', (req, res) => {
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
+    
+    if (!apiKey) {
+      return res.status(404).json({ 
+        error: 'Google Maps API key not configured',
+        message: 'Please configure GOOGLE_MAPS_API_KEY in your environment variables or Azure Key Vault'
+      });
+    }
+
+    res.json({
+      apiKey,
+      hasApiKey: true,
+      configured: true,
+      timestamp: new Date().toISOString()
+    });
+  });
+
   // Email debug endpoint for development
   app.post('/api/debug/test-email', async (req, res) => {
     if (process.env.NODE_ENV !== 'development') {

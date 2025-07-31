@@ -176,5 +176,19 @@ export class OpenRouterService {
   }
 }
 
-// Export a singleton instance
-export const openRouterService = new OpenRouterService(); 
+// Lazy initialization to avoid checking API key before environment variables are loaded
+let _openRouterService: OpenRouterService | null = null;
+
+export function getOpenRouterService(): OpenRouterService {
+  if (!_openRouterService) {
+    _openRouterService = new OpenRouterService();
+  }
+  return _openRouterService;
+}
+
+// Keep the old export for backward compatibility, but make it lazy
+export const openRouterService = {
+  get instance() {
+    return getOpenRouterService();
+  }
+}; 

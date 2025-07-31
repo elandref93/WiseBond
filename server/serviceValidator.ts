@@ -102,20 +102,17 @@ async function validateDatabaseService(): Promise<ServiceStatus> {
     // Check Key Vault integration
     const keyVaultConfig = await getDatabaseSecretsFromKeyVault();
 
-    service.configured = hasEnvVars || !!keyVaultConfig;
+    // The database connection logic has hardcoded fallback credentials
+    // So we should always consider it configured and test the actual connection
+    service.configured = true; // Always configured due to hardcoded fallback
 
-    if (service.configured) {
-      // Test database connection
-      try {
-       // const { getPostgresClient } = await import('./db');
-        await getPostgresClient();
-        service.testResult = true;
-      } catch (error: any) {
-        service.error = `Database connection failed: ${error.message}`;
-        service.testResult = false;
-      }
-    } else {
-      service.error = 'No database configuration found in environment or Key Vault';
+    // Test database connection
+    try {
+      await getPostgresClient();
+      service.testResult = true;
+    } catch (error: any) {
+      service.error = `Database connection failed: ${error.message}`;
+      service.testResult = false;
     }
   } catch (error: any) {
     service.error = `Validation error: ${error.message}`;

@@ -38,6 +38,8 @@ const CookiePolicy = lazy(() => import("@/pages/CookiePolicy"));
 const Guidance = lazy(() => import("@/pages/Guidance"));
 const GuidanceArticle = lazy(() => import("@/pages/GuidanceArticle"));
 const AuthError = lazy(() => import("@/pages/auth-error"));
+const Debug = lazy(() => import("@/pages/Debug"));
+const GoogleMapsTest = lazy(() => import("@/pages/GoogleMapsTest"));
 
 function Router() {
   return (
@@ -62,6 +64,8 @@ function Router() {
       <Route path="/shared-calculation" component={SharedCalculation} />
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
+      <Route path="/debug" component={Debug} />
+      <Route path="/test-maps" component={GoogleMapsTest} />
       
       {/* Protected routes */}
       <ProtectedRoute path="/profile" component={Profile} />

@@ -6,7 +6,21 @@ let isLoaded = false;
 let loadError: Error | null = null;
 let loadPromise: Promise<void> | null = null;
 
-export function loadGoogleMapsAPI(): Promise<void> {
+// Function to fetch API key from server if not available at build time
+async function fetchApiKeyFromServer(): Promise<string | undefined> {
+  try {
+    const response = await fetch('/api/google-maps-config');
+    if (response.ok) {
+      const data = await response.json();
+      return data.apiKey;
+    }
+  } catch (error) {
+    console.warn('Failed to fetch API key from server:', error);
+  }
+  return undefined;
+}
+
+export async function loadGoogleMapsAPI(): Promise<void> {
   // Return existing promise if already loading
   if (loadPromise) {
     return loadPromise;
@@ -23,7 +37,13 @@ export function loadGoogleMapsAPI(): Promise<void> {
     return Promise.resolve();
   }
   
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || import.meta.env.GOOGLE_MAPS_API_KEY;
+  // Try to get API key from multiple sources
+  let apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || import.meta.env.GOOGLE_MAPS_API_KEY;
+  
+  // If no API key found at build time, try to fetch from server
+  if (!apiKey) {
+    apiKey = await fetchApiKeyFromServer();
+  }
   
   // Check for API key - more helpful error handling
   if (!apiKey) {
@@ -35,7 +55,8 @@ export function loadGoogleMapsAPI(): Promise<void> {
 Google Maps API key not found. Please check:
 1. .env file has VITE_GOOGLE_MAPS_API_KEY or GOOGLE_MAPS_API_KEY set
 2. Server has copied GOOGLE_MAPS_API_KEY to VITE_GOOGLE_MAPS_API_KEY
-3. Vite has restarted after environment changes`);
+3. Vite has restarted after environment changes
+4. Server endpoint /api/google-maps-config is working`);
     } else {
       console.error('Maps functionality unavailable. Please contact support if this issue persists.');
     }

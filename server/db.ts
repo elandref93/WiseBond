@@ -34,6 +34,10 @@ async function importPostgres() {
 async function initializeDatabase() {
   // Initialize postgres import
   const postgresClient = await importPostgres();
+  
+  // Always use Azure PostgreSQL - no in-memory fallback
+  console.log('🗄️ Connecting to Azure PostgreSQL database...');
+  
   // Only attempt Azure Key Vault in cloud environments
   if (process.env.WEBSITE_SITE_NAME || process.env.AZURE_WEBAPP_NAME) {
     console.log('🔄 Attempting Tier 1: Azure Key Vault');
@@ -109,81 +113,55 @@ async function initializeDatabase() {
     console.log('🔄 Skipping Tier 2: Managed Identity (local development)');
   }
 
-  console.log('🔄 Attempting Tier 3: Fallback to hardcoded/environment credentials');
+  // TIER 3: Environment Variables (for local development)
+  console.log('🔄 Attempting Tier 3: Environment Variables');
   
   try {
-    // TIER 3: Direct connection with multiple SSL configurations
-    const host = 'wisebond-server.postgres.database.azure.com';
-    const port = 5432;
-    const database = 'postgres';
-    const username = 'elandre';
-    const password = '*6CsqD325CX#9&HA9q#a5r9^9!8W%F';
-    
-    console.log(host);
-    console.log(port);
-    console.log(database);
-    console.log(username);
-    
-    // Try different SSL configurations
-    const sslConfigs = [
-      { rejectUnauthorized: false, sslmode: 'require' },
-      { rejectUnauthorized: true, sslmode: 'require' },
-      { rejectUnauthorized: false },
-      false
-    ];
-    
-    for (let i = 0; i < sslConfigs.length; i++) {
-      const sslConfig = sslConfigs[i];
-      console.log(`Trying SSL configuration ${i + 1}:`, sslConfig);
+    // Check if we have DATABASE_URL from environment
+    if (process.env.DATABASE_URL) {
+      client = postgresClient(process.env.DATABASE_URL, {
+        max: 20,
+        idle_timeout: 30,
+        connect_timeout: 10,
+        ssl: { rejectUnauthorized: false },
+        prepare: true,
+        max_lifetime: 60 * 30,
+        onnotice: () => {},
+      });
       
-      try {
-        const connectionOptions = {
-          host,
-          port,
-          database,
-          username,
-          password,
-          ssl: sslConfig,
-          max: 20,
-          idle_timeout: 30,
-          connect_timeout: 10,
-          prepare: true,
-          max_lifetime: 60 * 30,
-          onnotice: () => {},
-        };
-        
-        client = postgresClient(connectionOptions);
-        
-        // Test connection
-        await client`SELECT 1`;
-        
-        db = drizzle(client, { schema });
-        console.log(`✅ Tier 3 successful with SSL config ${i + 1}`);
-        return;
-      } catch (error: any) {
-        console.log(`SSL config ${i + 1} failed:`, error.message);
-        if (client) {
-          try {
-            await client.end();
-          } catch {}
-          client = null;
-        }
-      }
+      db = drizzle(client, { schema });
+      console.log('✅ Tier 3 successful: Environment Variables');
+      return;
     }
     
-    throw new Error('All SSL configurations failed');
+    // Fallback to hardcoded Azure PostgreSQL for local development
+    console.log('🔄 Using hardcoded Azure PostgreSQL for local development');
+    const hardcodedConfig = {
+      host: 'wisebond-server.postgres.database.azure.com',
+      port: 5432,
+      database: 'postgres',
+      username: 'elandre',
+      password: '*6CsqD325CX#9&HA9q#a5r9^9!8W%F'
+    };
+    
+    const connectionString = `postgresql://${hardcodedConfig.username}:${encodeURIComponent(hardcodedConfig.password)}@${hardcodedConfig.host}:${hardcodedConfig.port}/${hardcodedConfig.database}?sslmode=require`;
+    
+    client = postgresClient(connectionString, {
+      max: 20,
+      idle_timeout: 30,
+      connect_timeout: 10,
+      ssl: { rejectUnauthorized: false },
+      prepare: true,
+      max_lifetime: 60 * 30,
+      onnotice: () => {},
+    });
+    
+    db = drizzle(client, { schema });
+    console.log('✅ Tier 3 successful with hardcoded Azure PostgreSQL');
+    
   } catch (error: any) {
-    console.log('❌ Tier 3 failed:', error.message);
-    console.log('Full error details:', error);
-    
-    console.log('🔥 NETWORK ISSUE: Cannot reach Azure PostgreSQL server');
-    console.log('This could be due to:');
-    console.log('1. Azure firewall blocking Replit\'s IP ranges');
-    console.log('2. Server requires specific SSL certificates');
-    console.log('3. Server is in a private network');
-    console.log('4. Incorrect server hostname or port');
-    
-    throw new Error('All connection strategies failed. Application cannot proceed.');
+    console.error('❌ All database connection tiers failed:', error.message);
+    throw new Error(`Database connection failed: ${error.message}`);
   }
 }
 
