@@ -49,8 +49,14 @@ jobs:
         echo "Verifying build output..."
         ls -la dist/
         
-        if [ ! -f "dist/index.js" ]; then
+        # More robust verification
+        if [ -f "dist/index.js" ]; then
+          echo "✅ dist/index.js found"
+          ls -la dist/index.js
+        else
           echo "❌ Server build failed - dist/index.js not found"
+          echo "Contents of dist directory:"
+          ls -la dist/
           exit 1
         fi
         
