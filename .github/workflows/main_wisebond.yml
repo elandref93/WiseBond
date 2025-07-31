@@ -31,9 +31,13 @@ jobs:
     - name: Clean and install dependencies to fix Rollup native error
       run: |
         echo "Cleaning up previous installs..."
-        rm -rf node_modules package-lock.json
+        rm -rf node_modules package-lock.json dist/ .cache/
+        echo "Clearing npm cache to ensure fresh dependencies..."
+        npm cache clean --force
         echo "Installing dependencies with fallback support for optional native modules..."
         npm install
+        echo "Verifying postgres module installation..."
+        ls -la node_modules/postgres/ || echo "Postgres module not found in expected location"
     
     # - name: Run type checking
     #   run: npm run check
@@ -213,14 +217,32 @@ jobs:
       run: |
         echo "🧹 Preparing Azure App Service for deployment..."
         
-        # Check current deployment status
-        echo "Checking for any running deployments..."
-        az webapp deployment list --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} --output table || true
+        # Stop the app to ensure clean deployment
+        echo "Stopping app service to clear any file locks..."
+        az webapp stop --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} || true
+        sleep 10
         
-        # Clear any stuck deployments (optional - uncomment if needed)
-        # echo "Restarting app service to clear any file locks..."
-        # az webapp restart --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }}
-        # sleep 10
+        # Check deployment history (using correct command)
+        echo "Checking deployment history..."
+        az webapp deployment list-publishing-profiles --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} --output table || true
+        
+        # Clear application cache and temporary files
+        echo "Clearing application cache and temp files..."
+        az webapp config appsettings set --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} --settings WEBSITE_CLEAR_CACHE=1 || true
+        
+        # Set Node.js optimization settings for better ES module compatibility
+        echo "Setting Node.js optimization settings..."
+        az webapp config appsettings set --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} --settings NODE_OPTIONS="--max-old-space-size=1024 --experimental-specifier-resolution=node" || true
+        
+        # Ensure Oryx build is disabled since we're using pre-built packages
+        echo "Configuring build settings for pre-built deployment..."
+        az webapp config appsettings set --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} --settings SCM_DO_BUILD_DURING_DEPLOYMENT=false || true
+        az webapp config appsettings set --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} --settings ENABLE_ORYX_BUILD=false || true
+        
+        # Force restart to clear all cached modules
+        echo "Forcing app restart to clear cached modules..."
+        az webapp restart --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} || true
+        sleep 15
         
         echo "✅ Pre-deployment cleanup completed"
         
