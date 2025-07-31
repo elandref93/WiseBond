@@ -28,65 +28,39 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
     
-    - name: Clean and install dependencies to fix Rollup native error
+    - name: Install dependencies
       run: |
-        echo "Cleaning up previous installs..."
-        rm -rf node_modules package-lock.json dist/ .cache/
-        echo "Clearing npm cache to ensure fresh dependencies..."
-        npm cache clean --force
-        echo "Installing dependencies with fallback support for optional native modules..."
-        npm install
-        echo "Verifying postgres module installation..."
-        ls -la node_modules/postgres/ || echo "Postgres module not found in expected location"
+        echo "Installing dependencies..."
+        npm ci --production=false
     
-    # - name: Run type checking
-    #   run: npm run check
-    
-    - name: Build application with proper path mapping
+    - name: Build application
       run: |
-        echo "Starting build process with proper path mapping..."
-        
-        # Build the entire application
+        echo "Building application..."
         npm run build
         
         # Verify the build output
-        echo "Verifying build output..."
-        ls -la dist/
-        
-        # More robust verification
         if [ -f "dist/index.js" ]; then
-          echo "✅ dist/index.js found"
-          ls -la dist/index.js
+          echo "✅ Server build successful"
         else
-          echo "❌ Server build failed - dist/index.js not found"
-          echo "Contents of dist directory:"
-          ls -la dist/
+          echo "❌ Server build failed"
           exit 1
         fi
-        
-        echo "✅ Build completed successfully"
     
-    - name: Create ultra-optimized deployment package
+    - name: Create deployment package
       run: |
-        echo "Creating minimal deployment package..."
+        echo "Creating deployment package..."
         
         # Create deployment directory
-        mkdir -p minimal-deploy
+        mkdir -p deploy
         
-        # Copy only essential runtime files
-        cp package.json minimal-deploy/
+        # Copy essential files only
+        cp package.json deploy/
+        cp -r dist/ deploy/
+        cp -r shared/ deploy/
+        cp web.config deploy/
         
-        # Copy built application
-        cp -r dist/ minimal-deploy/
-        
-        # Copy shared directory (required for database schema)
-        cp -r shared/ minimal-deploy/
-        
-        # Copy config files
-        cp web.config minimal-deploy/
-        
-        # Create minimal package.json for production (include all runtime dependencies)
-        cat > minimal-deploy/package.json << 'EOF'
+        # Create production package.json
+        cat > deploy/package.json << 'EOF'
         {
           "name": "wisebond-production",
           "version": "1.0.0",
@@ -130,81 +104,17 @@ jobs:
         }
         EOF
         
-        # Install ONLY essential production dependencies
-        cd minimal-deploy
-        npm install --production --no-optional --no-dev --silent
-        
-        # Ultra-aggressive cleanup for maximum size reduction
-        echo "Ultra-aggressive cleanup for maximum size reduction..."
-        
-        # Remove all documentation and test files
-        find node_modules -name "*.md" -delete 2>/dev/null || true
-        find node_modules -name "*.txt" -delete 2>/dev/null || true
-        find node_modules -name "*.map" -delete 2>/dev/null || true
-        find node_modules -name "*test*" -type f -delete 2>/dev/null || true
-        find node_modules -name "*spec*" -type f -delete 2>/dev/null || true
-        find node_modules -name "example*" -delete 2>/dev/null || true
-        find node_modules -name "LICENSE*" -delete 2>/dev/null || true
-        find node_modules -name "CHANGELOG*" -delete 2>/dev/null || true
-        find node_modules -name "README*" -delete 2>/dev/null || true
-        find node_modules -name ".git*" -delete 2>/dev/null || true
-        find node_modules -name "*.ts" -not -path "*/types/*" -delete 2>/dev/null || true
-        find node_modules -name "*.d.ts" -not -path "*/types/*" -not -path "*/@types/*" -delete 2>/dev/null || true
-        find node_modules -name "*.flow" -delete 2>/dev/null || true
-        find node_modules -name "*.coffee" -delete 2>/dev/null || true
-        find node_modules -name "*.scss" -delete 2>/dev/null || true
-        find node_modules -name "*.less" -delete 2>/dev/null || true
-        find node_modules -name "*.styl" -delete 2>/dev/null || true
-        find node_modules -name "*.tsbuildinfo" -delete 2>/dev/null || true
-        find node_modules -name ".eslintrc*" -delete 2>/dev/null || true
-        find node_modules -name ".prettierrc*" -delete 2>/dev/null || true
-        find node_modules -name "jest.config.*" -delete 2>/dev/null || true
-        find node_modules -name "rollup.config.*" -delete 2>/dev/null || true
-        find node_modules -name "webpack.config.*" -delete 2>/dev/null || true
-        
-        # Remove entire directory structures that aren't needed
-        rm -rf node_modules/*/test/ 2>/dev/null || true
-        rm -rf node_modules/*/tests/ 2>/dev/null || true
-        rm -rf node_modules/*/__tests__/ 2>/dev/null || true
-        rm -rf node_modules/*/coverage/ 2>/dev/null || true
-        rm -rf node_modules/*/.nyc_output/ 2>/dev/null || true
-        rm -rf node_modules/*/benchmark/ 2>/dev/null || true
-        rm -rf node_modules/*/docs/ 2>/dev/null || true
-        rm -rf node_modules/*/example*/ 2>/dev/null || true
-        rm -rf node_modules/*/demo*/ 2>/dev/null || true
-        rm -rf node_modules/*/.cache/ 2>/dev/null || true
-        rm -rf node_modules/*/man/ 2>/dev/null || true
-        rm -rf node_modules/*/src/ 2>/dev/null || true
-        
-        # Remove binary files from packages that have both binary and JS versions
-        find node_modules -name "*.exe" -delete 2>/dev/null || true
-        find node_modules -name "*.dll" -delete 2>/dev/null || true
-        find node_modules -name "*.dylib" -delete 2>/dev/null || true
-        find node_modules -name "*.so" -delete 2>/dev/null || true
-        
+        # Install production dependencies
+        cd deploy
+        npm install --production --no-optional --silent
         cd ..
         
-        # Create deployment zip with maximum compression
-        cd minimal-deploy
-        zip -9 -r ../deployment.zip . -q
+        # Create zip package
+        cd deploy
+        zip -r ../deployment.zip . -q
         cd ..
         
-        # Show size comparison and validation
-        echo "📦 Ultra-optimized deployment package results:"
-        echo "Compressed package: $(du -sh deployment.zip | cut -f1)"
-        echo "Uncompressed package: $(du -sh minimal-deploy | cut -f1)"
-        
-        # Check final size and warn if still large
-        FINAL_SIZE=$(stat --format=%s deployment.zip)
-        FINAL_SIZE_MB=$(echo "scale=1; $FINAL_SIZE / 1024 / 1024" | bc)
-        echo "Final deployment package size: ${FINAL_SIZE_MB}MB"
-        
-        if [ $FINAL_SIZE -gt 104857600 ]; then
-          echo "⚠️  Warning: Package is still large (>100MB). This may cause deployment conflicts."
-          echo "Consider further optimization or switching to container deployment."
-        else
-          echo "✅ Package size is optimized for reliable deployment."
-        fi
+        echo "📦 Package size: $(du -sh deployment.zip | cut -f1)"
 
     - name: 'Login to Azure'
       uses: azure/login@v2
@@ -213,104 +123,18 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Pre-deployment cleanup (prevent conflicts)
-      run: |
-        echo "🧹 Preparing Azure App Service for deployment..."
-        
-        # Stop the app to ensure clean deployment
-        echo "Stopping app service to clear any file locks..."
-        az webapp stop --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} || true
-        sleep 10
-        
-        # Check deployment history (using correct command)
-        echo "Checking deployment history..."
-        az webapp deployment list-publishing-profiles --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} --output table || true
-        
-        # Clear application cache and temporary files
-        echo "Clearing application cache and temp files..."
-        az webapp config appsettings set --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} --settings WEBSITE_CLEAR_CACHE=1 || true
-        
-        # Set Node.js optimization settings for better ES module compatibility
-        echo "Setting Node.js optimization settings..."
-        az webapp config appsettings set --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} --settings NODE_OPTIONS="--max-old-space-size=1024 --experimental-specifier-resolution=node" || true
-        
-        # Ensure Oryx build is disabled since we're using pre-built packages
-        echo "Configuring build settings for pre-built deployment..."
-        az webapp config appsettings set --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} --settings SCM_DO_BUILD_DURING_DEPLOYMENT=false || true
-        az webapp config appsettings set --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} --settings ENABLE_ORYX_BUILD=false || true
-        
-        # Force restart to clear all cached modules
-        echo "Forcing app restart to clear cached modules..."
-        az webapp restart --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} || true
-        sleep 15
-        
-        echo "✅ Pre-deployment cleanup completed"
-        
-    - name: Deploy to Azure Web App (Primary attempt)
-      id: primary_deploy
+    - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v3
-      continue-on-error: true
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
         slot-name: 'production'
         package: deployment.zip
-        clean: true              # Clean existing files before deployment
-        restart: true            # Restart app after deployment
-        startup-command: 'npm start'  # Explicit startup command
-        
-    - name: Handle deployment conflict (409 error recovery)
-      if: steps.primary_deploy.outcome == 'failure'
-      run: |
-        echo "⚠️  Primary deployment failed. Implementing 409 conflict recovery..."
-        echo "Waiting 45 seconds for any file locks to release..."
-        sleep 45
-        
-        echo "Restarting app service to clear conflicts..."
-        az webapp restart --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }}
-        sleep 15
-        
-        echo "✅ Conflict recovery completed, ready for retry"
-        
-    - name: Deploy to Azure Web App (Retry attempt)
-      if: steps.primary_deploy.outcome == 'failure'
-      id: retry_deploy
-      uses: azure/webapps-deploy@v3
-      continue-on-error: true
-      with:
-        app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        slot-name: 'production'
-        package: deployment.zip
-        clean: true              # Clean existing files before deployment
-        restart: true            # Restart app after deployment
-        
-    - name: Deploy using Azure CLI (Final fallback)
-      if: steps.primary_deploy.outcome == 'failure' && steps.retry_deploy.outcome == 'failure'
-      run: |
-        echo "🔄 Both webapps-deploy attempts failed. Using Azure CLI as fallback..."
-        
-        # Stop the app to prevent conflicts
-        echo "Stopping app service..."
-        az webapp stop --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }}
-        sleep 10
-        
-        # Deploy using zip deployment
-        echo "Deploying via Azure CLI zip deployment..."
-        az webapp deployment source config-zip \
-          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }} \
-          --name ${{ env.AZURE_WEBAPP_NAME }} \
-          --src deployment.zip
-        
-        # Start the app
-        echo "Starting app service..."
-        az webapp start --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP || 'your-resource-group' }}
-        
-        echo "✅ Fallback deployment completed via Azure CLI"
-        
-    - name: Verify deployment success
+        clean: true
+        restart: true
+
+    - name: Verify deployment
       run: |
         echo "🔍 Verifying deployment..."
-        
-        # Wait for app to be ready
         sleep 30
         
         # Check app status
@@ -322,31 +146,9 @@ jobs:
         else
           echo "⚠️  App Service state: $APP_STATE"
         fi
-        
-        # Test the endpoint (optional)
-        echo "Testing application endpoint..."
-        HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/ || echo "000")
-        echo "HTTP Response Code: $HTTP_STATUS"
-        
-        if [ "$HTTP_STATUS" = "200" ]; then
-          echo "✅ Application is responding successfully"
-        else
-          echo "⚠️  Application returned HTTP $HTTP_STATUS"
-        fi
 
     - name: 🎉 Deployment Summary
       run: |
-        echo "✅ Deployment pipeline completed!"
+        echo "✅ Deployment completed!"
         echo "🌐 Application URL: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
-        echo "📊 Package size: $(du -sh deployment.zip | cut -f1)"
-        echo "🛡️  Deployment method: Multi-stage with conflict resolution"
-        echo "⏱️  Total deployment time: ~3-4 minutes (with conflict handling)"
-        
-        # Deployment status summary
-        if [ "${{ steps.primary_deploy.outcome }}" = "success" ]; then
-          echo "✅ Primary deployment: SUCCESS"
-        elif [ "${{ steps.retry_deploy.outcome }}" = "success" ]; then
-          echo "✅ Retry deployment: SUCCESS (after conflict resolution)"
-        else
-          echo "✅ Fallback deployment: SUCCESS (via Azure CLI)"
-        fi
+        echo "📦 Package size: $(du -sh deployment.zip | cut -f1)"
