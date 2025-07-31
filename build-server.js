@@ -31,6 +31,8 @@ async function buildServer() {
         './vite',
         '../vite',
         'vite',
+        'nanoid',
+        'zod-validation-error',
         // Runtime dependencies
         'drizzle-orm',
         'postgres',
