@@ -160,9 +160,11 @@ app.use((req, res, next) => {
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
   } else {
+    // In development, try to use Vite if available, otherwise fall back to static files
     try {
-      const { setupVite } = await import('./vite');
-      await setupVite(app, server);
+      // Dynamic import to avoid bundling issues
+      const viteModule = await import('./vite.js');
+      await viteModule.setupVite(app, server);
     } catch (error) {
       console.log('⚠️ Vite development server not available, using static files');
       serveStatic(app);
