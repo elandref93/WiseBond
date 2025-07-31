@@ -1,5 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+// Force CommonJS import for postgres in production
+const postgresModule = await import('postgres');
+const postgres = postgresModule.default;
 import * as schema from '@shared/schema';
 import { getDatabaseSecretsFromKeyVault, checkAzureAuthentication } from './keyVault';
 

@@ -36,7 +36,6 @@ async function buildServer() {
         // Runtime dependencies
         'drizzle-orm',
         'postgres',
-        'postgres/cjs/src/index.js',
         'express',
         'express-session',
         'passport',
