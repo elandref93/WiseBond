@@ -131,6 +131,7 @@ jobs:
         package: deployment.zip
         clean: true
         restart: true
+        startup-command: 'npm start'  # Explicit startup command
 
     - name: Verify deployment
       run: |
