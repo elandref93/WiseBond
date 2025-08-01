@@ -88,10 +88,10 @@ export async function sendEmail(params: EmailParams): Promise<{success: boolean,
   const mg = mailgun.client({ username: 'api', key: apiKey });
   
   try {
-         // Create the message data with enhanced deliverability headers
-     const messageData: any = {
-       from: params.from || fromEmail || 'Wise Bond <noreply@wisebond.co.za>',
-       to: params.to,
+               // Create the message data with enhanced deliverability headers
+      const messageData: any = {
+        from: params.from || (fromEmail ? `Wise Bond <${fromEmail}>` : 'Wise Bond <noreply@wisebond.co.za>'),
+        to: params.to,
       subject: params.subject,
       text: params.text || '',
       html: params.html || '',
@@ -314,7 +314,7 @@ export async function sendCalculationEmail(data: CalculationEmailData): Promise<
       
       return await sendEmail({
         to: data.email,
-        from: process.env.MAILGUN_FROM_EMAIL || 'Wise Bond <noreply@wisebond.co.za>',
+        from: process.env.MAILGUN_FROM_EMAIL ? `Wise Bond <${process.env.MAILGUN_FROM_EMAIL}>` : 'Wise Bond <noreply@wisebond.co.za>',
         subject: `Your ${calculatorTitle} Results from WiseBond`,
         text: formatCalculationEmailText(data),
         html: formatCalculationEmailHtml(data),
@@ -330,7 +330,7 @@ export async function sendCalculationEmail(data: CalculationEmailData): Promise<
       // Fallback to email without PDF if generation fails
       return await sendEmail({
         to: data.email,
-        from: process.env.MAILGUN_FROM_EMAIL || 'Wise Bond <noreply@wisebond.co.za>',
+        from: process.env.MAILGUN_FROM_EMAIL ? `Wise Bond <${process.env.MAILGUN_FROM_EMAIL}>` : 'Wise Bond <noreply@wisebond.co.za>',
         subject: `Your ${calculatorTitle} Results from WiseBond`,
         text: formatCalculationEmailText(data),
         html: formatCalculationEmailHtml(data)
@@ -341,7 +341,7 @@ export async function sendCalculationEmail(data: CalculationEmailData): Promise<
   // For other calculation types, send email without PDF
   return await sendEmail({
     to: data.email,
-    from: process.env.MAILGUN_FROM_EMAIL || 'Wise Bond <noreply@wisebond.co.za>',
+    from: process.env.MAILGUN_FROM_EMAIL ? `Wise Bond <${process.env.MAILGUN_FROM_EMAIL}>` : 'Wise Bond <noreply@wisebond.co.za>',
     subject: `Your ${calculatorTitle} Results from WiseBond`,
     text: formatCalculationEmailText(data),
     html: formatCalculationEmailHtml(data)
@@ -506,7 +506,7 @@ export async function sendVerificationEmail(data: VerificationEmailData): Promis
   
   return await sendEmail({
     to: data.email,
-    from: process.env.MAILGUN_FROM_EMAIL || 'Wise Bond <verification@wisebond.co.za>',
+    from: process.env.MAILGUN_FROM_EMAIL ? `Wise Bond <${process.env.MAILGUN_FROM_EMAIL}>` : 'Wise Bond <noreply@wisebond.co.za>',
     subject: variation === 1 ? 'Complete your WiseBond account setup' : 'Welcome to WiseBond - Account verification',
     text: formatVerificationEmailText(data, variation),
     html: formatVerificationEmailHtml(data, variation)
@@ -698,7 +698,7 @@ export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<{success
   
   return await sendEmail({
     to: data.email,
-    from: process.env.MAILGUN_FROM_EMAIL || 'Wise Bond <welcome@wisebond.co.za>',
+    from: process.env.MAILGUN_FROM_EMAIL ? `Wise Bond <${process.env.MAILGUN_FROM_EMAIL}>` : 'Wise Bond <noreply@wisebond.co.za>',
     subject: variation === 1 ? 'Welcome aboard! Your WiseBond account is active' : 'Your journey begins now! Welcome to WiseBond',
     text: formatWelcomeEmailText(data, variation),
     html: formatWelcomeEmailHtml(data, variation)
@@ -865,7 +865,7 @@ export async function sendPasswordResetEmail(data: PasswordResetEmailData): Prom
   
   return await sendEmail({
     to: data.email,
-    from: process.env.MAILGUN_FROM_EMAIL || 'Wise Bond <security@wisebond.co.za>',
+    from: process.env.MAILGUN_FROM_EMAIL ? `Wise Bond <${process.env.MAILGUN_FROM_EMAIL}>` : 'Wise Bond <noreply@wisebond.co.za>',
     subject: variation === 1 ? 'Reset Your WiseBond Password' : 'WiseBond Password Reset Request',
     text: formatPasswordResetEmailText(data, variation),
     html: formatPasswordResetEmailHtml(data, variation)
@@ -983,7 +983,7 @@ Please respond within 24 hours
   `;
 
   return await sendEmail({
-    from: 'Wise Bond <noreply@wisebond.co.za>',
+    from: process.env.MAILGUN_FROM_EMAIL ? `Wise Bond <${process.env.MAILGUN_FROM_EMAIL}>` : 'Wise Bond <noreply@wisebond.co.za>',
     to: 'info@wisebond.co.za',
     subject,
     html: htmlContent,
