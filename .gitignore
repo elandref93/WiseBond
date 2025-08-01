@@ -12,6 +12,16 @@ deployment
 .env.*.local
 .env.development
 .env.test
+.env.production
+.env.staging
+
+# API Keys and Secrets
+*.key
+*.pem
+secrets.json
+config.json
+credentials.json
+api-keys.json
 
 # Log files
 *.log
