@@ -47,7 +47,7 @@ async function sendTestEmail() {
   }
   
   if (!fromEmail) {
-    fromEmail = await getUserInput('Enter From Email (default: postmaster@domain): ') || `postmaster@${domain}`;
+    fromEmail = await getUserInput('Enter From Email (default: noreply@domain): ') || `noreply@${domain}`;
   } else {
     console.log(`✅ Using From Email from environment: ${fromEmail}`);
   }

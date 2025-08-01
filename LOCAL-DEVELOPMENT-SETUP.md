@@ -36,7 +36,7 @@ This will:
 # Mailgun Email Service
 MAILGUN_API_KEY=your_mailgun_api_key_here
 MAILGUN_DOMAIN=wisebond.co.za
-MAILGUN_FROM_EMAIL=postmaster@wisebond.co.za
+MAILGUN_FROM_EMAIL=noreply@wisebond.co.za
 
 # Google Maps API
 GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here

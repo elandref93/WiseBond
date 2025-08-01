@@ -18,7 +18,7 @@ WiseBond uses Azure Key Vault as the primary method for storing and retrieving s
 2. Add the following secrets (using lowercase naming convention with hyphens):
    - `mailgun-api-key` - Your Mailgun Private API key
    - `mailgun-domain` - Your verified Mailgun domain (wisebond.co.za)
-   - `mailgun-from-email` - Your sender email (postmaster@wisebond.co.za)
+   - `mailgun-from-email` - Your sender email (noreply@wisebond.co.za)
 3. Configure Azure credentials in your environment (for local development only)
 
 ### Alternative Method: Replit Secrets (Development)
@@ -29,7 +29,7 @@ For development environments like Replit where Azure Key Vault may not be access
 2. Add the following secrets:
    - `MAILGUN_API_KEY` - Your Mailgun Private API key
    - `MAILGUN_DOMAIN` - Your verified Mailgun domain (wisebond.co.za) 
-   - `MAILGUN_FROM_EMAIL` - Your sender email (postmaster@wisebond.co.za)
+   - `MAILGUN_FROM_EMAIL` - Your sender email (noreply@wisebond.co.za)
 
 The application will automatically use these secrets if Azure Key Vault is not available.
 

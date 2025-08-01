@@ -26,7 +26,7 @@ import { generateAmortizationData } from '../../../client/src/lib/amortizationUt
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// PDF generation options
+// Interface for PDF generation options
 interface PdfGenerationOptions {
   title?: string;
   includeDate?: boolean;
@@ -35,21 +35,11 @@ interface PdfGenerationOptions {
   footerTemplate?: string;
 }
 
-// Default options
-const defaultOptions: PdfGenerationOptions = {
-  title: 'Wise Bond (Pty) Ltd Report',
-  includeDate: true,
-  includeTimestamp: false,
-  orientation: 'portrait',
-  footerTemplate: '<div style="width: 100%; font-size: 8px; text-align: center; color: #999; padding: 10px;">' +
-                  '<span>Wise Bond (Pty) Ltd | Reg No: 2025/291726/07 | NCRCP21939 | www.wisebond.co.za | Generated on {{date}}</span>' +
-                  '<span style="float: right;">Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>' +
-                  '</div>'
-};
+
 
 /**
- * Generate a PDF from HTML content
- * @param htmlContent HTML content to be rendered to PDF
+ * Generate PDF from HTML content with robust error handling
+ * @param htmlContent HTML content to convert to PDF
  * @param options PDF generation options
  * @returns Buffer containing the PDF file
  */
@@ -57,53 +47,59 @@ export async function generatePdfFromHtml(
   htmlContent: string, 
   options: PdfGenerationOptions = {}
 ): Promise<Buffer> {
-  // Merge default options with provided options
-  const mergedOptions = { ...defaultOptions, ...options };
-  
-  // Format date for the footer if needed
-  if (mergedOptions.includeDate && mergedOptions.footerTemplate) {
-    const date = new Date();
-    const formattedDate = date.toLocaleDateString('en-ZA', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-    
-    mergedOptions.footerTemplate = mergedOptions.footerTemplate.replace('{{date}}', formattedDate);
-    
-    if (mergedOptions.includeTimestamp) {
-      const formattedTime = date.toLocaleTimeString('en-ZA');
-      mergedOptions.footerTemplate = mergedOptions.footerTemplate.replace('{{time}}', formattedTime);
-    }
-  }
-  
-  // Launch browser
-  const browser = await puppeteer.launch({
-    headless: true,
-    executablePath: process.env.CHROME_BIN || '/nix/store/zi4f80l169xlmivz8vja8wlphq74qqk0-chromium-125.0.6422.141/bin/chromium',
-    args: [
-      '--no-sandbox', 
-      '--disable-setuid-sandbox', 
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--single-process'
-    ]
-  });
+  let browser;
   
   try {
+    console.log('Starting PDF generation...');
+    
+    // Launch browser with more robust options
+    browser = await puppeteer.launch({
+      headless: true, // Use boolean for compatibility
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding'
+      ],
+      timeout: 30000
+    });
+
+    console.log('Browser launched successfully');
+
     // Create a new page
     const page = await browser.newPage();
     
-    // Set content
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    // Set viewport for consistent rendering
+    await page.setViewport({ width: 1200, height: 800 });
     
-    // No chart initialization needed with static SVGs
-    console.log('Using static SVG charts, no initialization required');
+    // Set content with proper error handling
+    console.log('Setting HTML content...');
+    await page.setContent(htmlContent, { 
+      waitUntil: 'networkidle0',
+      timeout: 30000 
+    });
+
+    // Wait for content to be fully rendered
+    console.log('Waiting for content to render...');
+    await page.waitForFunction(() => {
+      return document.readyState === 'complete';
+    }, { timeout: 10000 });
+
+    // Additional wait for any dynamic content
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    console.log('Generating PDF...');
     
-    // Generate PDF
+    // Generate PDF with robust settings
     const pdfBuffer = await page.pdf({
       format: 'A4',
-      landscape: mergedOptions.orientation === 'landscape',
+      landscape: options.orientation === 'landscape',
       printBackground: true,
       margin: {
         top: '20mm',
@@ -113,14 +109,28 @@ export async function generatePdfFromHtml(
       },
       displayHeaderFooter: true,
       headerTemplate: '<div></div>', // Empty header
-      footerTemplate: mergedOptions.footerTemplate || '',
+      footerTemplate: options.footerTemplate || '',
+      timeout: 30000
     });
+
+    console.log('PDF generated successfully');
     
-    // Convert Uint8Array to Buffer if needed
+    // Convert Uint8Array to Buffer
     return Buffer.from(pdfBuffer);
+    
+  } catch (error) {
+    console.error('Error in generatePdfFromHtml:', error);
+    throw error;
   } finally {
     // Always close the browser
-    await browser.close();
+    if (browser) {
+      try {
+        await browser.close();
+        console.log('Browser closed successfully');
+      } catch (closeError) {
+        console.error('Error closing browser:', closeError);
+      }
+    }
   }
 }
 
@@ -789,12 +799,6 @@ function renderBondRepaymentTemplate(
   return html;
 }
 
-/**
- * Save PDF to a temporary file
- * @param pdfBuffer PDF file buffer
- * @param filename Optional filename (default: temp-file.pdf)
- * @returns Path to the saved file
- */
 /**
  * Generate a PDF report for additional payment calculation
  * @param calculationResult The result of the additional payment calculation

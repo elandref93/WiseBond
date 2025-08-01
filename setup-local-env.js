@@ -47,7 +47,7 @@ async function setupLocalEnv() {
   
   const mailgunApiKey = await question('Mailgun API Key: ');
   const mailgunDomain = await question('Mailgun Domain (default: wisebond.co.za): ') || 'wisebond.co.za';
-  const mailgunFromEmail = await question('From Email (default: postmaster@wisebond.co.za): ') || 'postmaster@wisebond.co.za';
+  const mailgunFromEmail = await question('From Email (default: noreply@wisebond.co.za): ') || 'noreply@wisebond.co.za';
 
   console.log('\n🗺️  Google Maps Configuration (for address autocomplete):');
   console.log('   Get your API key from: https://console.cloud.google.com/apis/credentials\n');

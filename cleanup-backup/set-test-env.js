@@ -32,7 +32,7 @@ async function setTestEnvironment() {
   console.log('\n📧 Mailgun Configuration:');
   const mailgunApiKey = await getUserInput('Mailgun API Key');
   const mailgunDomain = await getUserInput('Mailgun Domain', 'wisebond.co.za');
-  const mailgunFromEmail = await getUserInput('Mailgun From Email', `postmaster@${mailgunDomain}`);
+  const mailgunFromEmail = await getUserInput('Mailgun From Email', `noreply@${mailgunDomain}`);
   
   console.log('\n🗺️  Google Maps Configuration:');
   const googleMapsApiKey = await getUserInput('Google Maps API Key');

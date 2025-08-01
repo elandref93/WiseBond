@@ -1,5 +1,6 @@
 import FormData from 'form-data';
 import Mailgun from 'mailgun.js';
+import { generateAdditionalPaymentPdf } from './services/pdf/pdfGenerator';
 
 // Interface for email calculation data
 interface CalculationResult {
@@ -19,6 +20,11 @@ interface EmailParams {
   subject: string;
   text?: string;
   html?: string;
+  attachment?: {
+    filename: string;
+    data: Buffer;
+    contentType: string;
+  };
 }
 
 // Interface for calculation email data
@@ -82,10 +88,10 @@ export async function sendEmail(params: EmailParams): Promise<{success: boolean,
   const mg = mailgun.client({ username: 'api', key: apiKey });
   
   try {
-    // Create the message data with enhanced deliverability headers
-    const messageData = {
-      from: params.from || fromEmail || 'noreply@wisebond.co.za',
-      to: params.to,
+         // Create the message data with enhanced deliverability headers
+     const messageData: any = {
+       from: params.from || fromEmail || 'Wise Bond <noreply@wisebond.co.za>',
+       to: params.to,
       subject: params.subject,
       text: params.text || '',
       html: params.html || '',
@@ -123,6 +129,15 @@ export async function sendEmail(params: EmailParams): Promise<{success: boolean,
         'email_type': 'transactional'
       })
     };
+    
+    // Add attachment if provided
+    if (params.attachment) {
+      messageData.attachment = {
+        data: params.attachment.data,
+        filename: params.attachment.filename,
+        contentType: params.attachment.contentType
+      };
+    }
     
     // Send the message
     await mg.messages.create(domain, messageData);
@@ -202,8 +217,15 @@ function formatCalculationEmailHtml(data: CalculationEmailData): string {
           </div>
         </div>
         
+                 ${data.calculationType === 'additional' ? `
+        <div style="background-color: #e8f5e8; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+          <h3 style="color: #2d5a2d; margin-top: 0;">📎 PDF Report Attached</h3>
+          <p>A detailed PDF report with charts and analysis has been attached to this email for your reference.</p>
+        </div>
+        ` : ''}
+        
         <div style="background-color: #f0f7ff; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-          <h3 style="color: #1a3d6c; margin-top: 0;">Next Steps</h3>
+           <h3 style="color: #1a3d6c; margin-top: 0;">Next Steps</h3>
           <p>Want to explore more of our financial tools?</p>
           <ul>
             <li>Try our other calculators</li>
@@ -248,6 +270,8 @@ function formatCalculationEmailText(data: CalculationEmailData): string {
     .map(result => `${result.label}: ${result.value}`)
     .join('\n');
 
+  const pdfNote = data.calculationType === 'additional' ? '\n\n📎 A detailed PDF report with charts and analysis has been attached to this email for your reference.' : '';
+
   return `
 Your ${getCalculatorTitle(data.calculationType)} Results
 
@@ -257,8 +281,7 @@ Thank you for using our ${getCalculatorTitle(data.calculationType)}. Here are yo
 
 --- ${getCalculatorTitle(data.calculationType)} Results ---
 ${resultsText}
----
-
+---${pdfNote}
 Next Steps:
 - Try our other calculators
 - Speak with one of our consultants for personalized advice
@@ -279,9 +302,46 @@ This is an automated message. Please do not reply to this email.
 export async function sendCalculationEmail(data: CalculationEmailData): Promise<{success: boolean, error?: string, isSandboxAuthError?: boolean}> {
   const calculatorTitle = getCalculatorTitle(data.calculationType);
   
+  // Check if this is an additional payment calculation that should include PDF
+  if (data.calculationType === 'additional') {
+    try {
+      console.log('Additional payment calculation - generating PDF attachment...');
+      
+      // Generate PDF for additional payment calculations
+      const pdfBuffer = await generateAdditionalPaymentPdf(data.calculationData, data.calculationData);
+      
+      console.log('PDF generated successfully, sending email with attachment');
+      
+      return await sendEmail({
+        to: data.email,
+        from: process.env.MAILGUN_FROM_EMAIL || 'Wise Bond <noreply@wisebond.co.za>',
+        subject: `Your ${calculatorTitle} Results from WiseBond`,
+        text: formatCalculationEmailText(data),
+        html: formatCalculationEmailHtml(data),
+        attachment: {
+          filename: `wisebond-${data.calculationType}-calculation.pdf`,
+          data: pdfBuffer,
+          contentType: 'application/pdf'
+        }
+      });
+    } catch (pdfError) {
+      console.error('PDF generation failed, sending email without attachment:', pdfError);
+      
+      // Fallback to email without PDF if generation fails
+      return await sendEmail({
+        to: data.email,
+        from: process.env.MAILGUN_FROM_EMAIL || 'Wise Bond <noreply@wisebond.co.za>',
+        subject: `Your ${calculatorTitle} Results from WiseBond`,
+        text: formatCalculationEmailText(data),
+        html: formatCalculationEmailHtml(data)
+      });
+    }
+  }
+  
+  // For other calculation types, send email without PDF
   return await sendEmail({
     to: data.email,
-    from: process.env.MAILGUN_FROM_EMAIL || 'noreply@example.com',
+    from: process.env.MAILGUN_FROM_EMAIL || 'Wise Bond <noreply@wisebond.co.za>',
     subject: `Your ${calculatorTitle} Results from WiseBond`,
     text: formatCalculationEmailText(data),
     html: formatCalculationEmailHtml(data)
@@ -446,7 +506,7 @@ export async function sendVerificationEmail(data: VerificationEmailData): Promis
   
   return await sendEmail({
     to: data.email,
-    from: process.env.MAILGUN_FROM_EMAIL || 'verification@wisebond.co.za',
+    from: process.env.MAILGUN_FROM_EMAIL || 'Wise Bond <verification@wisebond.co.za>',
     subject: variation === 1 ? 'Complete your WiseBond account setup' : 'Welcome to WiseBond - Account verification',
     text: formatVerificationEmailText(data, variation),
     html: formatVerificationEmailHtml(data, variation)
@@ -638,7 +698,7 @@ export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<{success
   
   return await sendEmail({
     to: data.email,
-    from: process.env.MAILGUN_FROM_EMAIL || 'welcome@wisebond.co.za',
+    from: process.env.MAILGUN_FROM_EMAIL || 'Wise Bond <welcome@wisebond.co.za>',
     subject: variation === 1 ? 'Welcome aboard! Your WiseBond account is active' : 'Your journey begins now! Welcome to WiseBond',
     text: formatWelcomeEmailText(data, variation),
     html: formatWelcomeEmailHtml(data, variation)
@@ -805,7 +865,7 @@ export async function sendPasswordResetEmail(data: PasswordResetEmailData): Prom
   
   return await sendEmail({
     to: data.email,
-    from: process.env.MAILGUN_FROM_EMAIL || 'security@wisebond.co.za',
+    from: process.env.MAILGUN_FROM_EMAIL || 'Wise Bond <security@wisebond.co.za>',
     subject: variation === 1 ? 'Reset Your WiseBond Password' : 'WiseBond Password Reset Request',
     text: formatPasswordResetEmailText(data, variation),
     html: formatPasswordResetEmailHtml(data, variation)
@@ -923,7 +983,7 @@ Please respond within 24 hours
   `;
 
   return await sendEmail({
-    from: 'noreply@wisebond.co.za',
+    from: 'Wise Bond <noreply@wisebond.co.za>',
     to: 'info@wisebond.co.za',
     subject,
     html: htmlContent,
