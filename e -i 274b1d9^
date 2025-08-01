@@ -1,0 +1,10 @@
+[33m67e98ee[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Remove comprehensive PDF email testing script and update email sender logic for consistency
+[33meedb324[m Merge branch 'main' of https://github.com/elandref93/WiseBond
+[33m274b1d9[m Update Mailgun sender email to 'noreply@wisebond.co.za' across multiple configuration files
+[33m9fa90eb[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Update main_wisebond.yml
+[33m460f6a5[m Refactor CI workflow in main_wisebond.yml for streamlined deployment process
+[33m968d0ba[m Remove deprecated files and enhance Google Maps API integration
+[33mace6c04[m[33m ([m[1;31morigin/main_backup_31_07_2025[m[33m)[m Enhance CI workflow in main_wisebond.yml for improved deployment and dependency management
+[33md13d98f[m Enhance postgres module import in db.ts for better compatibility and update build-server.js with alias and mainFields for improved module resolution
+[33ma516ba0[m Remove 'postgres/cjs/src/index.js' from build-server.js dependencies and update db.ts to use dynamic import for postgres module in production
+[33mb1f42cc[m Add 'postgres/cjs/src/index.js' to build-server.js dependencies for improved module resolution
